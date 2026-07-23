@@ -1,0 +1,16 @@
+# Stripe Push Provisioning
+-dontwarn com.stripe.android.pushProvisioning.**
+-keep class com.stripe.android.pushProvisioning.** { *; }
+-keep class com.stripe.android.pushProvisioning.PushProvisioningActivity { *; }
+-keep class com.stripe.android.pushProvisioning.PushProvisioningActivity$* { *; }
+-keep class com.stripe.android.pushProvisioning.PushProvisioningActivityStarter { *; }
+-keep class com.stripe.android.pushProvisioning.PushProvisioningActivityStarter$Args { *; }
+-keep class com.stripe.android.pushProvisioning.PushProvisioningActivityStarter$Error { *; }
+-keep class com.stripe.android.pushProvisioning.PushProvisioningEphemeralKeyProvider { *; }
+-keep class com.reactnativestripesdk.pushprovisioning.** { *; }
+-keep class com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy { *; }
+-keep class com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy$* { *; }
+-keep class com.reactnativestripesdk.pushprovisioning.DefaultPushProvisioningProxy { *; }
+-keep class com.reactnativestripesdk.pushprovisioning.DefaultPushProvisioningProxy$* { *; }
+-keep class com.reactnativestripesdk.pushprovisioning.PushProvisioningProxy$createActivityEventListener$listener$1 { *; }
+-keep class com.reactnativestripesdk.pushprovisioning.EphemeralKeyProvider { *; }

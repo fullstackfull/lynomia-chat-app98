@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "558862566411",
+    "project_id": "lynomia-chat-fc5e0",
+    "storage_bucket": "lynomia-chat-fc5e0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:558862566411:android:ff81873f1cf0d59074f30e",
+        "android_client_info": {
+          "package_name": "com.Lynomia.Lynomia_chat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "558862566411-lf0i2g7qth4cehda8sutvv16l09gf12t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.Lynomia.Lynomia_chat",
+            "certificate_hash": "e24157beabbc17f37f75904a8fc2f2e90cddefe3"
+          }
+        },
+        {
+          "client_id": "558862566411-qacvgroumm5ceqvgusqg8bnosq6toh51.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO6r_zhe7P0p_xzFO_tOYI5jk0CzvQ1z0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "558862566411-qacvgroumm5ceqvgusqg8bnosq6toh51.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
