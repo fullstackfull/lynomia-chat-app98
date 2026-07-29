@@ -363,6 +363,7 @@ ChatwootApiService._internal();
 late Dio _dio;
 WebSocketChannel? _webSocket;
 StreamController<ChatwootMessage>? _messageStreamController;
+StreamController<bool>? _connectionStatusController;
 Timer? _presenceTimer;
 
 ChatwootContact? currentContact;
@@ -374,6 +375,18 @@ final String _wsUrl = 'wss://chat.lynomia.com';
 
 String? get _inboxIdentifier =>
 CacheHelper.getString(key: CacheHelper.keyInboxId);
+
+Stream<bool> get connectionStatusStream {
+  _connectionStatusController ??= StreamController<bool>.broadcast();
+  return _connectionStatusController!.stream;
+}
+
+void _setConnectedStatus(bool status) {
+  _isConnected = status;
+  if (_connectionStatusController != null && !_connectionStatusController!.isClosed) {
+    _connectionStatusController!.add(status);
+  }
+}
 
 // ─── Initialize ──────────────────────────────
 void init() {
@@ -387,6 +400,7 @@ validateStatus: (status) => true,
 ));
 
 _messageStreamController = StreamController<ChatwootMessage>.broadcast();
+_connectionStatusController = StreamController<bool>.broadcast();
 }
 // ═══════════════════════════════════════════════════════════════
 // REST API - Contact Management (Public API)
@@ -641,11 +655,11 @@ _webSocket!.stream.listen(
 (message) => _handleWebSocketMessage(message),
 onError: (error) {
 print('❌ WS Error: $error');
-_isConnected = false;
+_setConnectedStatus(false);
 },
 onDone: () {
 print('🔌 WS Closed');
-_isConnected = false;
+_setConnectedStatus(false);
 _webSocket = null;
 Future.delayed(const Duration(seconds: 5), () {
 if (pubsubToken != null) {
@@ -665,41 +679,30 @@ print('❌ WS Connection Failed: $e');
 }
 }
 
-// ─── Subscribe to RoomChannel for Admin API ───────────────
-void _subscribeToRoomChannel({int? accountId, int? conversationId}) {
-if (_webSocket == null) return;
 
-final targetAccountId = accountId ?? _accountId ?? 4;
-final pubsubToken = _pubsubToken ?? currentContact?.pubsubToken ?? '';
-final userId = _userId ?? CacheHelper.getData(key: 'user_id');
+  void _subscribeToRoomChannel({int? accountId, int? conversationId}) {
+    if (_webSocket == null) return;
 
-// ✅ FIXED: إضافة user_id للـ Admin/Agent token
-final Map<String, dynamic> identifierMap = {
-'channel': 'RoomChannel',
-'pubsub_token': pubsubToken,
-'account_id': targetAccountId,
-};
+    final targetAccountId = accountId ?? _accountId ?? 4;
+    final pubsubToken = _pubsubToken ?? currentContact?.pubsubToken ?? '';
+    final userId = _userId ?? CacheHelper.getData(key: 'user_id');
 
-// إضافة user_id فقط إذا كان موجوداً
-if (userId != null) {
-identifierMap['user_id'] = userId;
-print('📡 Subscribing WITH user_id: $userId');
-} else {
-print('📡 Subscribing WITHOUT user_id (Contact mode)');
-}
+    // ✅ Chatwoot يتوقع identifier بدون user_id للـ Agent
+    final identifier = jsonEncode({
+      'channel': 'RoomChannel',
+      'pubsub_token': pubsubToken,
+      'account_id': targetAccountId,
+      'user_id': userId, // مهم جداً للـ Admin API
+    });
 
-final identifier = jsonEncode(identifierMap);
+    final subscribePayload = jsonEncode({
+      'command': 'subscribe',
+      'identifier': identifier,
+    });
 
-final subscribePayload = jsonEncode({
-'command': 'subscribe',
-'identifier': identifier,
-});
-
-print('📡 Identifier: $identifier');
-_webSocket!.sink.add(subscribePayload);
-}
-
-// ─── Subscribe without user_id (fallback) ─────────────────
+    print('📡 Subscribing: $identifier');
+    _webSocket!.sink.add(subscribePayload);
+  }
 void _subscribeToRoomChannelWithoutUserId({int? accountId}) {
 if (_webSocket == null) return;
 
@@ -898,14 +901,14 @@ if (data['type'] == 'ping') return;
 // ✅ تأكيد الاشتراك
 if (data['type'] == 'confirm_subscription') {
 print('✅✅✅ Subscribed to RoomChannel successfully! ✅✅✅');
-_isConnected = true;
+_setConnectedStatus(true);
 return;
 }
 
 // ✅ رفض الاشتراك - محاولة fallback
 if (data['type'] == 'reject_subscription') {
 print('❌❌❌ Subscription rejected! Trying fallback... ❌❌❌');
-_isConnected = false;
+_setConnectedStatus(false);
 Future.delayed(const Duration(milliseconds: 500), () {
 _subscribeToRoomChannelWithoutUserId();
 });
@@ -1343,79 +1346,62 @@ throw Exception('فشل جلب المحادثات:');
 
   List<ChatwootMessage> _allMessages = [];
 
-// ─── Fetch Messages (Admin API) with Pagination ─────────────────
 
-// ═══════════════════════════════════════════════════════════════
-// Fetch Messages (Admin API) with Pagination - FIXED
-// ═══════════════════════════════════════════════════════════════
   Future<List<ChatwootMessage>> fetchMessagesAdminApi({
     required int accountId,
     required int conversationId,
-    bool loadMore = false,
+    int? beforeId, // ✅ Pagination: جلب 20 رسالة أقدم من هذا الـ id
+    int? afterId, // ✅ جديد: للـ Polling الذكي
   }) async {
-    if (_authToken == null || _authToken!.isEmpty) {
-      throw Exception('Not logged in');
-    }
+    if (_authToken == null) throw Exception('Not logged in');
 
     try {
       String url = '/api/v1/accounts/$accountId/conversations/$conversationId/messages';
 
-      // ✅ إذا نريد تحميل المزيد، نستخدم before parameter
-      if (loadMore && _allMessages.isNotEmpty) {
-        final lastMessageId = _allMessages.first.id;  // أقدم رسالة
-        url += '?before=$lastMessageId';
-        print('📤 GET More Messages (before: $lastMessageId): $_baseUrl$url');
-      } else {
-        print('📤 GET Messages: $_baseUrl$url');
+      final queryParams = <String>[];
+
+      // ✅ جلب الرسائل الأقدم (للتحميل الإضافي عند السحب للأعلى)
+      if (beforeId != null) {
+        queryParams.add('before=$beforeId');
       }
+
+      // ✅ جديد: جلب الرسائل بعد آخر رسالة معروفة
+      if (afterId != null) {
+        queryParams.add('after=$afterId');
+      }
+
+      if (queryParams.isNotEmpty) {
+        url += '?${queryParams.join('&')}';
+      }
+
+      print('📤 GET: $_baseUrl$url');
 
       final response = await _dio.get(
         url,
-        options: Options(
-          headers: {
-            'api_access_token': _authToken,
-            'Content-Type': 'application/json',
-          },
-        ),
+        options: Options(headers: {
+          'api_access_token': _authToken,
+          'Content-Type': 'application/json',
+        }),
       );
-      print('📥 Messages Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         dynamic payload = response.data;
-
-        // معالجة الـ response
-        if (payload is Map && payload.containsKey('data')) {
-          payload = payload['data'];
-        }
         if (payload is Map && payload.containsKey('payload')) {
           payload = payload['payload'];
         }
-
         if (payload is List) {
-          final newMessages = payload.map((json) {
+          return payload.map((json) {
             final map = json is Map<String, dynamic>
                 ? json
                 : Map<String, dynamic>.from(json);
             return ChatwootMessage.fromJson(map);
           }).toList();
-
-          // ✅ إدارة قائمة الرسائل
-          if (!loadMore) {
-            _allMessages.clear();  // مسح القديم عند التحميل الأول
-          }
-
-          // ✅ إضافة الرسائل الجديدة في البداية (الأقدم)
-          _allMessages.insertAll(0, newMessages);
-
-          print('✅ Fetched ${newMessages.length} new messages (Total: ${_allMessages.length})');
-          return List.from(_allMessages);
         }
       }
-
-      return List.from(_allMessages);
+      return [];
     } catch (e) {
       print('❌ Fetch Messages Error: $e');
-      throw Exception('فشل جلب الرسائل: $e');
+      return [];
     }
   }
 
@@ -1517,7 +1503,7 @@ throw Exception('فشل إرسال الرسالة: $e');
 
     _webSocket?.sink.close();
     _webSocket = null;
-    _isConnected = false;
+    _setConnectedStatus(false);
 
     // ✅ لا تقم بإغلاق الـ StreamController هنا
     if (_messageStreamController == null || _messageStreamController!.isClosed) {
@@ -2105,6 +2091,35 @@ throw Exception('فشل إرسال الرسالة: $e');
     } catch (e) {
       print('❌ Create Conversation Error: $e');
       throw Exception('فشل إنشاء المحادثة: $e');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // UPDATE LAST SEEN (Mark as Read - Admin API)
+  // ═══════════════════════════════════════════════════════════════
+  Future<void> updateLastSeen({
+    required int accountId,
+    required int conversationId,
+  }) async {
+    if (_authToken == null || _authToken!.isEmpty) return;
+    try {
+      final url = '/api/v1/accounts/$accountId/conversations/$conversationId/update_last_seen';
+      print('📤 POST update_last_seen: $_baseUrl$url');
+      final response = await _dio.post(
+        url,
+        data: {
+          'agent_last_seen_at': DateTime.now().toUtc().toIso8601String(),
+        },
+        options: Options(
+          headers: {
+            'api_access_token': _authToken,
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+      print('📥 update_last_seen Status: ${response.statusCode}');
+    } catch (e) {
+      print('❌ update_last_seen Error: $e');
     }
   }
 }

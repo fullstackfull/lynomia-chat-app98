@@ -48,6 +48,12 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
         final isDark = cubit.isDark;
         final conversations = cubit.conversations;
 
+        // ✅ إظهار زر إنشاء محادثة جديدة فقط في inbox البريد الإلكتروني
+        final selectedChannelType = cubit.selectedInbox?.channelType?.toLowerCase() ?? '';
+        final isEmailInbox = selectedChannelType.contains('email') ||
+            selectedChannelType.contains('gmail') ||
+            selectedChannelType.contains('microsoft');
+
         return Scaffold(
           backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
           appBar: AppBar(
@@ -88,7 +94,8 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
               },
             ),
           ),
-          floatingActionButton: FloatingActionButton.extended(
+          floatingActionButton: isEmailInbox
+              ? FloatingActionButton.extended(
             onPressed: () => _showNewConversationDialog(context),
             backgroundColor: HexColor('#6366F1'),
             icon: const Icon(Icons.edit, color: Colors.white),
@@ -96,7 +103,8 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
               AppLocalizations.tr(context, 'New Conversation'),
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
             ),
-          ),
+          )
+              : null,
         );
       },
     );
@@ -323,24 +331,24 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                       const SizedBox(height: 12),
                 
                       // ✅ الهاتف (اختياري)
-                      TextFormField(
-                        controller: phoneController,
-                        textAlign: TextAlign.right,
-                        keyboardType: TextInputType.phone,
-                        style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
-                        decoration: InputDecoration(
-                          labelText: '${AppLocalizations.tr(context, 'Phone')} (${AppLocalizations.tr(context, 'Optional')})',
-                          labelStyle: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
-                          filled: true,
-                          fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: HexColor('#6366F1'), width: 2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                      // TextFormField(
+                      //   controller: phoneController,
+                      //   textAlign: TextAlign.right,
+                      //   keyboardType: TextInputType.phone,
+                      //   style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                      //   decoration: InputDecoration(
+                      //     labelText: '${AppLocalizations.tr(context, 'Phone')} (${AppLocalizations.tr(context, 'Optional')})',
+                      //     labelStyle: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                      //     filled: true,
+                      //     fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                      //     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      //     focusedBorder: OutlineInputBorder(
+                      //       borderRadius: BorderRadius.circular(12),
+                      //       borderSide: BorderSide(color: HexColor('#6366F1'), width: 2),
+                      //     ),
+                      //   ),
+                      // ),
+                      // const SizedBox(height: 16),
                 
                       // ✅ الرسالة الأولى
                       TextFormField(
@@ -659,14 +667,19 @@ class ConversationItem extends StatelessWidget {
   }
 
   String _formatTime(BuildContext context, DateTime dateTime) {
+    final localDate = dateTime.toLocal();
     final now = DateTime.now();
-    final difference = now.difference(dateTime);
+    final today = DateTime(now.year, now.month, now.day);
+    final msgDate = DateTime(localDate.year, localDate.month, localDate.day);
+    final diffDays = today.difference(msgDate).inDays;
 
-    if (difference.inDays == 0) {
-      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-    } else if (difference.inDays == 1) {
+    if (diffDays == 0) {
+      final hour = localDate.hour.toString().padLeft(2, '0');
+      final minute = localDate.minute.toString().padLeft(2, '0');
+      return '$hour:$minute';
+    } else if (diffDays == 1) {
       return AppLocalizations.tr(context, 'Yesterday');
-    } else if (difference.inDays < 7) {
+    } else if (diffDays < 7 && diffDays > 0) {
       final days = [
         AppLocalizations.tr(context, 'Monday'),
         AppLocalizations.tr(context, 'Tuesday'),
@@ -676,10 +689,12 @@ class ConversationItem extends StatelessWidget {
         AppLocalizations.tr(context, 'Saturday'),
         AppLocalizations.tr(context, 'Sunday'),
       ];
-      final dayIndex = (dateTime.weekday - 1) % 7;
+      final dayIndex = (localDate.weekday - 1) % 7;
       return days[dayIndex];
     } else {
-      return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year}';
+      final day = localDate.day.toString().padLeft(2, '0');
+      final month = localDate.month.toString().padLeft(2, '0');
+      return '$day/$month/${localDate.year}';
     }
   }
 }

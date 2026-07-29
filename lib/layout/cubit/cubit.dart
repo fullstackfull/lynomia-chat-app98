@@ -1,221 +1,4 @@
-//
-//
-//
-// import 'dart:async';
-//
-// import 'package:bloc/bloc.dart';
-// import 'package:chat/layout/cubit/states.dart';
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-//
-// import '../../models/chatwoot_models.dart';
-// import '../../shared/network/chatwoot_api_service.dart';
-// import '../../shared/network/local/cache_helper.dart';
-//
-// class AppCubit extends Cubit<AppStates> {
-//   AppCubit() : super(AppInitialState());
-//
-//   static AppCubit get(BuildContext context) => BlocProvider.of(context);
-//
-//   final ChatwootApiService _apiService = ChatwootApiService();
-//   StreamSubscription<ChatwootMessage>? _messageSubscription;
-//
-//   // ─── Theme ───────────────────────────────────
-//   bool isDark = CacheHelper.getBool(key: CacheHelper.keyIsDark) ?? true;
-//
-//   void changeTheme({bool? fromShared}) {
-//     if (fromShared != null) {
-//       isDark = fromShared;
-//     } else {
-//       isDark = !isDark;
-//       CacheHelper.saveData(key: CacheHelper.keyIsDark, value: isDark);
-//     }
-//     emit(AppChangeThemeState());
-//   }
-//
-//   // ─── Data ────────────────────────────────────
-//   List<Map<String, dynamic>> messages = [];
-//   ChatwootContact? currentContact;
-//   bool isTyping = false;
-//
-//   // ─── Initialize ──────────────────────────────
-//   void init() {
-//     _apiService.init();
-//   }
-//
-//   // ─── Create Contact & Start Chat ─────────────
-//   Future<void> createContact({
-//     required String name,
-//     required String email,
-//     required String inboxIdentifier,
-//   }) async {
-//     emit(AppCreateContactLoadingState());
-//
-//     try {
-//       await CacheHelper.saveData(key: CacheHelper.keyUserName, value: name);
-//       await CacheHelper.saveData(key: CacheHelper.keyUserEmail, value: email);
-//
-//       // ✅ إنشاء contact
-//       final contact = await _apiService.createContact(
-//         inboxIdentifier: inboxIdentifier,
-//         name: name,
-//         email: email,
-//       );
-//       currentContact = contact;
-//
-//       // ✅ إنشاء/جلب المحادثة
-//       await _apiService.getOrCreateConversation();
-//
-//       // ✅ جلب الرسائل
-//       final msgs = await _apiService.getMessages();
-//       _updateMessages(msgs);
-//
-//       // ✅ WebSocket
-//       _apiService.connectWebSocket();
-//       _listenToMessages();
-//
-//       await CacheHelper.saveData(key: CacheHelper.keyIsLoggedIn, value: true);
-//
-//       emit(AppCreateContactSuccessState());
-//     } catch (error) {
-//       print('Create Contact Error: $error');
-//       emit(AppCreateContactErrorState(error: error.toString()));
-//     }
-//   }
-//
-//   // ─── Load Existing Session ───────────────────
-//   Future<void> loadExistingSession() async {
-//     emit(AppLoadSessionLoadingState());
-//
-//     try {
-//       final inboxId = CacheHelper.getString(key: CacheHelper.keyInboxId);
-//       final userName = CacheHelper.getString(key: CacheHelper.keyUserName);
-//       final userEmail = CacheHelper.getString(key: CacheHelper.keyUserEmail);
-//
-//       if (inboxId == null || userName == null || userEmail == null) {
-//         emit(AppNoSessionState());
-//         return;
-//       }
-//
-//       _apiService.init();
-//
-//       final contact = await _apiService.createContact(
-//         inboxIdentifier: inboxId,
-//         name: userName,
-//         email: userEmail,
-//       );
-//       currentContact = contact;
-//
-//       await _apiService.getOrCreateConversation();
-//
-//       final msgs = await _apiService.getMessages();
-//       _updateMessages(msgs);
-//
-//       _apiService.connectWebSocket();
-//       _listenToMessages();
-//
-//       emit(AppLoadSessionSuccessState());
-//     } catch (error) {
-//       print('Load Session Error: $error');
-//       emit(AppLoadSessionErrorState(error: error.toString()));
-//     }
-//   }
-//
-//   // ─── Listen to Messages ──────────────────────
-//   void _listenToMessages() {
-//     _messageSubscription?.cancel();
-//     _messageSubscription = _apiService.messageStream?.listen((message) {
-//       final msgMap = _messageToMap(message);
-//       final exists = messages.any((m) => m['id'] == msgMap['id']);
-//       if (!exists) {
-//         messages.add(msgMap);
-//         emit(AppNewMessageReceivedState(message: msgMap));
-//       }
-//     });
-//   }
-//
-//   // ─── Send Message ────────────────────────────
-//   Future<void> sendMessage(String content) async {
-//     if (content.trim().isEmpty) {
-//       emit(AppSendMessageErrorState(error: 'Message is empty'));
-//       return;
-//     }
-//
-//     emit(AppSendMessageLoadingState());
-//
-//     try {
-//       // ✅ إضافة محلياً أولاً (Optimistic)
-//       final tempMessage = {
-//         'id': DateTime.now().millisecondsSinceEpoch,
-//         'content': content,
-//         'message_type': 'incoming',
-//         'sender_type': 'contact',
-//         'sender_name': CacheHelper.getString(key: CacheHelper.keyUserName) ?? 'User',
-//         'created_at': DateTime.now().toIso8601String(),
-//       };
-//       messages.add(tempMessage);
-//       emit(AppNewMessageReceivedState(message: tempMessage));
-//
-//       // ✅ إرسال عبر API
-//       final sentMessage = await _apiService.sendMessage(content: content);
-//
-//       // ✅ تحديث بالرسالة الفعلية
-//       final sentMap = _messageToMap(sentMessage);
-//       final index = messages.indexWhere((m) => m['id'] == tempMessage['id']);
-//       if (index != -1) {
-//         messages[index] = sentMap;
-//         emit(AppNewMessageReceivedState(message: sentMap));
-//       }
-//
-//       emit(AppSendMessageSuccessState());
-//     } catch (error) {
-//       print('Send Message Error: $error');
-//       // ✅ الرسالة تبقى ظاهرة محلياً
-//       emit(AppSendMessageSuccessState());
-//     }
-//   }
-//
-//   // ─── Helpers ─────────────────────────────────
-//   void _updateMessages(List<ChatwootMessage> msgs) {
-//     for (var msg in msgs) {
-//       final msgMap = _messageToMap(msg);
-//       final exists = messages.any((m) => m['id'] == msgMap['id']);
-//       if (!exists) {
-//         messages.add(msgMap);
-//       }
-//     }
-//     emit(AppMessagesLoadedState());
-//   }
-//
-//   Map<String, dynamic> _messageToMap(ChatwootMessage msg) {
-//     return {
-//       'id': msg.id,
-//       'content': msg.content ?? '',
-//       'message_type': msg.messageType ?? 'text',
-//       'sender_type': msg.senderType ?? 'contact',
-//       'sender_name': msg.senderName ?? 'Unknown',
-//       'created_at': msg.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
-//     };
-//   }
-//
-//   // ─── Logout ──────────────────────────────────
-//   Future<void> logout() async {
-//     _messageSubscription?.cancel();
-//     _apiService.disconnect();
-//     currentContact = null;
-//     messages = [];
-//
-//     await CacheHelper.clear();
-//     emit(AppLogoutState());
-//   }
-//
-//   @override
-//   Future<void> close() {
-//     _messageSubscription?.cancel();
-//     _apiService.disconnect();
-//     return super.close();
-//   }
-// }
+
 
 import 'dart:async';
 import 'dart:io';
@@ -243,7 +26,9 @@ class AppCubit extends Cubit<AppStates> {
 
   final ChatwootApiService _apiService = ChatwootApiService();
   StreamSubscription<ChatwootMessage>? _messageSubscription;
+  StreamSubscription<bool>? _connectionSubscription;
   Timer? _pollingTimer;
+  int _pollingIntervalSeconds = 10;
   DateTime? _lastMessageTime;
 
   // ─── Theme ───────────────────────────────────
@@ -273,16 +58,6 @@ class AppCubit extends Cubit<AppStates> {
   ChatwootSubscription? currentSubscription;
   bool get isSubscribed => currentSubscription?.isActive ?? false;
 
-  // ─── Initialize ──────────────────────────────
-  // void init() {
-  //   _apiService.init();
-  // }
-
-  // ─── Initialize ──────────────────────────────
-  // ─── Initialize ──────────────────────────────
-  // ═══════════════════════════════════════════════════════════════
-  // Initialize - مع جلب الشروط في الخلفية
-  // ═══════════════════════════════════════════════════════════════
   void init() {
     _apiService.init();
     // ✅ جلب الشروط صامتاً عند البدء
@@ -426,59 +201,6 @@ class AppCubit extends Cubit<AppStates> {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // ═══════════════════════════════════════════════════════════════
-// Load Existing Session (Admin API) - FIXED
-// ═══════════════════════════════════════════════════════════════
-//   Future<void> loadExistingSession() async {
-//     emit(AppLoadSessionLoadingState());
-//
-//     try {
-//       // ✅ التحقق من وجود auth_token
-//       final authToken = CacheHelper.getString(key: CacheHelper.keyAuthToken);
-//       final accountId = CacheHelper.getData(key: CacheHelper.keyAccountId);
-//       final userId = CacheHelper.getData(key: CacheHelper.keyUserId);
-//       final userEmail = CacheHelper.getString(key: CacheHelper.keyUserEmail);
-//
-//       if (authToken == null || authToken.isEmpty) {
-//         print('❌ No auth token found - redirecting to login');
-//         emit(AppNoSessionState());
-//         return;
-//       }
-//
-//       // ✅ تهيئة الـ API Service
-//       _apiService.init();
-//       await _apiService.loadAuthToken();
-//
-//       // ✅ التحقق من صلاحية الـ token (اختياري)
-//       await _apiService.fetchUserProfile();
-//
-//       // ✅ تحميل الاشتراك من الكاش أولاً
-//       await _loadSubscriptionFromCache();
-//
-//       // ✅ ثم فحص الاشتراك من الـ API لتحديثه
-//       if (userEmail != null && userEmail.isNotEmpty) {
-//         await checkSubscription(email: userEmail);
-//       }
-//
-//       print('✅ Session loaded successfully');
-//       print('✅ Auth Token: $authToken');
-//       print('✅ Account ID: $accountId');
-//       print('✅ User ID: $userId');
-//
-//       emit(AppLoadSessionSuccessState());
-//     } catch (error) {
-//       print('❌ Load Session Error: $error');
-//       // إذا فشل التحميل، نحذف البيانات القديمة ونطلب تسجيل دخول جديد
-//       await CacheHelper.removeData(key: CacheHelper.keyAuthToken);
-//       await CacheHelper.removeData(key: CacheHelper.keyAccountId);
-//       await CacheHelper.removeData(key: CacheHelper.keyUserId);
-//       emit(AppNoSessionState());
-//     }
-//   }
-  // ═══════════════════════════════════════════════════════════════
-// Load Existing Session (Admin API) - FIXED with FCM
-// ═══════════════════════════════════════════════════════════════
   Future<void> loadExistingSession() async {
     emit(AppLoadSessionLoadingState());
 
@@ -538,32 +260,40 @@ class AppCubit extends Cubit<AppStates> {
           (message) {
         final msgMap = _messageToMap(message);
 
-        final exists = messages.any((m) {
-          if (m['id'] == msgMap['id']) return true;
-          if (m['content'] == msgMap['content'] &&
-              m['sender_type'] == msgMap['sender_type'] &&
-              m['sender_name'] == msgMap['sender_name']) {
-            if (m['is_temp'] == true) return false;
-            return true;
-          }
-          return false;
-        });
+        // ✅ 1. موجودة مسبقاً بنفس الـ id؟ تجاهلها (صدى مكرر)
+        final idExists = messages.any(
+              (m) => m['id'].toString() == msgMap['id'].toString(),
+        );
+        if (idExists) return;
 
-        if (!exists) {
-          messages.add(msgMap);
+        // ✅ 2. نسخة من رسالة مؤقتة (Optimistic)؟ استبدلها بدل الإضافة
+        final tempIndex = messages.indexWhere((m) =>
+        m['is_temp'] == true &&
+            m['content'] == msgMap['content'] &&
+            m['sender_type'] == msgMap['sender_type']);
+
+        if (tempIndex != -1) {
+          messages[tempIndex] = msgMap;
           emit(AppNewMessageReceivedState(message: msgMap));
-        } else {
-          final tempIndex = messages.indexWhere((m) =>
-          m['is_temp'] == true &&
-              m['content'] == msgMap['content'] &&
-              m['sender_type'] == msgMap['sender_type']
-          );
-
-          if (tempIndex != -1) {
-            messages[tempIndex] = msgMap;
-            emit(AppNewMessageReceivedState(message: msgMap));
-          }
+          return;
         }
+
+        // ✅ 3. مكررة بنفس المحتوى والمرسل خلال 10 ثوانٍ؟ تجاهلها (صدى WebSocket)
+        final isRecentDuplicate = messages.any((m) {
+          if (m['content'] != msgMap['content'] ||
+              m['sender_type'] != msgMap['sender_type']) {
+            return false;
+          }
+          final t1 = DateTime.tryParse(m['created_at']?.toString() ?? '');
+          final t2 = DateTime.tryParse(msgMap['created_at']?.toString() ?? '');
+          if (t1 == null || t2 == null) return true;
+          return t2.difference(t1).inSeconds.abs() <= 10;
+        });
+        if (isRecentDuplicate) return;
+
+        // ✅ 4. رسالة جديدة فعلاً
+        messages.add(msgMap);
+        emit(AppNewMessageReceivedState(message: msgMap));
       },
       onError: (error) {
         print('❌ Message Stream Error: $error');
@@ -604,6 +334,15 @@ class AppCubit extends Cubit<AppStates> {
       if (index != -1) {
         messages[index] = sentMap;
         emit(AppNewMessageReceivedState(message: sentMap));
+      } else {
+        // ✅ المؤقتة استُبدلت مسبقاً من الـ WebSocket — نتأكد من عدم التكرار
+        final already = messages.any(
+              (m) => m['id'].toString() == sentMap['id'].toString(),
+        );
+        if (!already) {
+          messages.add(sentMap);
+          emit(AppNewMessageReceivedState(message: sentMap));
+        }
       }
 
       emit(AppSendMessageSuccessState());
@@ -631,51 +370,6 @@ class AppCubit extends Cubit<AppStates> {
     emit(AppMessagesLoadedState());
   }
 
-  // // في ملف cubit.dart - داخل _messageToMap
-  // Map<String, dynamic> _messageToMap(ChatwootMessage msg) {
-  //   // استخراج نوع الملف الحقيقي من المرفقات
-  //   List<Map<String, dynamic>>? attachmentMaps;
-  //   if (msg.attachments != null && msg.attachments!.isNotEmpty) {
-  //     attachmentMaps = msg.attachments!.map((a) {
-  //       final fileType = a.fileType?.toLowerCase() ?? '';
-  //       final ext = a.fileName?.split('.').last.toLowerCase() ?? '';
-  //
-  //       // ✅ تحديد النوع الحقيقي
-  //       bool isImage = fileType.contains('image') ||
-  //           ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].contains(ext);
-  //       bool isAudio = fileType.contains('audio') ||
-  //           ['mp3', 'm4a', 'aac', 'ogg', 'wav', 'flac'].contains(ext);
-  //       bool isVideo = fileType.contains('video') ||
-  //           ['mp4', 'mov', 'avi', 'mkv', 'webm'].contains(ext);
-  //
-  //       return {
-  //         'id': a.id,
-  //         'file_name': a.fileName,
-  //         'file_type': a.fileType,
-  //         'file_url': a.fileUrl,
-  //         'thumb_url': a.thumbUrl,
-  //         'is_image': isImage,
-  //         'is_audio': isAudio,
-  //         'is_video': isVideo,
-  //         'is_file': !isImage && !isAudio && !isVideo,
-  //       };
-  //     }).toList();
-  //   }
-  //
-  //   return {
-  //     'id': msg.id,
-  //     'content': msg.content ?? '',
-  //     'message_type': msg.messageType ?? 'text',
-  //     'sender_type': msg.senderType ?? 'contact',
-  //     'sender_name': msg.senderName ?? 'فريق الدعم',
-  //     'created_at': msg.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
-  //     'conversation_id': msg.conversationId,
-  //     'inbox_id': msg.inboxId,
-  //     'content_type': msg.contentType ?? 'text',
-  //     'attachments': attachmentMaps,
-  //   };
-  // }
-  // في ملف cubit.dart - داخل _messageToMap
   Map<String, dynamic> _messageToMap(ChatwootMessage msg) {
     // استخراج نوع الملف الحقيقي من المرفقات
     List<Map<String, dynamic>>? attachmentMaps;
@@ -738,54 +432,13 @@ class AppCubit extends Cubit<AppStates> {
   @override
   Future<void> close() {
     _messageSubscription?.cancel();
-    _pollingTimer?.cancel();
+    _connectionSubscription?.cancel();
+    _stopPollingFallback();
     _apiService.disconnect();
     return super.close();
   }
 
 
-  // Future<void> login({
-  //   required String email,
-  //   required String password,
-  // }) async {
-  //   emit(AppLoginLoadingState());
-  //
-  //   try {
-  //     // ✅ 1. تسجيل الدخول
-  //     await _apiService.login(email: email, password: password);
-  //     await CacheHelper.saveData(key: CacheHelper.keyUserEmail, value: email);
-  //     await CacheHelper.saveData(key: CacheHelper.keyIsLoggedIn, value: true);
-  //
-  //     // ✅ 2. فحص الاشتراك (مباشرة — نفس الـ Loading)
-  //     emit(AppSubscriptionLoadingState());
-  //
-  //     // TODO: استدعاء API فحص الاشتراك
-  //     // final sub = await _apiService.checkSubscription(email: email);
-  //
-  //     // محاكاة تأخير (احذف في الإنتاج)
-  //     await Future.delayed(const Duration(seconds: 1));
-  //
-  //     // ✅ تعيين الاشتراك
-  //     currentSubscription = ChatwootSubscription(
-  //       plan: 'basic',
-  //       status: 'active',
-  //       isActive: true,
-  //     );
-  //
-  //     // ✅ حفظ في الكاش
-  //     await _saveSubscriptionToCache(currentSubscription!);
-  //
-  //     // ✅ 3. اكتمال كل شي — انتقل للـ Splash
-  //     emit(AppAuthCompleteState());
-  //
-  //   } catch (error) {
-  //     print('❌ Login/Auth Error: $error');
-  //     emit(AppLoginErrorState(error: error.toString()));
-  //   }
-  // }
-
-  // ─── Login with Email & Password ─────────────
-  // ─── Login with Email & Password ─────────────
   Future<void> login({
     required String email,
     required String password,
@@ -826,65 +479,6 @@ class AppCubit extends Cubit<AppStates> {
     }
   }
 
-  // // ─── Login with Google ───────────────────────
-  // Future<void> loginWithGoogle() async {
-  //   emit(AppLoginLoadingState());
-  //
-  //   try {
-  //     final GoogleSignIn googleSignIn = GoogleSignIn();
-  //     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-  //
-  //     if (googleUser == null) {
-  //       emit(AppLoginErrorState(error: 'تم إلغاء تسجيل الدخول'));
-  //       return;
-  //     }
-  //
-  //     final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-  //
-  //     final credential = GoogleAuthProvider.credential(
-  //       accessToken: googleAuth.accessToken,
-  //       idToken: googleAuth.idToken,
-  //     );
-  //
-  //     final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-  //     final User? user = userCredential.user;
-  //
-  //     if (user != null) {
-  //       // حفظ بيانات المستخدم من Google
-  //       await CacheHelper.saveData(key: kGoogleUserId, value: user.uid);
-  //       await CacheHelper.saveData(key: kGoogleUserEmail, value: user.email ?? '');
-  //       await CacheHelper.saveData(key: kGoogleUserName, value: user.displayName ?? '');
-  //       await CacheHelper.saveData(key: kGoogleIdToken, value: googleAuth.idToken ?? '');
-  //       await CacheHelper.saveData(key: kGoogleAccessToken, value: googleAuth.accessToken ?? '');
-  //
-  //       print('✅ Google Auth Success');
-  //       print('✅ User ID: ${user.uid}');
-  //       print('✅ User Email: ${user.email}');
-  //       print('✅ User Name: ${user.displayName}');
-  //
-  //       // استدعاء API التسجيل في Backend
-  //       await _apiService.registerWithGoogle(
-  //         name: user.displayName ?? '',
-  //         email: user.email ?? '',
-  //         googleId: user.uid,
-  //         platform: 'chatwoot',
-  //       );
-  //
-  //       print('✅ Backend Registration Success');
-  //
-  //       // حفظ حالة تسجيل الدخول
-  //       await CacheHelper.saveData(key: CacheHelper.keyIsLoggedIn, value: true);
-  //       await CacheHelper.saveData(key: CacheHelper.keyUserEmail, value: user.email ?? '');
-  //
-  //       emit(AppAuthCompleteState());
-  //     }
-  //   } catch (error) {
-  //     print('❌ Google Login Error: $error');
-  //     emit(AppLoginErrorState(error: error.toString()));
-  //   }
-  // }
-
-  // ─── Check Subscription ─────────────────────────────
 
   Future<void> loginWithGoogle() async {
     emit(AppLoginLoadingState());
@@ -1069,7 +663,15 @@ class AppCubit extends Cubit<AppStates> {
   // Select Conversation - FIXED v2.0
   // ═══════════════════════════════════════════════════════════════
   Future<void> selectConversation(ChatwootConversation conversation) async {
-    selectedConversation = conversation;
+    // ✅ 1. التصفير المحلي لعدد الرسائل غير المقروءة في الواجهة
+    final updatedConv = conversation.copyWith(unreadCount: 0);
+    selectedConversation = updatedConv;
+
+    final index = conversations.indexWhere((c) => c.id == conversation.id);
+    if (index != -1) {
+      conversations[index] = updatedConv;
+    }
+
     _lastMessageTime = null;
 
     emit(AppFetchConversationsLoadingState());
@@ -1083,6 +685,12 @@ class AppCubit extends Cubit<AppStates> {
       if (accountId == null) {
         throw Exception('Account ID not found');
       }
+
+      // ✅ 2. إرسال تحديث للقراءة إلى السيرفر (Chatwoot API)
+      _apiService.updateLastSeen(
+        accountId: accountId,
+        conversationId: conversation.id,
+      );
 
       // ✅ FIXED: جلب pubsub_token الصحيح من Profile API
       await _apiService.fetchUserProfile();
@@ -1107,6 +715,8 @@ class AppCubit extends Cubit<AppStates> {
       );
 
       messages.clear();
+      hasMoreMessages = true; // ✅ إعادة ضبط الـ Pagination للمحادثة الجديدة
+      isLoadingMoreMessages = false;
       for (var msg in msgs) {
         final msgMap = _messageToMap(msg);
         messages.add(msgMap);
@@ -1124,75 +734,188 @@ class AppCubit extends Cubit<AppStates> {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Listen to WebSocket Messages (Admin API) - FIXED v2.0
-  // ═══════════════════════════════════════════════════════════════
   void _listenToWebSocketMessagesAdmin() {
     _messageSubscription?.cancel();
+    _connectionSubscription?.cancel();
 
-    // ✅ تأخير قصير للتأكد من أن الـ WebSocket متصل
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!_apiService.isConnected) {
-        print('⚠️ WebSocket not connected yet, starting polling...');
+    // ✅ مراقبة حالة اتصال WebSocket بشكل آلي وإلغاء/تشغيل الـ Polling عند اللزوم
+    _connectionSubscription = _apiService.connectionStatusStream.listen((isConnected) {
+      if (isConnected) {
+        print('🟢 WebSocket Connected: Stopping fallback polling & fetching delta');
+        _stopPollingFallback();
+        _fetchDeltaMessages();
+      } else {
+        print('🔴 WebSocket Disconnected: Starting smart adaptive fallback polling');
         _startPollingFallback();
-        return;
       }
-
-      _messageSubscription = _apiService.messageStream?.listen(
-            (message) {
-          print('📥📥📥 WebSocket message received: ${message.content} 📥📥📥');
-
-          final msgMap = _messageToMap(message);
-
-          // التحقق من أن الرسالة تنتمي للمحادثة المحددة
-          if (selectedConversation != null && message.conversationId != null) {
-            if (message.conversationId != selectedConversation!.id) {
-              print('📥 Ignoring message from different conversation: ${message.conversationId}');
-              return;
-            }
-          }
-
-          // التحقق من عدم التكرار
-          final exists = messages.any((m) => m['id'] == msgMap['id']);
-          if (!exists) {
-            messages.add(msgMap);
-            _lastMessageTime = DateTime.now();
-            print('✅✅✅ Message added to UI: ${message.content} ✅✅✅');
-            emit(AppNewMessageReceivedState(message: msgMap));
-          }
-        },
-        onError: (error) {
-          print('❌ WebSocket Message Stream Error: $error');
-        },
-      );
-
-      print('✅ WebSocket listener started successfully');
     });
 
-    // ✅ بدء Polling كـ fallback دائماً
-    _startPollingFallback();
+    _messageSubscription = _apiService.messageStream?.listen(
+      (message) {
+        print('📥 Real-time message: ${message.content}');
+        final msgMap = _messageToMap(message);
+
+        // تجاهل الرسائل من محادثات أخرى
+        if (selectedConversation != null &&
+            message.conversationId != null &&
+            message.conversationId != selectedConversation!.id) {
+          return;
+        }
+
+        // ✅ فحص التكرار بالـ ID الحقيقي
+        final existsById = messages.any(
+            (m) => m['id'].toString() == msgMap['id'].toString());
+        if (existsById) return;
+
+        // ✅ فحص إذا كانت هناك رسالة مؤقتة (is_temp) بنفس المحتوى
+        // ملاحظة: لا نقارن sender_type لأن المؤقتة 'agent' بينما صدى WS يصل 'User'
+        final tempIndex = messages.indexWhere((m) =>
+            m['is_temp'] == true &&
+            m['content'] == msgMap['content']);
+
+        if (tempIndex != -1) {
+          // استبدال الرسالة المؤقتة بالحقيقية (بدون إضافة نسخة جديدة)
+          messages[tempIndex] = msgMap;
+          emit(AppNewMessageReceivedState(message: msgMap));
+        } else {
+          // ✅ حماية إضافية: تجاهل صدى مكرر بنفس المحتوى خلال 15 ثانية
+          // (فقط للرسائل النصية — رسائل المرفقات محتواها فارغ وقد تتشابه خطأً)
+          final content = msgMap['content']?.toString() ?? '';
+          final isRecentEcho = content.isNotEmpty && messages.any((m) {
+            if (m['content'] != msgMap['content']) return false;
+            final t1 = DateTime.tryParse(m['created_at']?.toString() ?? '');
+            final t2 = DateTime.tryParse(msgMap['created_at']?.toString() ?? '');
+            if (t1 == null || t2 == null) return false;
+            return t2.difference(t1).inSeconds.abs() <= 15;
+          });
+          if (isRecentEcho) return;
+
+          // رسالة جديدة فعلاً (من الطرف الآخر)
+          messages.add(msgMap);
+          _lastMessageTime = DateTime.now();
+          emit(AppNewMessageReceivedState(message: msgMap));
+        }
+      },
+      onError: (error) {
+        print('❌ WS Error: $error');
+        _startPollingFallback();
+      },
+      onDone: () {
+        print('🔌 WS Closed, starting polling fallback...');
+        _startPollingFallback();
+      },
+    );
+
+    if (_apiService.isConnected) {
+      _stopPollingFallback();
+    } else {
+      Future.delayed(const Duration(seconds: 3), () {
+        if (!_apiService.isConnected) {
+          print('⚠️ WebSocket not connected yet, starting adaptive polling fallback...');
+          _startPollingFallback();
+        }
+      });
+    }
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Polling Fallback - FIXED v2.0
-  // ═══════════════════════════════════════════════════════════════
   void _startPollingFallback() {
+    if (_apiService.isConnected) {
+      _stopPollingFallback();
+      return;
+    }
+    if (_pollingTimer != null && _pollingTimer!.isActive) return;
+
+    _pollingIntervalSeconds = 10; // بدءاً بـ 10 ثوانٍ لحفظ البطارية وخادم الشبكة
     _pollingTimer?.cancel();
     _pollingTimer = Timer.periodic(
-      const Duration(seconds: 3),
-          (_) => _pollForNewMessages(),
+      Duration(seconds: _pollingIntervalSeconds),
+      (_) => _pollForNewMessages(),
     );
-    print('⏰ Polling fallback started - checking every 3 seconds');
+    print('⏰ Smart Adaptive Polling fallback started (every ${_pollingIntervalSeconds}s)');
   }
 
   void _stopPollingFallback() {
     _pollingTimer?.cancel();
     _pollingTimer = null;
-    print('⏰ Polling fallback stopped');
+    _pollingIntervalSeconds = 10;
+    print('⏰ Smart Adaptive Polling fallback stopped');
+  }
+
+  void _increasePollingBackoff() {
+    if (_pollingIntervalSeconds < 30) {
+      _pollingIntervalSeconds = (_pollingIntervalSeconds + 5).clamp(10, 30);
+      _pollingTimer?.cancel();
+      _pollingTimer = Timer.periodic(
+        Duration(seconds: _pollingIntervalSeconds),
+        (_) => _pollForNewMessages(),
+      );
+      print('⏰ Adaptive Polling backoff increased to ${_pollingIntervalSeconds}s');
+    }
+  }
+
+  void _resetPollingInterval() {
+    if (_pollingIntervalSeconds != 10) {
+      _pollingIntervalSeconds = 10;
+      if (_pollingTimer != null) {
+        _pollingTimer?.cancel();
+        _pollingTimer = Timer.periodic(
+          Duration(seconds: _pollingIntervalSeconds),
+          (_) => _pollForNewMessages(),
+        );
+      }
+    }
+  }
+
+  Future<void> _fetchDeltaMessages() async {
+    if (selectedConversation == null) return;
+    try {
+      final accountIdData = CacheHelper.getData(key: 'account_id');
+      final accountId = accountIdData != null ? int.tryParse(accountIdData.toString()) : 4;
+      if (accountId == null) return;
+
+      int? lastId;
+      if (messages.isNotEmpty) {
+        for (int i = messages.length - 1; i >= 0; i--) {
+          final id = messages[i]['id'];
+          if (id != null) {
+            final parsed = int.tryParse(id.toString());
+            if (parsed != null) {
+              lastId = parsed;
+              break;
+            }
+          }
+        }
+      }
+
+      final newMsgs = await _apiService.fetchMessagesAdminApi(
+        accountId: accountId,
+        conversationId: selectedConversation!.id,
+        afterId: lastId,
+      );
+
+      if (newMsgs.isNotEmpty) {
+        print('🔄 Delta sync: ${newMsgs.length} new messages fetched after WS reconnect');
+        for (var msg in newMsgs) {
+          final msgMap = _messageToMap(msg);
+          final exists = messages.any((m) => m['id'] == msgMap['id']);
+          if (!exists) {
+            messages.add(msgMap);
+            emit(AppNewMessageReceivedState(message: msgMap));
+          }
+        }
+      }
+    } catch (e) {
+      print('❌ Delta sync error: $e');
+    }
   }
 
   Future<void> _pollForNewMessages() async {
     if (selectedConversation == null) return;
+
+    if (_apiService.isConnected) {
+      _stopPollingFallback();
+      return;
+    }
 
     try {
       await _apiService.loadAuthToken();
@@ -1200,40 +923,46 @@ class AppCubit extends Cubit<AppStates> {
       final accountId = accountIdData != null ? int.tryParse(accountIdData.toString()) : 4;
       if (accountId == null) return;
 
-      final msgs = await _apiService.fetchMessagesAdminApi(
-        accountId: accountId,
-        conversationId: selectedConversation!.id,
-      );
-
-      if (msgs.isEmpty) return;
-
-      final lastServerMessage = msgs.last;
-      final lastServerTime = lastServerMessage.createdAt;
-
-      if (_lastMessageTime != null && lastServerTime != null) {
-        if (lastServerTime.isAfter(_lastMessageTime!)) {
-          print('📥 Polling found new messages!');
-
-          for (var msg in msgs) {
-            final msgMap = _messageToMap(msg);
-            final exists = messages.any((m) => m['id'] == msgMap['id']);
-            if (!exists) {
-              messages.add(msgMap);
-              emit(AppNewMessageReceivedState(message: msgMap));
+      int? lastId;
+      if (messages.isNotEmpty) {
+        for (int i = messages.length - 1; i >= 0; i--) {
+          final id = messages[i]['id'];
+          if (id != null) {
+            final parsed = int.tryParse(id.toString());
+            if (parsed != null) {
+              lastId = parsed;
+              break;
             }
           }
-          _lastMessageTime = lastServerTime;
         }
-      } else if (messages.isEmpty && msgs.isNotEmpty) {
-        messages.clear();
-        for (var msg in msgs) {
+      }
+
+      // Delta fetch: request ONLY messages after lastId to minimize server load & bandwidth
+      final newMsgs = await _apiService.fetchMessagesAdminApi(
+        accountId: accountId,
+        conversationId: selectedConversation!.id,
+        afterId: lastId,
+      );
+
+      if (newMsgs.isNotEmpty) {
+        print('📥 Smart Polling found ${newMsgs.length} new messages');
+        bool addedAny = false;
+        for (var msg in newMsgs) {
           final msgMap = _messageToMap(msg);
-          messages.add(msgMap);
+          final exists = messages.any((m) => m['id'] == msgMap['id']);
+          if (!exists) {
+            messages.add(msgMap);
+            addedAny = true;
+            emit(AppNewMessageReceivedState(message: msgMap));
+          }
         }
-        if (msgs.isNotEmpty) {
-          _lastMessageTime = msgs.last.createdAt;
+        if (addedAny) {
+          _lastMessageTime = DateTime.now();
+          _resetPollingInterval();
         }
-        emit(AppMessagesLoadedState());
+      } else {
+        // No new messages - gently backoff to 15s..20s..30s to conserve battery
+        _increasePollingBackoff();
       }
     } catch (e) {
       print('❌ Polling Error: $e');
@@ -1290,14 +1019,21 @@ class AppCubit extends Cubit<AppStates> {
 
       final sentMap = _messageToMap(sentMessage);
 
+      // ✅ استبدال الرسالة المؤقتة بالحقيقية (إذا لم يستبدلها WebSocket بالفعل)
       final index = messages.indexWhere((m) => m['id'] == tempId);
       if (index != -1) {
         messages[index] = sentMap;
+      } else {
+        // ✅ إذا WebSocket استبدلها سابقاً، نتأكد من عدم إضافة نسخة جديدة
+        final alreadyExists = messages.any(
+            (m) => m['id'].toString() == sentMap['id'].toString());
+        if (!alreadyExists) {
+          messages.add(sentMap);
+        }
       }
 
       isSending = false;
       emit(AppSendMessageSuccessState());
-      emit(AppNewMessageReceivedState(message: sentMap));
     } catch (error) {
       print('❌ Send Message Error: $error');
       messages.removeWhere((m) => m['id'] == tempId);
@@ -1308,7 +1044,8 @@ class AppCubit extends Cubit<AppStates> {
 
   Future<void> logout() async {
     _messageSubscription?.cancel();
-    _pollingTimer?.cancel();
+    _connectionSubscription?.cancel();
+    _stopPollingFallback();
     _apiService.disconnect();
     _apiService.clearAuth();
     currentContact = null;
@@ -1340,68 +1077,67 @@ class AppCubit extends Cubit<AppStates> {
 
     emit(AppLogoutState());
   }
-  // ─── Logout ─────────────────────────
-  // Future<void> logout() async {
-  //   _messageSubscription?.cancel();
-  //   _pollingTimer?.cancel();
-  //   _apiService.disconnect();
-  //   _apiService.clearAuth();
-  //   currentContact = null;
-  //   messages = [];
-  //   inboxes = [];
-  //   selectedInbox = null;
-  //   conversations = [];
-  //   selectedConversation = null;
-  //   _lastMessageTime = null;
-  //   currentSubscription = null;  // ✅ مسح الاشتراك
-  //
-  //   // تسجيل الخروج من Google (فقط من التطبيق وليس من جميع المنصات)
-  //   await GoogleSignIn().signOut();
-  //   await FirebaseAuth.instance.signOut();
-  //
-  //   await CacheHelper.clear();
-  //   emit(AppLogoutState());
-  //   try {
-  //     final fcmToken = CacheHelper.getString(key: 'fcm_token');
-  //     if (fcmToken != null) {
-  //       // TODO: استدعاء API لحذف FCM Token
-  //       // await _apiService.deleteFcmToken(fcmToken: fcmToken);
-  //       print('🗑️ FCM Token removed from backend');
-  //     }
-  //   } catch (e) {
-  //     print('❌ Error removing FCM token: $e');
-  //   }
-  //
-  //   // تسجيل الخروج من Google
-  //   await GoogleSignIn().signOut();
-  //   await FirebaseAuth.instance.signOut();
-  //
-  //   await CacheHelper.clear();
-  //   emit(AppLogoutState());
-  //
-  // }
 
-  // ─── Load More Messages ─────────────────────────────
-  Future<void> loadMoreMessages(int accountId, int conversationId) async {
+  bool hasMoreMessages = true;
+  bool isLoadingMoreMessages = false;
+
+  Future<int> loadMoreMessages(int accountId, int conversationId) async {
+    if (isLoadingMoreMessages || !hasMoreMessages) return 0;
+    isLoadingMoreMessages = true;
     try {
       await _apiService.loadAuthToken();
 
-      final newMessages = await _apiService.fetchMessagesAdminApi(
-        accountId: accountId,
-        conversationId: conversationId,
-        loadMore: true,
-      );
-
-      // تحديث القائمة
-      messages.clear();
-      for (var msg in newMessages) {
-        final msgMap = _messageToMap(msg);
-        messages.add(msgMap);
+      int? oldestId;
+      for (final m in messages) {
+        if (m['is_temp'] == true) continue;
+        final parsed = int.tryParse(m['id'].toString());
+        if (parsed != null && (oldestId == null || parsed < oldestId)) {
+          oldestId = parsed;
+        }
       }
 
-      emit(AppMessagesLoadedState());
+      if (oldestId == null) {
+        isLoadingMoreMessages = false;
+        return 0;
+      }
+
+      final olderMessages = await _apiService.fetchMessagesAdminApi(
+        accountId: accountId,
+        conversationId: conversationId,
+        beforeId: oldestId,
+      );
+
+      if (olderMessages.isEmpty) {
+        hasMoreMessages = false;
+        isLoadingMoreMessages = false;
+        emit(AppMoreMessagesLoadedState(addedCount: 0));
+        return 0;
+      }
+
+      int addedCount = 0;
+      final toInsert = <Map<String, dynamic>>[];
+      for (var msg in olderMessages) {
+        final msgMap = _messageToMap(msg);
+        final exists = messages.any(
+            (m) => m['id'].toString() == msgMap['id'].toString());
+        if (!exists) {
+          toInsert.add(msgMap);
+          addedCount++;
+        }
+      }
+      messages.insertAll(0, toInsert);
+
+      if (olderMessages.length < 20) {
+        hasMoreMessages = false;
+      }
+
+      isLoadingMoreMessages = false;
+      emit(AppMoreMessagesLoadedState(addedCount: addedCount));
+      return addedCount;
     } catch (error) {
       print('❌ Load More Messages Error: $error');
+      isLoadingMoreMessages = false;
+      return 0;
     }
   }
 
@@ -1448,57 +1184,7 @@ class AppCubit extends Cubit<AppStates> {
 
 
 
-// ─── Initialize FCM ─────────────────────────────
 
-//   Future<void> initializeFCM() async {
-//     final messaging = FirebaseMessaging.instance;
-//
-//     // 1. طلب إذن الإشعارات
-//     final settings = await messaging.requestPermission(
-//       alert: true,
-//       badge: true,
-//       sound: true,
-//     );
-//
-//     print('🔔 Notification permission: ${settings.authorizationStatus}');
-//
-//     // 2. الحصول على FCM Token
-//     final fcmToken = await messaging.getToken();
-//     print('📲 FCM Token: $fcmToken');
-//
-//     if (fcmToken != null) {
-//       // حفظ في الكاش
-//       await CacheHelper.saveData(key: 'fcm_token', value: fcmToken);
-//
-//       // ✅ إرسال للـ Backend
-//       await _registerFcmTokenWithBackend(fcmToken);
-//
-//       emit(AppFcmTokenLoadedState(fcmToken: fcmToken));
-//     } else {
-//       emit(AppFcmTokenErrorState(error: 'Failed to get FCM token'));
-//     }
-//
-//     // 3. الاستماع لتغيير التوكن
-//     messaging.onTokenRefresh.listen((newToken) async {
-//       print('🔄 FCM Token refreshed: $newToken');
-//       await CacheHelper.saveData(key: 'fcm_token', value: newToken);
-//       await _registerFcmTokenWithBackend(newToken);
-//     });
-//
-//     // 4. الاستماع للرسائل في المقدمة
-//     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-//       print('📲 Foreground Message: ${message.notification?.title}');
-//     });
-//
-//     // 5. الاستماع عند فتح الإشعار
-//     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-//       print('📲 Notification opened: ${message.notification?.title}');
-//     });
-//   }
-
-// ─── Register FCM Token with Backend ─────────────────
-
-  // ─── Initialize FCM ─────────────────────────────
   Future<void> initializeFCM() async {
     // 1. الحصول على FCM Token
     final fcmToken = await FirebaseHelper.getFCMToken();
@@ -1674,11 +1360,18 @@ class AppCubit extends Cubit<AppStates> {
       );
 
       final sentMap = _messageToMap(sentMessage);
-      messages.add(sentMap);
+
+      // ✅ فحص التكرار: قد يكون صدى الـ WebSocket أضافها قبل وصول رد الـ API
+      // (رفع الملفات أبطأ من النص، فيسبقه الـ WS غالباً)
+      final alreadyExists = messages.any(
+          (m) => m['id'].toString() == sentMap['id'].toString());
+      if (!alreadyExists) {
+        messages.add(sentMap);
+        emit(AppNewMessageReceivedState(message: sentMap));
+      }
 
       isSending = false;
       emit(AppSendMessageSuccessState());
-      emit(AppNewMessageReceivedState(message: sentMap));
     } catch (error) {
       print('❌ Send Attachment Error: $error');
       isSending = false;
@@ -1893,6 +1586,48 @@ class AppCubit extends Cubit<AppStates> {
         : '')
         .join(' ')
         .trim();
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+// Mark Conversation as Read - NEW
+// ═══════════════════════════════════════════════════════════════
+  Future<void> markConversationAsRead(int conversationId) async {
+    try {
+      await _apiService.loadAuthToken();
+      final accountId = CacheHelper.getData(key: 'account_id') ?? 4;
+
+      // ✅ استدعاء API لتحديث read status في Chatwoot
+      // Chatwoot لا يوفر API مباشر لـ "mark as read"، لكن يمكن:
+      // 1. تحديث محلياً فوراً
+      // 2. الاعتماد على WebSocket event لاحقاً
+
+      final index = conversations.indexWhere((c) => c.id == conversationId);
+      if (index != -1) {
+        // ✅ تحديث المحادثة محلياً - تصفير unreadCount
+        final updatedConversation = ChatwootConversation(
+          id: conversations[index].id,
+          inboxId: conversations[index].inboxId,
+          contactId: conversations[index].contactId,
+          status: conversations[index].status,
+          messagesCount: conversations[index].messagesCount,
+          unreadCount: 0, // ← تصفير!
+          lastMessageContent: conversations[index].lastMessageContent,
+          lastMessageAt: conversations[index].lastMessageAt,
+          contactName: conversations[index].contactName,
+          contactAvatar: conversations[index].contactAvatar,
+          contactEmail: conversations[index].contactEmail,
+          contactPhone: conversations[index].contactPhone,
+          accountId: conversations[index].accountId,
+          channelType: conversations[index].channelType,
+        );
+
+        conversations[index] = updatedConversation;
+        emit(AppFetchConversationsSuccessState()); // إعادة بناء الـ UI
+        print('✅ Conversation $conversationId marked as read locally');
+      }
+    } catch (e) {
+      print('❌ Mark as read error: $e');
+    }
   }
 
 

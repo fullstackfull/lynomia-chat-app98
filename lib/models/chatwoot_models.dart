@@ -1,73 +1,4 @@
-// import 'package:equatable/equatable.dart';
-//
-// class ChatwootContact extends Equatable {
-//   final int id;
-//   final String? name;
-//   final String? email;
-//   final String? pubsubToken;
-//
-//   const ChatwootContact({
-//     required this.id,
-//     this.name,
-//     this.email,
-//     this.pubsubToken,
-//   });
-//
-//   factory ChatwootContact.fromJson(Map<String, dynamic> json) {
-//     return ChatwootContact(
-//       id: json['id'] ?? 0,
-//       name: json['name'],
-//       email: json['email'],
-//       pubsubToken: json['pubsub_token'],
-//     );
-//   }
-//
-//   @override
-//   List<Object?> get props => [id, name, email, pubsubToken];
-// }
-//
-// class ChatwootMessage extends Equatable {
-//   final int id;
-//   final String? content;
-//   final String? messageType;
-//   final String? senderType;
-//   final String? senderName;
-//   final DateTime? createdAt;
-//
-//   const ChatwootMessage({
-//     required this.id,
-//     this.content,
-//     this.messageType,
-//     this.senderType,
-//     this.senderName,
-//     this.createdAt,
-//   });
-//
-//   factory ChatwootMessage.fromJson(Map<String, dynamic> json) {
-//     return ChatwootMessage(
-//       id: json['id'] ?? 0,
-//       content: json['content'],
-//       messageType: json['message_type'],
-//       senderType: json['sender_type'],
-//       senderName: json['sender']?['name'],
-//       createdAt: json['created_at'] != null
-//           ? DateTime.parse(json['created_at'].toString())
-//           : null,
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() => {
-//     'id': id,
-//     'content': content,
-//     'message_type': messageType,
-//     'sender_type': senderType,
-//     'sender': {'name': senderName},
-//     'created_at': createdAt?.toIso8601String(),
-//   };
-//
-//   @override
-//   List<Object?> get props => [id, content, senderType, createdAt];
-// }
+
 
 
 import 'package:equatable/equatable.dart';
@@ -337,9 +268,7 @@ class ChatwootConversation extends Equatable {
       unreadCount: json['unread_count'],
       lastMessageContent: json['last_non_activity_message']?['content']?.toString() ??
           json['messages']?.last?['content']?.toString(),
-      lastMessageAt: json['last_activity_at'] != null
-          ? DateTime.parse(json['last_activity_at'].toString())
-          : null,
+      lastMessageAt: parsedLastAt,
       contactName: contact?['name']?.toString() ??
           sender?['name']?.toString() ??
           sender?['available_name']?.toString() ??
@@ -356,8 +285,41 @@ class ChatwootConversation extends Equatable {
     );
   }
 
+  ChatwootConversation copyWith({
+    int? id,
+    int? inboxId,
+    int? contactId,
+    String? status,
+    int? messagesCount,
+    int? unreadCount,
+    String? lastMessageContent,
+    DateTime? lastMessageAt,
+    String? contactName,
+    String? contactAvatar,
+    String? contactEmail,
+    String? contactPhone,
+    int? accountId,
+    String? channelType,
+  }) {
+    return ChatwootConversation(
+      id: id ?? this.id,
+      inboxId: inboxId ?? this.inboxId,
+      contactId: contactId ?? this.contactId,
+      status: status ?? this.status,
+      messagesCount: messagesCount ?? this.messagesCount,
+      unreadCount: unreadCount ?? this.unreadCount,
+      lastMessageContent: lastMessageContent ?? this.lastMessageContent,
+      lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+      contactName: contactName ?? this.contactName,
+      contactAvatar: contactAvatar ?? this.contactAvatar,
+      contactEmail: contactEmail ?? this.contactEmail,
+      contactPhone: contactPhone ?? this.contactPhone,
+      accountId: accountId ?? this.accountId,
+      channelType: channelType ?? this.channelType,
+    );
+  }
+
   @override
-  // List<Object?> get props => [id, inboxId, status, messagesCount, lastMessageAt];
   List<Object?> get props => [id, inboxId, status, unreadCount, lastMessageAt];
 }
 

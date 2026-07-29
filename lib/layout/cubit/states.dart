@@ -40,6 +40,12 @@ class AppLoadSessionErrorState extends AppStates {
 class AppNoSessionState extends AppStates {}
 
 class AppMessagesLoadedState extends AppStates {}
+class AppMoreMessagesLoadedState extends AppStates {
+  final int addedCount;
+  const AppMoreMessagesLoadedState({required this.addedCount});
+  @override
+  List<Object?> get props => [addedCount];
+}
 class AppNewMessageReceivedState extends AppStates {
   final Map<String, dynamic> message;
   const AppNewMessageReceivedState({required this.message});

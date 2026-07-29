@@ -241,16 +241,16 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
           ]),
         ),
         const SizedBox(height: 24),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEEF2FF), borderRadius: BorderRadius.circular(12)),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.update_outlined, size: 16, color: accentColor.withOpacity(0.7)),
-            const SizedBox(width: 8),
-            Text(AppLocalizations.tr(context, 'last_updated'), style: TextStyle(color: subTextColor, fontSize: 12, fontWeight: FontWeight.w500)),
-          ]),
-        ),
-        const SizedBox(height: 32),
+        // Container(
+        //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        //   decoration: BoxDecoration(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEEF2FF), borderRadius: BorderRadius.circular(12)),
+        //   child: Row(mainAxisSize: MainAxisSize.min, children: [
+        //     Icon(Icons.update_outlined, size: 16, color: accentColor.withOpacity(0.7)),
+        //     const SizedBox(width: 8),
+        //     Text(AppLocalizations.tr(context, 'last_updated'), style: TextStyle(color: subTextColor, fontSize: 12, fontWeight: FontWeight.w500)),
+        //   ]),
+        // ),
+        // const SizedBox(height: 32),
       ]),
     );
   }
