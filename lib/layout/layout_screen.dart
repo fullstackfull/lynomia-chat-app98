@@ -1678,14 +1678,14 @@ class LayoutScreen extends StatelessWidget {
                     },
                   ),
 
-                  _buildMenuItem(
-                    icon: Icons.help_outline,
-                    label: AppLocalizations.tr(context, 'Help'),
-                    isDark: isDark,
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
+                  // _buildMenuItem(
+                  //   icon: Icons.help_outline,
+                  //   label: AppLocalizations.tr(context, 'Help'),
+                  //   isDark: isDark,
+                  //   onTap: () {
+                  //     Navigator.pop(context);
+                  //   },
+                  // ),
                   _buildMenuItem(
                     icon: Icons.privacy_tip_outlined,
                     label: AppLocalizations.tr(context, 'privacy_policy'),
