@@ -106,7 +106,7 @@ class PaymentApiService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final paymentIntent = response.data['paymentIntent'];
-        print('✅ Payment Intent: $paymentIntent');
+        print('✅ Payment Intent received');
         return paymentIntent;
       }
 

@@ -700,7 +700,7 @@ print('❌ WS Connection Failed: $e');
       'identifier': identifier,
     });
 
-    print('📡 Subscribing: $identifier');
+    print('📡 Subscribing to RoomChannel (account: $targetAccountId)');
     _webSocket!.sink.add(subscribePayload);
   }
 void _subscribeToRoomChannelWithoutUserId({int? accountId}) {
@@ -721,7 +721,7 @@ final subscribePayload = jsonEncode({
 });
 
 print('📡 Subscribing without user_id...');
-print('📡 Identifier: $identifier');
+print('📡 Subscribing to RoomChannel (account: $targetAccountId, no user_id)');
 _webSocket!.sink.add(subscribePayload);
 }
 
