@@ -422,7 +422,7 @@ data: {'name': name, 'email': email},
 );
 
 print('📥 Status: ${response.statusCode}');
-print('📥 Response: ${response.data}');
+print('📥 Response status: ${response.statusCode}');
 
 if (response.statusCode == 404) {
 throw Exception('Inbox not found: $inboxIdentifier');
@@ -446,7 +446,7 @@ value: contact.sourceId ?? '');
 await CacheHelper.saveData(
 key: CacheHelper.keyInboxId, value: inboxIdentifier);
 
-print('✅ Contact created: ${contact.id} | Token: ${contact.pubsubToken}');
+print('✅ Contact created: ${contact.id}');
 return contact;
 } catch (e) {
 print('❌ Create Contact Error: $e');
@@ -646,7 +646,7 @@ try {
 // ✅ FIXED: URL بدون أي query parameters
 final wsUrl = '$_wsUrl/cable';
 print('🔌 Connecting Admin WS: $wsUrl');
-print('🔌 Using pubsub_token: $pubsubToken');
+print('🔌 Using pubsub_token: [redacted]');
 print('🔌 Using user_id: ${_userId ?? "not set"}');
 
 _webSocket = WebSocketChannel.connect(Uri.parse(wsUrl));
@@ -1023,10 +1023,10 @@ print('✅ Auth token set');
         _dio.options.headers['api_access_token'] = _authToken;
         _dio.options.headers['Authorization'] = 'Bearer $_authToken';
 
-        print('✅ Access token saved: $_authToken');
+        print('✅ Access token saved');
         print('✅ Account ID saved: $_accountId');
         print('✅ User ID saved: $_userId');
-        print('✅ PubSub token saved: $_pubsubToken');
+        print('✅ PubSub token saved');
 
         // ✅ جلب توكن Lynomia للدفع
         await _loginToLynomia(email: email, password: password);
@@ -1065,7 +1065,7 @@ print('✅ Auth token set');
       );
 
       print('📥 Lynomia Login Status: ${response.statusCode}');
-      print('📥 Lynomia Login Data: ${response.data}');
+      print('📥 Lynomia Login status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final lynomiaToken = response.data['access_token'];
@@ -1074,7 +1074,7 @@ print('✅ Auth token set');
             key: CacheHelper.keyLynomiaToken,
             value: lynomiaToken,
           );
-          print('✅ Lynomia token saved: $lynomiaToken');
+          print('✅ Lynomia token saved');
           return;
         }
         throw Exception('الـ Response لا يحتوي على access_token');
@@ -1097,7 +1097,7 @@ print('✅ Auth token set');
     try {
       final url = 'https://lynomia.com/api/register/google';
       print('📤 POST Register with Google: $url');
-      print('📤 Data: name=$name, email=$email, google_id=$googleId, platform=$platform');
+      print('📤 Register with Google: platform=$platform');
 
       final response = await _dio.post(
         url,
@@ -1111,7 +1111,7 @@ print('✅ Auth token set');
       );
 
       print('📥 Register with Google Status: ${response.statusCode}');
-      print('📥 Register with Google Data: ${response.data}');
+      print('📥 Register with Google status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data['data'];
@@ -1137,10 +1137,10 @@ print('✅ Auth token set');
         _dio.options.headers['api_access_token'] = _authToken;
         _dio.options.headers['Authorization'] = 'Bearer $_authToken';
 
-        print('✅ Access token saved: $_authToken');
+        print('✅ Access token saved');
         print('✅ Account ID saved: $_accountId');
         print('✅ User ID saved: $_userId');
-        print('✅ PubSub token saved: $_pubsubToken');
+        print('✅ PubSub token saved');
 
         // ✅ حفظ توكن Lynomia للدفع (يأتي في الـ Response من المستوى الأعلى)
         final lynomiaToken = response.data['lynomia_token'];
@@ -1149,7 +1149,7 @@ print('✅ Auth token set');
             key: CacheHelper.keyLynomiaToken,
             value: lynomiaToken,
           );
-          print('✅ Lynomia token saved: $lynomiaToken');
+          print('✅ Lynomia token saved');
         } else {
           print('⚠️ Lynomia token not found in Google register response');
         }
@@ -1237,7 +1237,7 @@ final userId = data['id'];
 if (pubsubToken != null && pubsubToken.toString().isNotEmpty) {
 _pubsubToken = pubsubToken.toString();
 await CacheHelper.saveData(key: CacheHelper.keyContactToken, value: _pubsubToken!);
-print('✅ PubSub token from profile: $_pubsubToken');
+print('✅ PubSub token loaded from profile');
 }
 
 if (userId != null) {
@@ -1273,7 +1273,7 @@ validateStatus: (status) => true,
 ),
 );
 print('📥 Subscription Status: ${response.statusCode}');
-print('📥 Subscription Data: ${response.data}');
+print('📥 Subscription status: ${response.statusCode}');
 
 if (response.statusCode == 200) {
 final data = response.data;
@@ -1568,7 +1568,7 @@ throw Exception('فشل إرسال الرسالة: $e');
     try {
       final url = '/api/v1/notification_subscriptions';
       print('📤 POST FCM Token: $_baseUrl$url');
-      print(' ✅ FCM Token : ${fcmToken.toString()}');
+      print(' ✅ FCM Token obtained');
 
       final response = await _dio.post(
         url,
@@ -1591,7 +1591,7 @@ throw Exception('فشل إرسال الرسالة: $e');
       );
 
       print('📥 FCM Register Status: ${response.statusCode}');
-      print('📥 FCM Register Response: ${response.data}');
+      print('📥 FCM Register status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         print('✅ FCM Token registered successfully');
@@ -1838,7 +1838,7 @@ throw Exception('فشل إرسال الرسالة: $e');
         ),
       );
       print('📥 Send Attachment Status: ${response.statusCode}');
-      print('📥 Send Attachment Response: ${response.data}');
+      print('📥 Send Attachment status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         dynamic payload = response.data;
@@ -1872,7 +1872,7 @@ throw Exception('فشل إرسال الرسالة: $e');
     try {
       final url = 'https://lynomia.com/api/auth/apple/signup';
       print('📤 POST Register with Apple: $url');
-      print('📤 Data: userIdentifier=$userIdentifier, email=$email, platform=$platform');
+      print('📤 Register with Apple: platform=$platform');
 
       final response = await _dio.post(
         url,
@@ -1888,7 +1888,7 @@ throw Exception('فشل إرسال الرسالة: $e');
       );
 
       print('📥 Register with Apple Status: ${response.statusCode}');
-      print('📥 Register with Apple Data: ${response.data}');
+      print('📥 Register with Apple status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
@@ -1912,13 +1912,13 @@ throw Exception('فشل إرسال الرسالة: $e');
 
         if (lynomiaToken != null && lynomiaToken is String && lynomiaToken.isNotEmpty) {
           await CacheHelper.saveData(key: CacheHelper.keyLynomiaToken, value: lynomiaToken);
-          print('✅ Lynomia token saved: $lynomiaToken');
+          print('✅ Lynomia token saved');
         }
 
         _dio.options.headers['api_access_token'] = _authToken;
         _dio.options.headers['Authorization'] = 'Bearer $_authToken';
 
-        print('✅ Apple Login Success - Token: $_authToken');
+        print('✅ Apple Login Success');
         return ChatwootLoginResponse(authToken: _authToken, accountId: _accountId);
       }
 

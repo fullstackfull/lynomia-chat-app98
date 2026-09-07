@@ -236,7 +236,7 @@ class AppCubit extends Cubit<AppStates> {
       await initializeFCM();
 
       print('✅ Session loaded successfully');
-      print('✅ Auth Token: $authToken');
+      print('✅ Auth token present');
       print('✅ Account ID: $accountId');
       print('✅ User ID: $userId');
 
@@ -1412,11 +1412,11 @@ class AppCubit extends Cubit<AppStates> {
       );
 
       print('🍎 Apple Credential:');
-      print('   userIdentifier: ${credential.userIdentifier}');
-      print('   email: ${credential.email}');
-      print('   givenName: ${credential.givenName}');
-      print('   familyName: ${credential.familyName}');
-      print('   identityToken: ${credential.identityToken?.substring(0, 50)}...');
+      print('   userIdentifier: [redacted]');
+      print('   email: [redacted]');
+      print('   givenName: [redacted]');
+      print('   familyName: [redacted]');
+      print('   identityToken: [redacted]');
 
       // ✅ 2. التحقق من البيانات
       if (credential.userIdentifier == null) {

@@ -102,7 +102,7 @@ class PaymentApiService {
       );
 
       print('📥 Payment Intent Status: ${response.statusCode}');
-      print('📥 Payment Intent Data: ${response.data}');
+      print('📥 Payment Intent status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final paymentIntent = response.data['paymentIntent'];
@@ -137,7 +137,7 @@ class PaymentApiService {
       print('📤 POST Verify Google Play Purchase: $url');
       print('📤 Account ID: $accountId');
       print('📤 Product ID: $productId');
-      print('📤 Purchase Token: $purchaseToken');
+      print('📤 Purchase token submitted for verification');
 
       final response = await _dio.post(
         url,
@@ -157,7 +157,7 @@ class PaymentApiService {
       );
 
       print('📥 Verification Status: ${response.statusCode}');
-      print('📥 Verification Data: ${response.data}');
+      print('📥 Verification status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         print('✅ Purchase verified successfully');
@@ -201,7 +201,7 @@ class PaymentApiService {
       );
 
       print('📥 Payment History Status: ${response.statusCode}');
-      print('📥 Payment History Data: ${response.data}');
+      print('📥 Payment History status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data;
