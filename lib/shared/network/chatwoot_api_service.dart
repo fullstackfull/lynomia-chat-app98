@@ -2122,4 +2122,131 @@ throw Exception('فشل إرسال الرسالة: $e');
       print('❌ update_last_seen Error: $e');
     }
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // WHATSAPP TEMPLATES (Admin API) - NEW ⭐⭐⭐
+  // ═══════════════════════════════════════════════════════════════
+  Future<List<WhatsAppTemplate>> fetchWhatsAppTemplates({
+    required int accountId,
+    required int inboxId,
+    int? conversationId,
+  }) async {
+    if (_authToken == null || _authToken!.isEmpty) {
+      throw Exception('Not logged in');
+    }
+
+    final endpoints = [
+      '/api/v1/accounts/$accountId/inboxes/$inboxId/message_templates',
+      '/api/v1/accounts/$accountId/inboxes/$inboxId/templates',
+      if (conversationId != null) '/api/v1/accounts/$accountId/conversations/$conversationId/templates',
+      '/api/v1/accounts/$accountId/inboxes/$inboxId',
+    ];
+
+    for (final url in endpoints) {
+      try {
+        print('📤 Trying GET WhatsApp Templates: $_baseUrl$url');
+        final response = await _dio.get(
+          url,
+          options: Options(
+            headers: {
+              'api_access_token': _authToken,
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+
+        print('📥 Status for $url: ${response.statusCode}');
+
+        if (response.statusCode == 200) {
+          dynamic rawData = response.data;
+          dynamic payload = rawData;
+
+          if (rawData is Map) {
+            if (rawData.containsKey('payload')) {
+              payload = rawData['payload'];
+            } else if (rawData.containsKey('message_templates')) {
+              payload = rawData['message_templates'];
+            } else if (rawData.containsKey('channel') && rawData['channel'] is Map && (rawData['channel'] as Map).containsKey('message_templates')) {
+              payload = rawData['channel']['message_templates'];
+            }
+          }
+
+          if (payload is List && payload.isNotEmpty) {
+            final templates = payload.map((json) {
+              final map = json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json);
+              return WhatsAppTemplate.fromJson(map);
+            }).toList();
+            print('✅ Fetched ${templates.length} WhatsApp templates from $url');
+            return templates;
+          }
+        }
+      } catch (e) {
+        print('⚠️ Failed fetching templates from $url: $e');
+      }
+    }
+    print('❌ All WhatsApp template endpoints returned empty or failed');
+    return [];
+  }
+
+  Future<ChatwootMessage> sendWhatsAppTemplateAdminApi({
+    required int accountId,
+    required int conversationId,
+    required String templateName,
+    required String language,
+    String? category,
+    Map<String, String>? parameters,
+    required String messageContent,
+  }) async {
+    if (_authToken == null || _authToken!.isEmpty) {
+      throw Exception('Not logged in');
+    }
+
+    try {
+      final url = '/api/v1/accounts/$accountId/conversations/$conversationId/messages';
+      print('📤 POST WhatsApp Template Message: $_baseUrl$url');
+
+      final Map<String, dynamic> templateParams = {
+        'name': templateName,
+        'category': category ?? 'MARKETING',
+        'language': language,
+      };
+
+      if (parameters != null && parameters.isNotEmpty) {
+        templateParams['processed_params'] = parameters;
+      }
+
+      final response = await _dio.post(
+        url,
+        data: {
+          'content': messageContent,
+          'template_params': templateParams,
+          'message_type': 'outgoing',
+        },
+        options: Options(
+          headers: {
+            'api_access_token': _authToken,
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      print('📥 Send WhatsApp Template Status: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        dynamic payload = response.data;
+        if (payload is Map && payload.containsKey('payload')) {
+          payload = payload['payload'];
+        }
+        final message = ChatwootMessage.fromJson(
+          payload is Map<String, dynamic> ? payload : Map<String, dynamic>.from(payload),
+        );
+        print('✅ Sent WhatsApp Template message: ${message.id}');
+        return message;
+      }
+      throw Exception('Failed to send template: ${response.statusCode}');
+    } catch (e) {
+      print('❌ Send WhatsApp Template Error: $e');
+      throw Exception('فشل إرسال قالب الواتس أب: $e');
+    }
+  }
 }

@@ -48,11 +48,12 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
         final isDark = cubit.isDark;
         final conversations = cubit.conversations;
 
-        // ✅ إظهار زر إنشاء محادثة جديدة فقط في inbox البريد الإلكتروني
+        // ✅ إظهار زر إنشاء محادثة جديدة للبريد الإلكتروني والواتساب
         final selectedChannelType = cubit.selectedInbox?.channelType?.toLowerCase() ?? '';
         final isEmailInbox = selectedChannelType.contains('email') ||
             selectedChannelType.contains('gmail') ||
             selectedChannelType.contains('microsoft');
+        final isWhatsAppInbox = selectedChannelType.contains('whatsapp');
 
         return Scaffold(
           backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
@@ -104,7 +105,17 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
             ),
           )
-              : null,
+              : (isWhatsAppInbox
+              ? FloatingActionButton.extended(
+            onPressed: () => _showNewWhatsAppConversationDialog(context),
+            backgroundColor: HexColor('#25D366'),
+            icon: const Icon(Icons.chat, color: Colors.white),
+            label: Text(
+              AppLocalizations.tr(context, 'New WhatsApp Chat'),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
+          )
+              : null),
         );
       },
     );
@@ -437,6 +448,207 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
       ),
     );
   }
+
+  void _showNewWhatsAppConversationDialog(BuildContext context) {
+    final cubit = context.read<AppCubit>();
+    final isDark = cubit.isDark;
+    final inboxes = cubit.inboxes;
+
+    if (inboxes.isEmpty) {
+      cubit.fetchInboxes();
+    }
+
+    final whatsappInboxes = inboxes.where((i) {
+      final type = i.channelType?.toLowerCase() ?? '';
+      return type.contains('whatsapp');
+    }).toList();
+
+    final phoneController = TextEditingController();
+    final nameController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    ChatwootInbox? selectedInbox = cubit.selectedInbox != null &&
+            (cubit.selectedInbox!.channelType?.toLowerCase().contains('whatsapp') ?? false)
+        ? cubit.selectedInbox
+        : (whatsappInboxes.isNotEmpty ? whatsappInboxes.first : null);
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          backgroundColor: isDark ? HexColor('#1E293B') : Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: HexColor('#25D366').withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.chat, color: HexColor('#25D366'), size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  AppLocalizations.tr(context, 'New WhatsApp Chat'),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : HexColor('#1E293B'),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.tr(context, 'Select the sender WhatsApp number and recipient details'),
+                    style: TextStyle(
+                      color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (whatsappInboxes.isNotEmpty) ...[
+                    DropdownButtonFormField<ChatwootInbox>(
+                      value: selectedInbox,
+                      isExpanded: true,
+                      dropdownColor: isDark ? HexColor('#1E293B') : Colors.white,
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.tr(context, 'Send From WhatsApp Number'),
+                        labelStyle: TextStyle(color: HexColor('#25D366')),
+                        prefixIcon: Icon(Icons.phone_android, color: HexColor('#25D366')),
+                        filled: true,
+                        fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: whatsappInboxes.map((inbox) {
+                        return DropdownMenuItem(
+                          value: inbox,
+                          child: Text(
+                            inbox.name ?? 'WhatsApp (${inbox.id})',
+                            style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setModalState(() => selectedInbox = value);
+                        if (value != null) {
+                          cubit.fetchWhatsAppTemplates(inboxId: value.id);
+                        }
+                      },
+                      validator: (value) => value == null
+                          ? AppLocalizations.tr(context, 'Please select an inbox')
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  TextFormField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.tr(context, 'WhatsApp Number (with country code)'),
+                      hintText: '+1234567890',
+                      prefixIcon: Icon(Icons.send_to_mobile, color: HexColor('#25D366')),
+                      filled: true,
+                      fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    validator: (val) {
+                      if (val == null || val.trim().isEmpty) {
+                        return AppLocalizations.tr(context, 'Please enter a valid phone number');
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: nameController,
+                    style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.tr(context, 'Contact Name (Optional)'),
+                      prefixIcon: Icon(Icons.person, color: HexColor('#64748B')),
+                      filled: true,
+                      fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isDark ? HexColor('#451A1A') : HexColor('#FEE2E2'),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: HexColor('#FCA5A5'), width: 0.5),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: HexColor('#EF4444'), size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.tr(context, 'Starting a new WhatsApp chat requires sending a WhatsApp template message first.'),
+                            style: TextStyle(
+                              color: isDark ? HexColor('#FCA5A5') : HexColor('#991B1B'),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                AppLocalizations.tr(context, 'cancel'),
+                style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                if (!formKey.currentState!.validate() || selectedInbox == null) return;
+                Navigator.pop(dialogContext);
+
+                await cubit.createNewWhatsAppConversation(
+                  inboxId: selectedInbox!.id,
+                  contactPhone: phoneController.text.trim(),
+                  contactName: nameController.text.trim(),
+                );
+
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ChatScreen()),
+                  );
+                }
+              },
+              icon: const Icon(Icons.send, size: 18),
+              label: Text(AppLocalizations.tr(context, 'Select Template & Send')),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: HexColor('#25D366'),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildLoadingState() {
     return Center(
       child: CircularProgressIndicator(

@@ -43,6 +43,7 @@ class ChatwootMessage extends Equatable {
   final int? inboxId;
   final List<ChatwootAttachment>? attachments;  // ✅ جديد
   final String? contentType;
+  final String? status; // ✅ status من Chatwoot API (e.g. sent, delivered, read, failed)
 
   const ChatwootMessage({
     required this.id,
@@ -55,6 +56,7 @@ class ChatwootMessage extends Equatable {
     this.inboxId,
     this.attachments,  // ✅
     this.contentType,
+    this.status,
   });
 
   factory ChatwootMessage.fromJson(Map<String, dynamic> json) {
@@ -94,6 +96,7 @@ class ChatwootMessage extends Equatable {
       inboxId: json['inbox_id'],
       attachments: attachments,  // ✅
       contentType: json['content_type']?.toString(),
+      status: json['status']?.toString(),
     );
   }
 
@@ -104,10 +107,108 @@ class ChatwootMessage extends Equatable {
     'sender_type': senderType,
     'sender': {'name': senderName},
     'created_at': createdAt?.toIso8601String(),
+    'status': status,
   };
 
   @override
-  List<Object?> get props => [id, content, senderType,attachments ,createdAt];
+  List<Object?> get props => [id, content, senderType, attachments, createdAt, status];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WhatsApp Template Models
+// ═══════════════════════════════════════════════════════════════
+
+class WhatsAppTemplateComponent extends Equatable {
+  final String type; // HEADER, BODY, FOOTER, BUTTONS
+  final String? format; // TEXT, IMAGE, etc.
+  final String? text;
+  final List<dynamic>? parameters;
+
+  const WhatsAppTemplateComponent({
+    required this.type,
+    this.format,
+    this.text,
+    this.parameters,
+  });
+
+  factory WhatsAppTemplateComponent.fromJson(Map<String, dynamic> json) {
+    return WhatsAppTemplateComponent(
+      type: json['type']?.toString().toUpperCase() ?? '',
+      format: json['format']?.toString(),
+      text: json['text']?.toString(),
+      parameters: json['parameters'] as List<dynamic>?,
+    );
+  }
+
+  @override
+  List<Object?> get props => [type, format, text, parameters];
+}
+
+class WhatsAppTemplate extends Equatable {
+  final String name;
+  final String? category;
+  final String? language;
+  final String? status;
+  final List<WhatsAppTemplateComponent> components;
+
+  const WhatsAppTemplate({
+    required this.name,
+    this.category,
+    this.language,
+    this.status,
+    this.components = const [],
+  });
+
+  factory WhatsAppTemplate.fromJson(Map<String, dynamic> json) {
+    List<WhatsAppTemplateComponent> comps = [];
+    if (json['components'] != null && json['components'] is List) {
+      comps = (json['components'] as List)
+          .map((c) => WhatsAppTemplateComponent.fromJson(
+              c is Map<String, dynamic> ? c : Map<String, dynamic>.from(c)))
+          .toList();
+    }
+    return WhatsAppTemplate(
+      name: json['name']?.toString() ?? json['template_name']?.toString() ?? '',
+      category: json['category']?.toString(),
+      language: json['language']?.toString() ?? json['lang']?.toString() ?? 'en',
+      status: json['status']?.toString(),
+      components: comps,
+    );
+  }
+
+  String? get headerText {
+    for (var c in components) {
+      if (c.type == 'HEADER' && c.text != null) return c.text;
+    }
+    return null;
+  }
+
+  String? get bodyText {
+    for (var c in components) {
+      if (c.type == 'BODY' && c.text != null) return c.text;
+    }
+    return null;
+  }
+
+  List<String> get variables {
+    final body = bodyText ?? '';
+    final header = headerText ?? '';
+    final fullText = '$header $body';
+    final regExp = RegExp(r'\{\{(\d+)\}\}');
+    final matches = regExp.allMatches(fullText);
+    final Set<String> vars = {};
+    for (var match in matches) {
+      if (match.group(1) != null) {
+        vars.add(match.group(1)!);
+      }
+    }
+    final list = vars.toList();
+    list.sort((a, b) => (int.tryParse(a) ?? 0).compareTo(int.tryParse(b) ?? 0));
+    return list;
+  }
+
+  @override
+  List<Object?> get props => [name, category, language, status, components];
 }
 
 // ✅ نموذج Inbox لجلب القائمة من Chatwoot
@@ -267,7 +368,9 @@ class ChatwootConversation extends Equatable {
       messagesCount: json['messages_count'],
       unreadCount: json['unread_count'],
       lastMessageContent: json['last_non_activity_message']?['content']?.toString() ??
-          json['messages']?.last?['content']?.toString(),
+          ((json['messages'] is List && (json['messages'] as List).isNotEmpty)
+              ? (json['messages'] as List).last['content']?.toString()
+              : null),
       lastMessageAt: parsedLastAt,
       contactName: contact?['name']?.toString() ??
           sender?['name']?.toString() ??

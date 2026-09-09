@@ -25,7 +25,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../layout/cubit/cubit.dart';
 import '../../layout/cubit/states.dart';
+import '../../models/chatwoot_models.dart';
 import '../../shared/app_localizations.dart';
+import '../../shared/components/components.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // ChatScreen - Professional WhatsApp-like Experience v2.0
@@ -597,6 +599,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           appBar: _buildAppBar(cubit, isDark),
           body: Column(
             children: [
+              if (cubit.is24HourWindowRestricted(cubit.selectedConversation))
+                _build24HourWindowBanner(isDark),
               Expanded(
                 child: messages.isEmpty
                     ? _buildEmptyState(isDark)
@@ -998,7 +1002,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           content != '📎 ملف' &&
                           content != '🎵 تسجيل صوتي' &&
                           !hasAttachments)
-                        _buildTextBubble(content, timeText, isOutgoing, isDark, isSelected),
+                        _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected),
                       // ✅ إذا كان هناك مرفقات + نص عادي، نعرض النص
                       if (content.isNotEmpty &&
                           content != '📷 صورة' &&
@@ -1007,7 +1011,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           hasAttachments)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
-                          child: _buildTextBubble(content, timeText, isOutgoing, isDark, isSelected),
+                          child: _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected),
                         ),
                     ],
                   ),
@@ -1033,44 +1037,99 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildTextBubble(String content, String timeText, bool isOutgoing, bool isDark, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: isOutgoing ? HexColor('#6366F1') : (isDark ? HexColor('#1E293B') : HexColor('#FFFFFF')),
-        borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(18),
-          topRight: const Radius.circular(18),
-          bottomLeft: Radius.circular(isOutgoing ? 18 : 4),
-          bottomRight: Radius.circular(isOutgoing ? 4 : 18),
-        ),
-        border: isSelected ? Border.all(color: HexColor('#6366F1'), width: 2.5) : null,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            content,
-            style: TextStyle(
-              color: isOutgoing ? Colors.white : (isDark ? Colors.white : HexColor('#1E293B')),
-              fontSize: 15,
-              height: 1.4,
+  Widget _buildTextBubble(Map<String, dynamic> message, String content, String timeText, bool isOutgoing, bool isDark, bool isSelected) {
+    final status = message['status']?.toString().toLowerCase();
+    final isFailed = status == 'failed' || message['is_failed'] == true;
+
+    return Column(
+      crossAxisAlignment: isOutgoing ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: isFailed
+                ? (isDark ? HexColor('#451A1A') : HexColor('#FEE2E2'))
+                : (isOutgoing ? HexColor('#6366F1') : (isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'))),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(18),
+              topRight: const Radius.circular(18),
+              bottomLeft: Radius.circular(isOutgoing ? 18 : 4),
+              bottomRight: Radius.circular(isOutgoing ? 4 : 18),
             ),
-            textAlign: TextAlign.right,
+            border: isSelected
+                ? Border.all(color: HexColor('#6366F1'), width: 2.5)
+                : (isFailed ? Border.all(color: HexColor('#FCA5A5'), width: 1) : null),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
           ),
-          const SizedBox(height: 4),
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(timeText, style: TextStyle(color: isOutgoing ? Colors.white.withOpacity(0.7) : HexColor('#94A3B8'), fontSize: 11)),
-              const SizedBox(width: 4),
-              if (isOutgoing) Icon(Icons.done_all, size: 14, color: Colors.white.withOpacity(0.7)),
+              Text(
+                content,
+                style: TextStyle(
+                  color: isFailed
+                      ? (isDark ? HexColor('#FCA5A5') : HexColor('#991B1B'))
+                      : (isOutgoing ? Colors.white : (isDark ? Colors.white : HexColor('#1E293B'))),
+                  fontSize: 15,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.right,
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    timeText,
+                    style: TextStyle(
+                      color: isFailed
+                          ? HexColor('#EF4444')
+                          : (isOutgoing ? Colors.white.withOpacity(0.7) : HexColor('#94A3B8')),
+                      fontSize: 11,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  if (isOutgoing && !isFailed)
+                    Icon(Icons.done_all, size: 14, color: Colors.white.withOpacity(0.7)),
+                ],
+              ),
             ],
           ),
-        ],
-      ),
+        ),
+        if (isFailed)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, right: 4),
+            child: InkWell(
+              onTap: () {
+                final cubit = context.read<AppCubit>();
+                if (cubit.is24HourWindowRestricted(cubit.selectedConversation)) {
+                  _showWhatsAppTemplatesModal(context, cubit, isDark);
+                } else {
+                  cubit.retrySendMessage(message);
+                }
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppLocalizations.tr(context, 'Failed to send'),
+                    style: TextStyle(
+                      color: HexColor('#EF4444'),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.error_outline, color: HexColor('#EF4444'), size: 14),
+                  const SizedBox(width: 4),
+                  Icon(Icons.refresh, color: HexColor('#EF4444'), size: 14),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -1482,10 +1541,90 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
+  Widget _build24HourWindowBanner(bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? HexColor('#451A1A') : HexColor('#FEE2E2'),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: HexColor('#FCA5A5'), width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.error_outline, color: HexColor('#EF4444'), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              AppLocalizations.tr(context, 'You can only reply to this conversation using a template message due to 24 hour message window restriction'),
+              style: TextStyle(
+                color: isDark ? HexColor('#FCA5A5') : HexColor('#991B1B'),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildNormalInput(bool isDark) {
+    final cubit = AppCubit.get(context);
+    final is24hRestricted = cubit.is24HourWindowRestricted(cubit.selectedConversation);
+    final channelType = cubit.selectedConversation?.channelType?.toLowerCase() ??
+        cubit.selectedInbox?.channelType?.toLowerCase() ??
+        '';
+    final isWhatsAppChannel = channelType.contains('whatsapp');
+
+    if (is24hRestricted) {
+      return Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? HexColor('#0F172A') : HexColor('#F1F5F9'),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Text(
+                AppLocalizations.tr(context, 'You can only reply using a template message due to 24-hour message window restriction'),
+                style: TextStyle(
+                  color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
+                  fontSize: 12,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            onPressed: () => _showWhatsAppTemplatesModal(context, cubit, isDark),
+            icon: const Icon(Icons.description, size: 18),
+            label: Text(AppLocalizations.tr(context, 'Send Template')),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: HexColor('#6366F1'),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Row(
       children: [
-
+        if (isWhatsAppChannel)
+          IconButton(
+            icon: Icon(Icons.description_outlined, color: HexColor('#6366F1')),
+            tooltip: AppLocalizations.tr(context, 'Whatsapp Templates'),
+            onPressed: () => _showWhatsAppTemplatesModal(context, cubit, isDark),
+          ),
 
         // ✅ زر المرفقات
         PopupMenuButton<String>(
@@ -1790,6 +1929,449 @@ class _DeleteDialog extends StatelessWidget {
           child: Text(AppLocalizations.tr(context, 'Delete'), style: const TextStyle(color: Colors.red)),
         ),
       ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WHATSAPP TEMPLATES MODAL BOTTOM SHEET
+// ═══════════════════════════════════════════════════════════════
+void _showWhatsAppTemplatesModal(BuildContext context, AppCubit cubit, bool isDark) {
+  cubit.fetchWhatsAppTemplates();
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => _WhatsAppTemplatesBottomSheet(cubit: cubit, isDark: isDark),
+  );
+}
+
+class _WhatsAppTemplatesBottomSheet extends StatefulWidget {
+  final AppCubit cubit;
+  final bool isDark;
+
+  const _WhatsAppTemplatesBottomSheet({required this.cubit, required this.isDark});
+
+  @override
+  State<_WhatsAppTemplatesBottomSheet> createState() => _WhatsAppTemplatesBottomSheetState();
+}
+
+class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomSheet> {
+  WhatsAppTemplate? _selectedTemplate;
+  final Map<String, TextEditingController> _paramControllers = {};
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    for (var c in _paramControllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _selectTemplate(WhatsAppTemplate template) {
+    setState(() {
+      _selectedTemplate = template;
+      _paramControllers.clear();
+      for (var varName in template.variables) {
+        _paramControllers[varName] = TextEditingController();
+      }
+    });
+  }
+
+  void _goBack() {
+    setState(() {
+      _selectedTemplate = null;
+    });
+  }
+
+  void _sendTemplate() {
+    if (_selectedTemplate == null) return;
+
+    final Map<String, String> params = {};
+    _paramControllers.forEach((key, controller) {
+      params[key] = controller.text.trim();
+    });
+
+    widget.cubit.sendWhatsAppTemplate(
+      template: _selectedTemplate!,
+      parameters: params.isNotEmpty ? params : null,
+    );
+
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+
+    return Container(
+      constraints: BoxConstraints(maxHeight: mediaQuery.size.height * 0.85),
+      padding: EdgeInsets.only(
+        bottom: mediaQuery.viewInsets.bottom + 16,
+        top: 16,
+        left: 20,
+        right: 20,
+      ),
+      decoration: BoxDecoration(
+        color: widget.isDark ? HexColor('#1E293B') : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: BlocConsumer<AppCubit, AppStates>(
+        listener: (context, state) {
+          if (state is AppSendWhatsAppTemplateSuccessState) {
+            CustomToast.show(
+              context: context,
+              message: AppLocalizations.tr(context, 'Send Message'),
+              state: ToastStates.success,
+            );
+          }
+          if (state is AppSendWhatsAppTemplateErrorState) {
+            CustomToast.show(
+              context: context,
+              message: state.error,
+              state: ToastStates.error,
+            );
+          }
+        },
+        builder: (context, state) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: widget.isDark ? HexColor('#475569') : HexColor('#CBD5E1'),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+
+              // Modal Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocalizations.tr(context, 'Whatsapp Templates'),
+                          style: TextStyle(
+                            color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _selectedTemplate == null
+                              ? AppLocalizations.tr(context, 'Select the whatsapp template you want to send')
+                              : AppLocalizations.tr(context, 'Configure template: {name}').replaceFirst('{name}', _selectedTemplate!.name),
+                          style: TextStyle(
+                            color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Content based on screen state
+              if (_selectedTemplate == null)
+                _buildTemplateListScreen(state)
+              else
+                _buildTemplateConfigureScreen(state),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTemplateListScreen(AppStates state) {
+    final templates = widget.cubit.whatsappTemplates.where((t) {
+      if (_searchQuery.isEmpty) return true;
+      return t.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (t.bodyText?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
+    }).toList();
+
+    return Expanded(
+      child: Column(
+        children: [
+          // Search & Refresh Row
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                    ),
+                  ),
+                  child: TextField(
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                    style: TextStyle(color: widget.isDark ? Colors.white : HexColor('#1E293B')),
+                    decoration: InputDecoration(
+                      hintText: AppLocalizations.tr(context, 'Search Templates'),
+                      hintStyle: TextStyle(color: widget.isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
+                      prefixIcon: Icon(Icons.search, color: widget.isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                  ),
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.refresh, color: HexColor('#6366F1')),
+                  onPressed: () => widget.cubit.fetchWhatsAppTemplates(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Template List View
+          Expanded(
+            child: state is AppFetchWhatsAppTemplatesLoadingState && templates.isEmpty
+                ? Center(child: CircularProgressIndicator(color: HexColor('#6366F1')))
+                : templates.isEmpty
+                    ? Center(
+                        child: Text(
+                          AppLocalizations.tr(context, 'No templates found'),
+                          style: TextStyle(color: widget.isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: templates.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final template = templates[index];
+                          return _buildTemplateCard(template);
+                        },
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTemplateCard(WhatsAppTemplate template) {
+    return InkWell(
+      onTap: () => _selectTemplate(template),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    template.name,
+                    style: TextStyle(
+                      color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Language: ${template.language ?? 'en'}',
+                    style: TextStyle(
+                      color: widget.isDark ? HexColor('#CBD5E1') : HexColor('#475569'),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (template.headerText != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                AppLocalizations.tr(context, 'Header'),
+                style: TextStyle(
+                  color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                template.headerText!,
+                style: TextStyle(
+                  color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+            if (template.bodyText != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                AppLocalizations.tr(context, 'Body'),
+                style: TextStyle(
+                  color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                template.bodyText!,
+                style: TextStyle(
+                  color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                  fontSize: 14,
+                ),
+              ),
+            ],
+            if (template.category != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                AppLocalizations.tr(context, 'Category'),
+                style: TextStyle(
+                  color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                template.category!,
+                style: TextStyle(
+                  color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTemplateConfigureScreen(AppStates state) {
+    final template = _selectedTemplate!;
+    final variables = template.variables;
+
+    return Expanded(
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTemplateCard(template),
+                  if (variables.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Template Parameters',
+                      style: TextStyle(
+                        color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...variables.map((varName) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: TextField(
+                          controller: _paramControllers[varName],
+                          style: TextStyle(color: widget.isDark ? Colors.white : HexColor('#1E293B')),
+                          decoration: InputDecoration(
+                            labelText: 'Variable {{ $varName }}',
+                            labelStyle: TextStyle(color: HexColor('#6366F1')),
+                            filled: true,
+                            fillColor: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _goBack,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(
+                    AppLocalizations.tr(context, 'Go Back'),
+                    style: TextStyle(color: widget.isDark ? Colors.white : HexColor('#1E293B')),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: state is AppSendWhatsAppTemplateLoadingState ? null : _sendTemplate,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: HexColor('#6366F1'),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: state is AppSendWhatsAppTemplateLoadingState
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : Text(AppLocalizations.tr(context, 'Send Message')),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

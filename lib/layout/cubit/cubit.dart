@@ -424,6 +424,7 @@ class AppCubit extends Cubit<AppStates> {
       'inbox_id': msg.inboxId,
       'content_type': msg.contentType ?? 'text',
       'attachments': attachmentMaps,
+      'status': msg.status,
     };
   }
 
@@ -762,10 +763,21 @@ class AppCubit extends Cubit<AppStates> {
           return;
         }
 
-        // ✅ فحص التكرار بالـ ID الحقيقي
-        final existsById = messages.any(
+        // ✅ فحص التكرار أو التحديث بالـ ID الحقيقي
+        final existingIndex = messages.indexWhere(
             (m) => m['id'].toString() == msgMap['id'].toString());
-        if (existsById) return;
+        if (existingIndex != -1) {
+          final updatedMsg = {
+            ...messages[existingIndex],
+            ...msgMap,
+            if (msgMap['status'] == 'failed') 'is_failed': true,
+          };
+          messages[existingIndex] = updatedMsg;
+          print('🔄 Real-time updated message ${msgMap['id']} status to ${msgMap['status']}');
+          emit(AppNewMessageReceivedState(message: updatedMsg));
+          emit(AppMessagesLoadedState());
+          return;
+        }
 
         // ✅ فحص إذا كانت هناك رسالة مؤقتة (is_temp) بنفس المحتوى
         // ملاحظة: لا نقارن sender_type لأن المؤقتة 'agent' بينما صدى WS يصل 'User'
@@ -1018,6 +1030,9 @@ class AppCubit extends Cubit<AppStates> {
       );
 
       final sentMap = _messageToMap(sentMessage);
+      if (sentMap['status'] == 'failed') {
+        sentMap['is_failed'] = true;
+      }
 
       // ✅ استبدال الرسالة المؤقتة بالحقيقية (إذا لم يستبدلها WebSocket بالفعل)
       final index = messages.indexWhere((m) => m['id'] == tempId);
@@ -1036,10 +1051,247 @@ class AppCubit extends Cubit<AppStates> {
       emit(AppSendMessageSuccessState());
     } catch (error) {
       print('❌ Send Message Error: $error');
-      messages.removeWhere((m) => m['id'] == tempId);
+      final index = messages.indexWhere((m) => m['id'] == tempId);
+      if (index != -1) {
+        messages[index] = {
+          ...messages[index],
+          'status': 'failed',
+          'is_failed': true,
+          'is_temp': false,
+        };
+        emit(AppMessagesLoadedState());
+      }
       isSending = false;
       emit(AppSendMessageErrorState(error: 'فشل إرسال الرسالة: $error'));
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // WHATSAPP 24-HOUR WINDOW RESTRICTION & TEMPLATES
+  // ═══════════════════════════════════════════════════════════════
+  List<WhatsAppTemplate> whatsappTemplates = [];
+
+  bool is24HourWindowRestricted(ChatwootConversation? conversation) {
+    if (conversation == null) return false;
+
+    final channelType = conversation.channelType?.toLowerCase() ??
+        selectedInbox?.channelType?.toLowerCase() ??
+        '';
+
+    final isWhatsApp = channelType.contains('whatsapp');
+    if (!isWhatsApp) return false;
+
+    DateTime? lastIncomingAt;
+
+    for (int i = messages.length - 1; i >= 0; i--) {
+      final m = messages[i];
+      final senderType = m['sender_type']?.toString().toLowerCase() ?? '';
+      final messageType = m['message_type']?.toString().toLowerCase() ?? '';
+      final isIncoming = senderType == 'contact' || messageType == 'incoming' || messageType == '0';
+
+      if (isIncoming) {
+        final createdAt = m['created_at'];
+        if (createdAt is String) {
+          lastIncomingAt = DateTime.tryParse(createdAt);
+        } else if (createdAt is DateTime) {
+          lastIncomingAt = createdAt;
+        }
+        if (lastIncomingAt != null) break;
+      }
+    }
+
+    if (lastIncomingAt == null) {
+      lastIncomingAt = conversation.lastMessageAt;
+    }
+
+    if (lastIncomingAt == null) {
+      return true;
+    }
+
+    final differenceInHours = DateTime.now().difference(lastIncomingAt).inHours;
+    return differenceInHours >= 24;
+  }
+
+  Future<void> fetchWhatsAppTemplates({int? inboxId}) async {
+    emit(AppFetchWhatsAppTemplatesLoadingState());
+
+    try {
+      await _apiService.loadAuthToken();
+      final accountIdData = CacheHelper.getData(key: 'account_id');
+      final accountId = accountIdData != null ? int.tryParse(accountIdData.toString()) : 4;
+      final targetInboxId = inboxId ?? selectedConversation?.inboxId ?? selectedInbox?.id;
+
+      if (accountId == null || targetInboxId == null) {
+        throw Exception('Account ID or Inbox ID not found');
+      }
+
+      whatsappTemplates = await _apiService.fetchWhatsAppTemplates(
+        accountId: accountId,
+        inboxId: targetInboxId,
+        conversationId: selectedConversation?.id,
+      );
+
+      emit(AppFetchWhatsAppTemplatesSuccessState(templates: whatsappTemplates));
+    } catch (error) {
+      print('❌ Fetch WhatsApp Templates Error: $error');
+      emit(AppFetchWhatsAppTemplatesErrorState(error: error.toString()));
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // CREATE NEW WHATSAPP CONVERSATION BY PHONE NUMBER
+  // ═══════════════════════════════════════════════════════════════
+  Future<void> createNewWhatsAppConversation({
+    required int inboxId,
+    String? contactName,
+    required String contactPhone,
+  }) async {
+    emit(AppCreateConversationLoadingState());
+
+    try {
+      await _apiService.loadAuthToken();
+
+      final accountIdData = CacheHelper.getData(key: CacheHelper.keyAccountId);
+      final accountId = accountIdData != null
+          ? int.tryParse(accountIdData.toString())
+          : 4;
+
+      if (accountId == null) {
+        throw Exception('Account ID not found');
+      }
+
+      final cleanPhone = contactPhone.replaceAll(RegExp(r'[^\d+]'), '');
+      final effectiveName = (contactName == null || contactName.trim().isEmpty)
+          ? cleanPhone
+          : contactName.trim();
+
+      int? contactId;
+      String? sourceId;
+
+      print('🔍 Searching for WhatsApp contact: $cleanPhone');
+      final existingContacts = await _apiService.searchContactsAdminApi(
+        accountId: accountId,
+        query: cleanPhone,
+      );
+
+      if (existingContacts.isNotEmpty) {
+        final contact = existingContacts.first;
+        contactId = contact['id'] is int ? contact['id'] : int.tryParse(contact['id'].toString());
+        final contactInboxes = contact['contact_inboxes'] as List<dynamic>?;
+        if (contactInboxes != null && contactInboxes.isNotEmpty) {
+          sourceId = contactInboxes.first['source_id']?.toString();
+        }
+        print('✅ Found existing WhatsApp contact: $contactId');
+      } else {
+        print('🆕 Creating new WhatsApp contact...');
+        final newContact = await _apiService.createContactAdminApi(
+          accountId: accountId,
+          inboxId: inboxId,
+          name: effectiveName,
+          email: '$cleanPhone@whatsapp.com',
+          phoneNumber: cleanPhone,
+          identifier: cleanPhone,
+        );
+
+        final rawId = newContact['id'];
+        contactId = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
+
+        final contactInboxes = newContact['contact_inboxes'] as List<dynamic>?;
+        if (contactInboxes != null && contactInboxes.isNotEmpty) {
+          sourceId = contactInboxes.first['source_id']?.toString();
+        }
+        if (sourceId == null || sourceId.isEmpty) {
+          sourceId = cleanPhone;
+        }
+
+        print('✅ New WhatsApp contact created: $contactId | Source: $sourceId');
+      }
+
+      if (contactId == null) {
+        throw Exception('فشل الحصول على معرف جهة الاتصال');
+      }
+
+      print('💬 Creating WhatsApp conversation...');
+      final conversation = await _apiService.createConversationAdminApi(
+        accountId: accountId,
+        inboxId: inboxId,
+        contactId: contactId,
+        sourceId: sourceId,
+        status: 'open',
+      );
+
+      conversations.insert(0, conversation);
+      selectedConversation = conversation;
+
+      emit(AppCreateConversationSuccessState(conversation: conversation));
+      await selectConversation(conversation);
+
+    } catch (error) {
+      print('❌ Create WhatsApp Conversation Error: $error');
+      emit(AppCreateConversationErrorState(error: error.toString()));
+    }
+  }
+
+  Future<void> sendWhatsAppTemplate({
+    required WhatsAppTemplate template,
+    Map<String, String>? parameters,
+  }) async {
+    if (selectedConversation == null) {
+      emit(AppSendWhatsAppTemplateErrorState(error: 'لم يتم اختيار محادثة'));
+      return;
+    }
+
+    emit(AppSendWhatsAppTemplateLoadingState());
+
+    try {
+      await _apiService.loadAuthToken();
+      final accountIdData = CacheHelper.getData(key: 'account_id');
+      final accountId = accountIdData != null ? int.tryParse(accountIdData.toString()) : 4;
+
+      if (accountId == null) {
+        throw Exception('Account ID not found');
+      }
+
+      String contentText = template.bodyText ?? template.name;
+      if (parameters != null && parameters.isNotEmpty) {
+        parameters.forEach((key, value) {
+          contentText = contentText.replaceAll('{{\$$key}}', value).replaceAll('{{$key}}', value);
+        });
+      }
+
+      final sentMessage = await _apiService.sendWhatsAppTemplateAdminApi(
+        accountId: accountId,
+        conversationId: selectedConversation!.id,
+        templateName: template.name,
+        language: template.language ?? 'en',
+        category: template.category,
+        parameters: parameters,
+        messageContent: contentText,
+      );
+
+      final sentMap = _messageToMap(sentMessage);
+      final alreadyExists = messages.any((m) => m['id'].toString() == sentMap['id'].toString());
+      if (!alreadyExists) {
+        messages.add(sentMap);
+        emit(AppNewMessageReceivedState(message: sentMap));
+      }
+
+      emit(AppSendWhatsAppTemplateSuccessState());
+      emit(AppMessagesLoadedState());
+    } catch (error) {
+      print('❌ Send WhatsApp Template Error: $error');
+      emit(AppSendWhatsAppTemplateErrorState(error: error.toString()));
+    }
+  }
+
+  Future<void> retrySendMessage(Map<String, dynamic> messageMap) async {
+    final content = messageMap['content']?.toString() ?? '';
+    if (content.isEmpty) return;
+
+    messages.removeWhere((m) => m['id'] == messageMap['id']);
+    emit(AppMessagesLoadedState());
+
+    await sendMessageAdminApi(content);
   }
 
   Future<void> logout() async {

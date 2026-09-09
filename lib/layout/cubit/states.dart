@@ -212,5 +212,30 @@ class AppCreateContactAdminErrorState extends AppStates {
   List<Object?> get props => [error];
 }
 
+// ─── WhatsApp Templates States ─────────────────────
+class AppFetchWhatsAppTemplatesLoadingState extends AppStates {}
+class AppFetchWhatsAppTemplatesSuccessState extends AppStates {
+  final List<WhatsAppTemplate> templates;
+  const AppFetchWhatsAppTemplatesSuccessState({required this.templates});
+  @override
+  List<Object?> get props => [templates];
+}
+class AppFetchWhatsAppTemplatesErrorState extends AppStates {
+  final String error;
+  const AppFetchWhatsAppTemplatesErrorState({required this.error});
+  @override
+  List<Object?> get props => [error];
+}
+
+class AppSendWhatsAppTemplateLoadingState extends AppStates {}
+class AppSendWhatsAppTemplateSuccessState extends AppStates {}
+class AppSendWhatsAppTemplateErrorState extends AppStates {
+  final String error;
+  const AppSendWhatsAppTemplateErrorState({required this.error});
+  @override
+  List<Object?> get props => [error];
+}
+
+
 
 

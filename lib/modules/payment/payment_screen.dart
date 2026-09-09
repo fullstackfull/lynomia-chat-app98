@@ -613,7 +613,7 @@
 //                   textAlign: TextAlign.center,
 //                 ),
 //                 const SizedBox(height: 32),
-//                 if (isSuccess)
+//                 if (widget.isSuccess)
 //                   Container(
 //                     width: double.infinity,
 //                     padding: const EdgeInsets.all(16),
@@ -685,12 +685,14 @@
 //   }
 // }
 
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:chat/layout/payment/payment_cubit.dart';
 import 'package:chat/layout/payment/payment_states.dart';
 import 'package:chat/shared/app_localizations.dart';
+import 'package:chat/shared/network/local/cache_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../layout/cubit/cubit.dart';
@@ -1276,7 +1278,7 @@ class PaymentScreen extends StatelessWidget {
   }
 }
 
-class PaymentResultScreen extends StatelessWidget {
+class PaymentResultScreen extends StatefulWidget {
   final bool isSuccess;
   final String paymentId;
   final String planName;
@@ -1287,6 +1289,29 @@ class PaymentResultScreen extends StatelessWidget {
     required this.paymentId,
     required this.planName,
   });
+
+  @override
+  State<PaymentResultScreen> createState() => _PaymentResultScreenState();
+}
+
+class _PaymentResultScreenState extends State<PaymentResultScreen> {
+  bool _hasCheckedSubscription = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // ✅ تحديث حالة الاشتراك بعد الدفع الناجح - مرة واحدة فقط
+    if (widget.isSuccess && !_hasCheckedSubscription) {
+      _hasCheckedSubscription = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final appCubit = AppCubit.get(context);
+        final userEmail = CacheHelper.getString(key: CacheHelper.keyUserEmail);
+        if (userEmail != null && userEmail.isNotEmpty) {
+          appCubit.checkSubscription(email: userEmail);
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1310,20 +1335,20 @@ class PaymentResultScreen extends StatelessWidget {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: isSuccess
+                    color: widget.isSuccess
                         ? HexColor('#10B981').withOpacity(0.2)
                         : HexColor('#EF4444').withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    isSuccess ? Icons.check_circle : Icons.error,
-                    color: isSuccess ? HexColor('#10B981') : HexColor('#EF4444'),
+                    widget.isSuccess ? Icons.check_circle : Icons.error,
+                    color: widget.isSuccess ? HexColor('#10B981') : HexColor('#EF4444'),
                     size: 64,
                   ),
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  isSuccess
+                  widget.isSuccess
                       ? AppLocalizations.tr(context, 'Payment Successful!')
                       : AppLocalizations.tr(context, 'Payment Failed'),
                   style: TextStyle(
@@ -1335,9 +1360,9 @@ class PaymentResultScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  isSuccess
+                  widget.isSuccess
                       ? AppLocalizations.tr(context, 'Your subscription to plan {plan} has been activated successfully')
-                      .replaceFirst('{plan}', planName)
+                      .replaceFirst('{plan}', widget.planName)
                       : AppLocalizations.tr(context, 'An error occurred while processing the payment. Please try again.'),
                   style: TextStyle(
                     color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
@@ -1381,7 +1406,7 @@ class PaymentResultScreen extends StatelessWidget {
                 //     ),
                 //   ),
 
-                if (isSuccess)
+                if (widget.isSuccess)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -1405,7 +1430,7 @@ class PaymentResultScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          paymentId,
+                          widget.paymentId,
                           style: TextStyle(
                             color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
                             fontSize: 14,
@@ -1424,7 +1449,7 @@ class PaymentResultScreen extends StatelessWidget {
                       Navigator.popUntil(context, (route) => route.isFirst);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isSuccess
+                      backgroundColor: widget.isSuccess
                           ? HexColor('#10B981')
                           : HexColor('#6366F1'),
                       shape: RoundedRectangleBorder(
@@ -1433,7 +1458,7 @@ class PaymentResultScreen extends StatelessWidget {
                       elevation: 0,
                     ),
                     child: Text(
-                      isSuccess
+                      widget.isSuccess
                           ? AppLocalizations.tr(context, 'Back to Home')
                           : AppLocalizations.tr(context, 'Try Again'),
                       style: const TextStyle(

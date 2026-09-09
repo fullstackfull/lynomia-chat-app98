@@ -1,5 +1,3 @@
-
-
 import 'package:dio/dio.dart';
 import 'package:chat/shared/network/local/cache_helper.dart';
 
@@ -20,7 +18,8 @@ class PaymentApiService {
     try {
       final token = _lynomiaToken;
       if (token == null || token.isEmpty) {
-        throw Exception('لم يتم العثور على توكن الدفع. يرجى تسجيل الدخول مرة أخرى.');
+        throw Exception(
+            'لم يتم العثور على توكن الدفع. يرجى تسجيل الدخول مرة أخرى.');
       }
 
       const url = 'https://lynomia.com/api/plans/chat';
@@ -78,7 +77,8 @@ class PaymentApiService {
     try {
       final token = _lynomiaToken;
       if (token == null || token.isEmpty) {
-        throw Exception('لم يتم العثور على توكن الدفع. يرجى تسجيل الدخول مرة أخرى.');
+        throw Exception(
+            'لم يتم العثور على توكن الدفع. يرجى تسجيل الدخول مرة أخرى.');
       }
 
       const url = 'https://lynomia.com/api/chat/mobile-checkout';
@@ -118,35 +118,96 @@ class PaymentApiService {
   }
 
   // ─── التحقق من شراء Google Play ──────────────
+  // Future<bool> verifyGooglePlayPurchase({
+  //   required int accountId,
+  //   required String productId,
+  //   required String purchaseToken,
+  //   required String verificationData,
+  //   required String packageName,
+  // }) async {
+  //   try {
+  //     final token = _lynomiaToken;
+  //     if (token == null || token.isEmpty) {
+  //       throw Exception('لم يتم العثور على توكن الدفع. يرجى تسجيل الدخول مرة أخرى.');
+  //     }
+  //
+  //     // ✅ TODO: استبدل هذا بالـ URL الحقيقي لـ Backend
+  //     const url = 'https://lynomia.com/api/verify-google-play-purchase';
+  //
+  //     print('📤 POST Verify Google Play Purchase: $url');
+  //     print('📤 Account ID: $accountId');
+  //     print('📤 Product ID: $productId');
+  //     print('📤 Purchase Token: $purchaseToken');
+  //
+  //     final response = await _dio.post(
+  //       url,
+  //       data: {
+  //         'account_id': accountId,
+  //         'product_id': productId,
+  //         'purchase_token': purchaseToken,
+  //         'verification_data': verificationData,
+  //         'package_name': packageName,
+  //       },
+  //       options: Options(
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           'Authorization': 'Bearer $token',
+  //         },
+  //       ),
+  //     );
+  //
+  //     print('📥 Verification Status: ${response.statusCode}');
+  //     print('📥 Verification Data: ${response.data}');
+  //
+  //     if (response.statusCode == 200 || response.statusCode == 201) {
+  //       print('✅ Purchase verified successfully');
+  //       return true;
+  //     }
+  //
+  //     print('❌ Verification failed: ${response.statusCode}');
+  //     return false;
+  //   } catch (e) {
+  //     print('❌ Verify Purchase Error: $e');
+  //     return false;
+  //   }
+  // }
+
+  // ─── جلب سجل الاشتراكات ─────────────────────
+  // ─── التحقق من شراء Google Play ──────────────
+  // ✅ UPDATED: Endpoint جديد من الـ Backend مع الباراميترات المطلوبة
   Future<bool> verifyGooglePlayPurchase({
     required int accountId,
     required String productId,
     required String purchaseToken,
-    required String verificationData,
-    required String packageName,
+    required String orderId,
+    required String planId,
   }) async {
     try {
-      final token = _lynomiaToken;
-      if (token == null || token.isEmpty) {
-        throw Exception('لم يتم العثور على توكن الدفع. يرجى تسجيل الدخول مرة أخرى.');
-      }
-
-      // ✅ TODO: استبدل هذا بالـ URL الحقيقي لـ Backend
-      const url = 'https://lynomia.com/api/verify-google-play-purchase';
+      // ✅ URL جديد
+      const url = 'https://lynomia.com/api/verify-purchase';
 
       print('📤 POST Verify Google Play Purchase: $url');
       print('📤 Account ID: $accountId');
       print('📤 Product ID: $productId');
       print('📤 Purchase Token: $purchaseToken');
+      print('📤 Order ID: $orderId');
+      print('📤 Plan ID: $planId');
+
+      final token = _lynomiaToken;
+      if (token == null || token.isEmpty) {
+        print('❌ No Lynomia token found');
+        return false;
+      }
 
       final response = await _dio.post(
         url,
         data: {
-          'account_id': accountId,
+          'platform': 'chat',
+          'user_id': accountId,
+          'plan_id': planId,
           'product_id': productId,
-          'purchase_token': purchaseToken,
-          'verification_data': verificationData,
-          'package_name': packageName,
+          'order_id': orderId,
+          'plan_type': 'monthly',
         },
         options: Options(
           headers: {
@@ -157,7 +218,7 @@ class PaymentApiService {
       );
 
       print('📥 Verification Status: ${response.statusCode}');
-      print('📥 Verification Data: ${response.data}');
+      print('📥 Verification Response Body: ${response.data}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         print('✅ Purchase verified successfully');
@@ -165,6 +226,7 @@ class PaymentApiService {
       }
 
       print('❌ Verification failed: ${response.statusCode}');
+      print('❌ Response: ${response.data}');
       return false;
     } catch (e) {
       print('❌ Verify Purchase Error: $e');
@@ -172,14 +234,14 @@ class PaymentApiService {
     }
   }
 
-  // ─── جلب سجل الاشتراكات ─────────────────────
   Future<List<PaymentHistoryModel>> fetchPaymentHistory({
     required int accountId,
   }) async {
     try {
       final token = _lynomiaToken;
       if (token == null || token.isEmpty) {
-        throw Exception('لم يتم العثور على توكن الدفع. يرجى تسجيل الدخول مرة أخرى.');
+        throw Exception(
+            'لم يتم العثور على توكن الدفع. يرجى تسجيل الدخول مرة أخرى.');
       }
 
       const url = 'https://lynomia.com/api/my/payment/chat';
@@ -205,10 +267,9 @@ class PaymentApiService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final List<dynamic> data = response.data;
-        final List<PaymentHistoryModel> history = data
-            .map((item) => PaymentHistoryModel.fromJson(item))
-            .toList();
-        
+        final List<PaymentHistoryModel> history =
+            data.map((item) => PaymentHistoryModel.fromJson(item)).toList();
+
         print('✅ Loaded ${history.length} payment records');
         return history;
       }

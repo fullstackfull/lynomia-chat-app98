@@ -19,14 +19,16 @@ class PaymentHistoryScreen extends StatelessWidget {
     final isDark = AppCubit.get(context).isDark;
 
     return BlocProvider(
-      create: (context) => PaymentHistoryCubit(PaymentApiService(Dio()))..fetchPaymentHistory(),
+      create: (context) =>
+          PaymentHistoryCubit(PaymentApiService(Dio()))..fetchPaymentHistory(),
       child: Scaffold(
         backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
         appBar: AppBar(
           backgroundColor: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B')),
+            icon: Icon(Icons.arrow_back,
+                color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B')),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
@@ -101,7 +103,9 @@ class PaymentHistoryScreen extends StatelessWidget {
                     color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
                   ),
                 ),
-                SizedBox(width: 2,),
+                SizedBox(
+                  width: 2,
+                ),
                 Text(
                   'Lynomia',
                   style: TextStyle(
@@ -149,9 +153,11 @@ class PaymentHistoryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => context.read<PaymentHistoryCubit>().fetchPaymentHistory(),
+            onPressed: () =>
+                context.read<PaymentHistoryCubit>().fetchPaymentHistory(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: isDark ? HexColor('#6366F1') : HexColor('#6366F1'),
+              backgroundColor:
+                  isDark ? HexColor('#6366F1') : HexColor('#6366F1'),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
@@ -162,9 +168,11 @@ class PaymentHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryList(BuildContext context, List<PaymentHistoryModel> history, bool isDark) {
+  Widget _buildHistoryList(
+      BuildContext context, List<PaymentHistoryModel> history, bool isDark) {
     return RefreshIndicator(
-      onRefresh: () => context.read<PaymentHistoryCubit>().fetchPaymentHistory(),
+      onRefresh: () =>
+          context.read<PaymentHistoryCubit>().fetchPaymentHistory(),
       color: isDark ? HexColor('#6366F1') : HexColor('#6366F1'),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -177,7 +185,8 @@ class PaymentHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentCard(BuildContext context, PaymentHistoryModel payment, bool isDark, int index) {
+  Widget _buildPaymentCard(BuildContext context, PaymentHistoryModel payment,
+      bool isDark, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -185,7 +194,7 @@ class PaymentHistoryScreen extends StatelessWidget {
         color: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? HexColor('#0F172A').withOpacity(0.3)
                 : HexColor('#000000').withOpacity(0.05),
             blurRadius: 10,
@@ -222,7 +231,9 @@ class PaymentHistoryScreen extends StatelessWidget {
                         Text(
                           payment.planName,
                           style: TextStyle(
-                            color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                            color: isDark
+                                ? HexColor('#E2E8F0')
+                                : HexColor('#1E293B'),
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -231,7 +242,9 @@ class PaymentHistoryScreen extends StatelessWidget {
                         Text(
                           payment.formattedDate,
                           style: TextStyle(
-                            color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                            color: isDark
+                                ? HexColor('#94A3B8')
+                                : HexColor('#64748B'),
                             fontSize: 12,
                           ),
                         ),
@@ -240,7 +253,8 @@ class PaymentHistoryScreen extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     color: _getPaymentColor(payment.way).withOpacity(0.1),

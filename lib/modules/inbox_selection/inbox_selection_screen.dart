@@ -116,17 +116,6 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
                   color: isDark ? HexColor('#F1F5F9') : HexColor('#1E293B'),
                 ),
               ),
-              actions: [
-                IconButton(
-                  icon: Icon(
-                    Icons.refresh,
-                    color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                  ),
-                  onPressed: () {
-                    context.read<AppCubit>().fetchInboxes();
-                  },
-                ),
-              ],
             ),
             body: state is AppFetchInboxesLoadingState
                 ? Center(

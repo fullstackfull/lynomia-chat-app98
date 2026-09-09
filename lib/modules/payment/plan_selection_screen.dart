@@ -439,24 +439,24 @@ class PlanSelectionScreen extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          actions: [
-            // ✅ زر إدارة الاشتراكات
-            TextButton.icon(
-              onPressed: () => _openSubscriptionManagement(),
-              icon: Icon(
-                Icons.settings,
-                color: HexColor('#6366F1'),
-                size: 20,
-              ),
-              label: Text(AppLocalizations.tr(context, 'Subscriptions'),
-                style: TextStyle(
-                  color: HexColor('#6366F1'),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+          // actions: [
+          //   // ✅ زر إدارة الاشتراكات
+          //   TextButton.icon(
+          //     onPressed: () => _openSubscriptionManagement(),
+          //     icon: Icon(
+          //       Icons.settings,
+          //       color: HexColor('#6366F1'),
+          //       size: 20,
+          //     ),
+          //     label: Text(AppLocalizations.tr(context, 'Subscriptions'),
+          //       style: TextStyle(
+          //         color: HexColor('#6366F1'),
+          //         fontSize: 12,
+          //         fontWeight: FontWeight.w600,
+          //       ),
+          //     ),
+          //   ),
+          // ],
         ),
         body: BlocConsumer<PaymentCubit, PaymentState>(
           listener: (context, state) {
@@ -582,49 +582,49 @@ class PlanSelectionScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // ✅ معلومات التجديد التلقائي
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? HexColor('#1E293B') : HexColor('#F0F9FF'),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: HexColor('#0EA5E9').withOpacity(0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: HexColor('#0EA5E9'),
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(AppLocalizations.tr(context, 'Automatic renewal'),
-                          style: TextStyle(
-                            color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(AppLocalizations.tr(context, 'All subscriptions made via Google Play automatically renew on a monthly basis. You can cancel the renewal at any time in your Google Play settings by using the "Manage subscription" button at the top.'),
-                          style: TextStyle(
-                            color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+            // Container(
+            //   width: double.infinity,
+            //   padding: const EdgeInsets.all(16),
+            //   decoration: BoxDecoration(
+            //     color: isDark ? HexColor('#1E293B') : HexColor('#F0F9FF'),
+            //     borderRadius: BorderRadius.circular(12),
+            //     border: Border.all(
+            //       color: HexColor('#0EA5E9').withOpacity(0.3),
+            //     ),
+            //   ),
+            //   child: Row(
+            //     children: [
+            //       Icon(
+            //         Icons.info_outline,
+            //         color: HexColor('#0EA5E9'),
+            //         size: 24,
+            //       ),
+            //       const SizedBox(width: 12),
+            //       Expanded(
+            //         child: Column(
+            //           crossAxisAlignment: CrossAxisAlignment.start,
+            //           children: [
+            //             Text(AppLocalizations.tr(context, 'Automatic renewal'),
+            //               style: TextStyle(
+            //                 color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+            //                 fontSize: 14,
+            //                 fontWeight: FontWeight.w700,
+            //               ),
+            //             ),
+            //             const SizedBox(height: 4),
+            //             Text(AppLocalizations.tr(context, 'All subscriptions made via Google Play automatically renew on a monthly basis. You can cancel the renewal at any time in your Google Play settings by using the "Manage subscription" button at the top.'),
+            //               style: TextStyle(
+            //                 color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
+            //                 fontSize: 12,
+            //               ),
+            //             ),
+            //           ],
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            // const SizedBox(height: 24),
 
             // Plans from API
             ...plans.map((plan) => _buildPlanCard(context, plan, isDark)),
