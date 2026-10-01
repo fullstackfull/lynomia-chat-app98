@@ -197,5 +197,6 @@
   "Select Template & Send": "اختيار القالب والإرسال",
   "Please enter a valid phone number": "يرجى إدخال رقم هاتف صحيح",
   "Send From WhatsApp Number": "أرسل من رقم الواتس أب",
-  "Select the sender WhatsApp number and recipient details": "اختر رقم الواتس أب المرسل وبيانات المستلم"
+  "Select the sender WhatsApp number and recipient details": "اختر رقم الواتس أب المرسل وبيانات المستلم",
+  "api_documentation": "توثيق API"
 }

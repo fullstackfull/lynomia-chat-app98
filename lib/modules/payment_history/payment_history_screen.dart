@@ -125,45 +125,65 @@ class PaymentHistoryScreen extends StatelessWidget {
 
   Widget _buildErrorState(BuildContext context, String error, bool isDark) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 80,
-            color: isDark ? HexColor('#EF4444') : HexColor('#EF4444'),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            AppLocalizations.tr(context, 'Error loading payment history'),
-            style: TextStyle(
-              color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: HexColor('#EF4444').withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                size: 64,
+                color: isDark ? HexColor('#F87171') : HexColor('#EF4444'),
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error,
-            style: TextStyle(
-              color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
-              fontSize: 14,
+            const SizedBox(height: 20),
+            Text(
+              AppLocalizations.tr(context, 'Error loading payment history'),
+              style: TextStyle(
+                color: isDark ? HexColor('#F1F5F9') : HexColor('#1E293B'),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () =>
-                context.read<PaymentHistoryCubit>().fetchPaymentHistory(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  isDark ? HexColor('#6366F1') : HexColor('#6366F1'),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            const SizedBox(height: 10),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320),
+              child: Text(
+                error,
+                style: TextStyle(
+                  color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
-            child: Text(AppLocalizations.tr(context, 'Retry')),
-          ),
-        ],
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () =>
+                  context.read<PaymentHistoryCubit>().fetchPaymentHistory(),
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text(AppLocalizations.tr(context, 'Retry')),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: HexColor('#6366F1'),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

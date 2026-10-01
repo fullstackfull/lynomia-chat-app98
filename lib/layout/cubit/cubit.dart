@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,6 +15,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';  // ← أضف هذ
 import '../../models/chatwoot_models.dart';
 import '../../shared/components/constants.dart';
 import '../../shared/network/chatwoot_api_service.dart';
+import '../../shared/network/payment_api_service.dart';
 import '../../shared/network/firebase_config/firebase_helper.dart';
 import '../../shared/network/local/cache_helper.dart';
 import 'states.dart';
@@ -25,6 +27,7 @@ class AppCubit extends Cubit<AppStates> {
   static AppCubit get(BuildContext context) => BlocProvider.of(context);
 
   final ChatwootApiService _apiService = ChatwootApiService();
+  final PaymentApiService _paymentApiService = PaymentApiService(Dio());
   StreamSubscription<ChatwootMessage>? _messageSubscription;
   StreamSubscription<bool>? _connectionSubscription;
   Timer? _pollingTimer;
@@ -227,7 +230,7 @@ class AppCubit extends Cubit<AppStates> {
       // ✅ تحميل الاشتراك من الكاش أولاً
       await _loadSubscriptionFromCache();
 
-      // ✅ ثم فحص الاشتراك من الـ API لتحديثه
+      // ✅ ثم فحص الاشتراك من الـ API الجديد (entitlements)
       if (userEmail != null && userEmail.isNotEmpty) {
         await checkSubscription(email: userEmail);
       }
@@ -377,7 +380,7 @@ class AppCubit extends Cubit<AppStates> {
       attachmentMaps = msg.attachments!.map((a) {
         final fileType = a.fileType?.toLowerCase() ?? '';
         final fileName = a.fileName ?? '';
-        
+
         // استخراج الامتداد من file_name أو file_url
         String ext = '';
         if (fileName.isNotEmpty) {
@@ -485,7 +488,12 @@ class AppCubit extends Cubit<AppStates> {
     emit(AppLoginLoadingState());
 
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn();
+      print('🔑 serverClientId: $kGoogleWebClientId');
+
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+        serverClientId: kGoogleWebClientId,
+      );
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {
@@ -494,44 +502,31 @@ class AppCubit extends Cubit<AppStates> {
       }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
 
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-      final User? user = userCredential.user;
-
-      if (user != null) {
-        // حفظ بيانات Google
-        await CacheHelper.saveData(key: kGoogleUserId, value: user.uid);
-        await CacheHelper.saveData(key: kGoogleUserEmail, value: user.email ?? '');
-        await CacheHelper.saveData(key: kGoogleUserName, value: user.displayName ?? '');
-        await CacheHelper.saveData(key: kGoogleIdToken, value: googleAuth.idToken ?? '');
-        await CacheHelper.saveData(key: kGoogleAccessToken, value: googleAuth.accessToken ?? '');
-
-        print('✅ Google Auth Success');
-
-        // ✅ تسجيل في Backend
-        await _apiService.registerWithGoogle(
-          name: user.displayName ?? '',
-          email: user.email ?? '',
-          googleId: user.uid,
-          platform: 'chatwoot',
-        );
-
-        print('✅ Backend Registration Success');
-
-        // ✅ تهيئة FCM بعد تسجيل الدخول
-        await initializeFCM();
-
-        // حفظ حالة تسجيل الدخول
-        await CacheHelper.saveData(key: CacheHelper.keyIsLoggedIn, value: true);
-        await CacheHelper.saveData(key: CacheHelper.keyUserEmail, value: user.email ?? '');
-
-        emit(AppAuthCompleteState());
+      if (idToken == null || idToken.isEmpty) {
+        emit(AppLoginErrorState(error: 'فشل الحصول على رمز Google'));
+        return;
       }
+
+      print('✅ Google idToken received (${idToken.length} chars)');
+
+      // ✅ إرسال idToken مباشرة للـ Backend (بدون FirebaseAuth)
+      await _apiService.registerWithGoogle(idToken: idToken);
+
+      print('✅ Backend Registration Success');
+
+      // حفظ بيانات المستخدم
+      await CacheHelper.saveData(key: kGoogleUserId, value: googleUser.id);
+      await CacheHelper.saveData(key: kGoogleUserEmail, value: googleUser.email ?? '');
+      await CacheHelper.saveData(key: kGoogleUserName, value: googleUser.displayName ?? '');
+
+      await initializeFCM();
+
+      await CacheHelper.saveData(key: CacheHelper.keyIsLoggedIn, value: true);
+      await CacheHelper.saveData(key: CacheHelper.keyUserEmail, value: googleUser.email ?? '');
+
+      emit(AppAuthCompleteState());
     } catch (error) {
       print('❌ Google Login Error: $error');
       emit(AppLoginErrorState(error: error.toString()));
@@ -547,16 +542,27 @@ class AppCubit extends Cubit<AppStates> {
         return;
       }
 
-      // ✅ فحص الاشتراك من الـ API
-      final subscription = await _apiService.checkSubscription(email: email);
+      // ✅ فحص الاشتراك من الـ API الجديد (entitlements)
+      final entitlements = await _paymentApiService.fetchEntitlements();
 
-      if (subscription != null && subscription.isActive) {
-        currentSubscription = subscription;
+      if (entitlements['active'] == true) {
+        final planData = entitlements['plan'];
+        final planName = planData != null ? planData['name'] : 'unknown';
+        final endsAt = entitlements['ends_at'];
+
+        currentSubscription = ChatwootSubscription(
+          plan: planName,
+          status: entitlements['status'],
+          startsAt: null,
+          endsAt: endsAt,
+          isActive: true,
+        );
+
         // ✅ حفظ في الكاش
-        await _saveSubscriptionToCache(subscription);
+        await _saveSubscriptionToCache(currentSubscription!);
         emit(AppSubscriptionActiveState(
-          plan: subscription.plan ?? 'unknown',
-          endsAt: subscription.endsAt,
+          plan: planName,
+          endsAt: endsAt,
         ));
       } else {
         currentSubscription = null;
@@ -1655,9 +1661,9 @@ class AppCubit extends Cubit<AppStates> {
         // ⚠️ WebAuthenticationOptions مطلوب فقط على Android
         webAuthenticationOptions: Platform.isAndroid
             ? WebAuthenticationOptions(
-          clientId: 'com.yourcompany.app-service', // ← Service ID من زميلك
+          clientId: 'com.lynomia.app.webauth', // ← Service ID من زميلك
           redirectUri: Uri.parse(
-            'https://your-backend.com/callbacks/sign_in_with_apple', // ← من زميلك
+            'https://chat.lynomia.com/callbacks/sign_in_with_apple', // ← من زميلك
           ),
         )
             : null, // ← iOS لا يحتاجه
@@ -1669,6 +1675,7 @@ class AppCubit extends Cubit<AppStates> {
       print('   givenName: ${credential.givenName}');
       print('   familyName: ${credential.familyName}');
       print('   identityToken: ${credential.identityToken?.substring(0, 50)}...');
+      print('APPLE_TOKEN_FULL: ${credential.identityToken}');
 
       // ✅ 2. التحقق من البيانات
       if (credential.userIdentifier == null) {
@@ -1677,13 +1684,14 @@ class AppCubit extends Cubit<AppStates> {
       }
 
       // ✅ 3. تسجيل في Backend
+      String? fullName;
+      if (credential.givenName != null || credential.familyName != null) {
+        fullName = '${credential.givenName ?? ''} ${credential.familyName ?? ''}'.trim();
+      }
+
       await _apiService.registerWithApple(
-        userIdentifier: credential.userIdentifier!,
-        email: credential.email ?? '',
-        givenName: credential.givenName,
-        familyName: credential.familyName,
         identityToken: credential.identityToken ?? '',
-        platform: 'social',
+        name: fullName?.isNotEmpty == true ? fullName : null,
       );
 
       // ✅ 4. حفظ بيانات Apple

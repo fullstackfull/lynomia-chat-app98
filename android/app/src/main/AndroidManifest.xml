@@ -85,6 +85,16 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- 💳 Lynomia Deep Link (Billing Callback) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="lynomia"
+                    android:host="billing" />
+            </intent-filter>
         </activity>
 
         <!-- 🍎 Sign in with Apple callback activity -->

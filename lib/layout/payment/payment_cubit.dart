@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:app_links/app_links.dart';
 import 'package:chat/shared/network/payment_api_service.dart';
 import 'package:chat/shared/network/local/cache_helper.dart';
 import '../../models/plan_models.dart';
@@ -12,15 +14,84 @@ import 'payment_states.dart';
 
 enum PaymentMethod { stripe, googlePlay }
 
-class PaymentCubit extends Cubit<PaymentState> {
+class PaymentCubit extends Cubit<PaymentState> with WidgetsBindingObserver {
   final PaymentApiService _apiService;
   final GooglePlayBillingService _googlePlayBilling;
+  late final AppLinks _appLinks;
+  StreamSubscription<Uri>? _linkSubscription;
+
+  /// يُصبح true عند فتح متصفح Stripe وينتظر النتيجة
+  bool _awaitingStripeResult = false;
+
   PaymentMethod get selectedMethod => _selectedMethod;
 
   PaymentCubit(this._apiService)
       : _googlePlayBilling = GooglePlayBillingService(),
         super(PaymentInitial()) {
+    WidgetsBinding.instance.addObserver(this);
     _initBilling();
+    _initDeepLinks();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _awaitingStripeResult) {
+      // المستخدم رجع للتطبيق أثناء انتظار Stripe
+      // ننتظر 5 ثوانٍ لإعطاء Deep Link فرصة للوصول
+      Future.delayed(const Duration(seconds: 5), () {
+        if (_awaitingStripeResult && !isClosed && this.state is PaymentLoading) {
+          print('⏱️ No Stripe deep link received — resetting payment state');
+          _awaitingStripeResult = false;
+          emit(PaymentCancelled());
+        }
+      });
+    }
+  }
+
+  void _initDeepLinks() {
+    _appLinks = AppLinks();
+    _linkSubscription = _appLinks.uriLinkStream.listen((uri) async {
+      print('🔗 Deep Link received: $uri');
+      if (uri.scheme == 'lynomia' && uri.host == 'billing') {
+        final checkoutStatus = uri.queryParameters['checkout'];
+        print('💳 Billing Checkout Status: $checkoutStatus');
+
+        if (checkoutStatus == 'success') {
+          _awaitingStripeResult = false;
+          if (!isClosed) {
+            emit(PaymentLoading());
+          }
+          // ⏳ انتظار 2-3 ثوانٍ حتى يكتمل تأكيد الدفع في السيرفر
+          await Future.delayed(const Duration(seconds: 3));
+          try {
+            final entitlements = await _apiService.fetchEntitlements();
+            String planName = 'الجديدة';
+            if (entitlements['plan'] != null && entitlements['plan']['name'] != null) {
+              planName = entitlements['plan']['name'].toString();
+            }
+            if (!isClosed) {
+              emit(PaymentSuccess('external_stripe', planName));
+            }
+          } catch (e) {
+            print('❌ Error fetching entitlements: $e');
+            if (!isClosed) {
+              emit(PaymentSuccess('external_stripe', 'الجديدة'));
+            }
+          }
+        } else if (checkoutStatus == 'canceled') {
+          _awaitingStripeResult = false;
+          if (!isClosed) {
+            emit(PaymentCancelled());
+          }
+        } else if (checkoutStatus == 'portal') {
+          try {
+            await _apiService.fetchEntitlements();
+          } catch (_) {}
+        }
+      }
+    }, onError: (err) {
+      print('❌ Deep Link Error: $err');
+    });
   }
 
   Future<void> _initBilling() async {
@@ -306,43 +377,36 @@ class PaymentCubit extends Cubit<PaymentState> {
   String? get _lynomiaToken =>
       CacheHelper.getString(key: CacheHelper.keyLynomiaToken);
 
-  // ─── الدفع عبر Stripe ────────────────────────
+  // ─── الدفع عبر Stripe في المتصفح الخارجي ────────────────────────
   Future<void> _completeStripePayment(String plan) async {
-    final accountId = CacheHelper.getData(key: CacheHelper.keyAccountId) ?? 0;
+    try {
+      final planId = int.tryParse(plan) ?? 1;
 
-    if (accountId == 0) {
-      emit(const PaymentError('لم يتم العثور على معرف الحساب'));
-      return;
+      print('🚀 Requesting Stripe checkout URL for planId: $planId');
+
+      final checkoutUrl = await _apiService.createCheckoutUrl(
+        planId: planId,
+      );
+
+      print('🔗 Opening checkout URL in external browser: $checkoutUrl');
+
+      final Uri uri = Uri.parse(checkoutUrl);
+      _awaitingStripeResult = true;
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched) {
+        throw Exception('تعذر فتح متصفح الإنترنت الخارجي');
+      }
+    } catch (e) {
+      _awaitingStripeResult = false;
+      print('❌ Stripe Checkout Error: $e');
+      if (!isClosed) {
+        emit(PaymentError('فشل فتح رابط الدفع: $e'));
+      }
     }
-
-    final paymentIntent = await _apiService.createPaymentIntent(
-      accountId: accountId,
-      plan: plan,
-    );
-
-    await Stripe.instance.initPaymentSheet(
-      paymentSheetParameters: SetupPaymentSheetParameters(
-        paymentIntentClientSecret: paymentIntent,
-        merchantDisplayName: 'Lynomia Chat',
-        allowsDelayedPaymentMethods: true,
-        style: ThemeMode.light,
-        googlePay: const PaymentSheetGooglePay(
-          merchantCountryCode: 'SA',
-          currencyCode: 'USD',
-          testEnv: true,
-        ),
-      ),
-    );
-
-    await Stripe.instance.presentPaymentSheet();
-
-    String planName = plan;
-    if (state is PlansLoaded) {
-      final selected = (state as PlansLoaded).selectedPlan;
-      if (selected != null) planName = selected.name;
-    }
-
-    emit(PaymentSuccess(paymentIntent, planName));
   }
 
   void reset() {
@@ -351,6 +415,8 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   @override
   Future<void> close() {
+    WidgetsBinding.instance.removeObserver(this);
+    _linkSubscription?.cancel();
     _googlePlayBilling.dispose();
     return super.close();
   }

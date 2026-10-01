@@ -1462,6 +1462,7 @@ import 'package:chat/models/chatwoot_models.dart';
 import 'package:chat/modules/inbox_selection/inbox_selection_screen.dart';
 import 'package:chat/modules/payment/plan_selection_screen.dart';
 import 'package:chat/modules/payment_history/payment_history_screen.dart';
+import 'package:chat/modules/api_documentation/api_documentation_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -1693,6 +1694,22 @@ class LayoutScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyHubScreen()));
+                    },
+                  ),
+                  
+                  // ═══════════════════════════════════════════════════════
+                  // API Documentation
+                  // ═══════════════════════════════════════════════════════
+                  _buildMenuItem(
+                    icon: Icons.code,
+                    label: AppLocalizations.tr(context, 'api_documentation'),
+                    isDark: isDark,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ApiDocumentationScreen()),
+                      );
                     },
                   ),
                 ],

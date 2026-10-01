@@ -23,3 +23,10 @@ const String kGoogleUserEmail = 'google_user_email';
 const String kGoogleUserName = 'google_user_name';
 const String kGoogleIdToken = 'google_id_token';
 const String kGoogleAccessToken = 'google_access_token';
+
+// ✅ Google Web Client ID (مطلوب لـ mobile auth backend)
+// ⚠️ استبدل هذا بـ Web Client ID الخاص بك من Google Cloud Console
+// const String kGoogleWebClientId = 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com';
+// ✅ Google Web Client ID (من google-services.json - client_type: 3)
+const String kGoogleWebClientId =
+    '506455906705-2lfjdla4m7rkq0aardhbsvhub4dik946.apps.googleusercontent.com';

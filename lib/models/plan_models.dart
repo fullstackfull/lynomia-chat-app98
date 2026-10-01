@@ -28,6 +28,21 @@ class PlanModel {
     );
   }
 
+  // ✅ New method for the new API format
+  factory PlanModel.fromJsonNew(Map<String, dynamic> json) {
+    return PlanModel(
+      id: json['id'].toString(),
+      name: json['name'] ?? '',
+      price: (json['price'] is num) ? (json['price'] as num).toInt() : 0,
+      agents: json['limits']?['agents'] ?? 0,
+      inboxes: json['limits']?['inboxes'] ?? 0,
+      features: (json['features'] as List<dynamic>?)
+              ?.map((f) => f['name']?.toString() ?? '')
+              .toList() ??
+          [],
+    );
+  }
+
   // ✅ السعر فقط — لا توجد ترجمة هنا!
   double get priceInDollars => price / 100;
   String get formattedPrice => '\$${priceInDollars.toStringAsFixed(2)}';

@@ -73,7 +73,9 @@ class CacheHelper {
   static const String keyAccountId = 'account_id';
   static const String keyUserId = 'user_id';
   static const String keyLynomiaToken = 'lynomia_token';
-  
+  static const String keyClient = 'auth_client';
+  static const String keyUid = 'auth_uid';
+
   // ─── Remove Helper ───────────────────────────
   static Future<bool> remove({required String key}) async {
     return await sharedPreferences!.remove(key);

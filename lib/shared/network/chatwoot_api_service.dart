@@ -976,9 +976,15 @@ String? _authToken;
 int? _accountId;
 
 // ─── Set Auth Token ───────────────────────────
-Future<void> setAuthToken(String token) async {
+Future<void> setAuthToken(String token, {String? client, String? uid}) async {
 _authToken = token;
-_dio.options.headers['api_access_token'] = _authToken;
+_dio.options.headers['access-token'] = _authToken;
+if (client != null) {
+  _dio.options.headers['client'] = client;
+}
+if (uid != null) {
+  _dio.options.headers['uid'] = uid;
+}
 await CacheHelper.saveData(key: CacheHelper.keyAuthToken, value: _authToken ?? '');
 print('✅ Auth token set');
 }
@@ -1021,15 +1027,11 @@ print('✅ Auth token set');
         }
 
         _dio.options.headers['api_access_token'] = _authToken;
-        _dio.options.headers['Authorization'] = 'Bearer $_authToken';
 
         print('✅ Access token saved: $_authToken');
         print('✅ Account ID saved: $_accountId');
         print('✅ User ID saved: $_userId');
         print('✅ PubSub token saved: $_pubsubToken');
-
-        // ✅ جلب توكن Lynomia للدفع
-        await _loginToLynomia(email: email, password: password);
 
         return ChatwootLoginResponse(authToken: _authToken, accountId: _accountId);
       }
@@ -1041,72 +1043,18 @@ print('✅ Auth token set');
     }
   }
 
-  // ─── Lynomia Login (للحصول على توكن الدفع) ─────
-  Future<void> _loginToLynomia({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      const url = 'https://lynomia.com/api/login';
-      print('📤 POST Lynomia Login: $url');
-
-      final response = await _dio.post(
-        url,
-        data: {
-          'email': email,
-          'password': password,
-        },
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        ),
-      );
-
-      print('📥 Lynomia Login Status: ${response.statusCode}');
-      print('📥 Lynomia Login Data: ${response.data}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final lynomiaToken = response.data['access_token'];
-        if (lynomiaToken != null && lynomiaToken is String && lynomiaToken.isNotEmpty) {
-          await CacheHelper.saveData(
-            key: CacheHelper.keyLynomiaToken,
-            value: lynomiaToken,
-          );
-          print('✅ Lynomia token saved: $lynomiaToken');
-          return;
-        }
-        throw Exception('الـ Response لا يحتوي على access_token');
-      }
-
-      throw Exception('فشل تسجيل الدخول على Lynomia: ${response.statusCode}');
-    } catch (e) {
-      print('❌ Lynomia Login Error: $e');
-      rethrow;
-    }
-  }
-
   // ─── Register/Login with Google ─────────────────
   Future<ChatwootLoginResponse> registerWithGoogle({
-    required String name,
-    required String email,
-    required String googleId,
-    required String platform,
+    required String idToken,
   }) async {
     try {
-      final url = 'https://lynomia.com/api/register/google';
-      print('📤 POST Register with Google: $url');
-      print('📤 Data: name=$name, email=$email, google_id=$googleId, platform=$platform');
+      final url = '/api/v1/mobile/auth/google';
+      print('📤 POST Register with Google: $_baseUrl$url');
+      print('📤 Data: id_token=${idToken.substring(0, 20)}...');
 
       final response = await _dio.post(
         url,
-        data: {
-          'name': name,
-          'email': email,
-          'google_id': googleId,
-          'platform': platform,
-        },
+        data: {'id_token': idToken},
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
@@ -1117,14 +1065,14 @@ print('✅ Auth token set');
         final data = response.data['data'];
 
         final accessToken = data['access_token'];
-        final accountId = data['account_id'];
-        final pubsubToken = data['pubsub_token'];
+        final accountId = data['accounts'][0]['id'];
         final userId = data['id'];
+        final pubsubToken = data['pubsub_token'];
 
         _authToken = accessToken;
         _accountId = accountId;
-        _pubsubToken = pubsubToken;
         _userId = userId;
+        _pubsubToken = pubsubToken;
 
         // ✅ حفظ في الكاش
         await CacheHelper.saveData(key: CacheHelper.keyAuthToken, value: _authToken ?? '');
@@ -1135,24 +1083,11 @@ print('✅ Auth token set');
         }
 
         _dio.options.headers['api_access_token'] = _authToken;
-        _dio.options.headers['Authorization'] = 'Bearer $_authToken';
 
         print('✅ Access token saved: $_authToken');
         print('✅ Account ID saved: $_accountId');
         print('✅ User ID saved: $_userId');
         print('✅ PubSub token saved: $_pubsubToken');
-
-        // ✅ حفظ توكن Lynomia للدفع (يأتي في الـ Response من المستوى الأعلى)
-        final lynomiaToken = response.data['lynomia_token'];
-        if (lynomiaToken != null && lynomiaToken is String && lynomiaToken.isNotEmpty) {
-          await CacheHelper.saveData(
-            key: CacheHelper.keyLynomiaToken,
-            value: lynomiaToken,
-          );
-          print('✅ Lynomia token saved: $lynomiaToken');
-        } else {
-          print('⚠️ Lynomia token not found in Google register response');
-        }
 
         return ChatwootLoginResponse(authToken: _authToken, accountId: _accountId);
       }
@@ -1161,6 +1096,68 @@ print('✅ Auth token set');
     } catch (e) {
       print('❌ Register with Google Error: $e');
       throw Exception('فشل تسجيل الدخول بـ Google: تأكد من صحة البيانات');
+    }
+  }
+
+  // ─── Register/Login with Apple ─────────────────
+  Future<ChatwootLoginResponse> registerWithApple({
+    required String identityToken,
+    String? name,
+  }) async {
+    try {
+      final url = '/api/v1/mobile/auth/apple';
+      print('📤 POST Register with Apple: $_baseUrl$url');
+      print('📤 Data: identity_token=${identityToken.substring(0, 20)}..., name=$name');
+
+      final Map<String, dynamic> data = {'identity_token': identityToken};
+      if (name != null && name.isNotEmpty) {
+        data['name'] = name;
+      }
+
+      final response = await _dio.post(
+        url,
+        data: data,
+        options: Options(headers: {'Content-Type': 'application/json'}),
+      );
+
+      print('📥 Register with Apple Status: ${response.statusCode}');
+      print('📥 Register with Apple Data: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data['data'];
+
+        final accessToken = data['access_token'];
+        final accountId = data['accounts'][0]['id'];
+        final userId = data['id'];
+        final pubsubToken = data['pubsub_token'];
+
+        _authToken = accessToken;
+        _accountId = accountId;
+        _userId = userId;
+        _pubsubToken = pubsubToken;
+
+        // ✅ حفظ في الكاش
+        await CacheHelper.saveData(key: CacheHelper.keyAuthToken, value: _authToken ?? '');
+        await CacheHelper.saveData(key: CacheHelper.keyAccountId, value: _accountId ?? 0);
+        await CacheHelper.saveData(key: CacheHelper.keyUserId, value: _userId ?? 0);
+        if (pubsubToken != null) {
+          await CacheHelper.saveData(key: CacheHelper.keyContactToken, value: pubsubToken);
+        }
+
+        _dio.options.headers['api_access_token'] = _authToken;
+
+        print('✅ Access token saved: $_authToken');
+        print('✅ Account ID saved: $_accountId');
+        print('✅ User ID saved: $_userId');
+        print('✅ PubSub token saved: $_pubsubToken');
+
+        return ChatwootLoginResponse(authToken: _authToken, accountId: _accountId);
+      }
+
+      throw Exception('فشل تسجيل الدخول بـ Apple: ${response.statusCode}');
+    } catch (e) {
+      print('❌ Register with Apple Error: $e');
+      throw Exception('فشل تسجيل الدخول بـ Apple: تأكد من صحة البيانات');
     }
   }
 
@@ -1256,7 +1253,9 @@ return null;
 }
 }
 
-// ─── Check Subscription (External API) ────────────────────────────
+// ─── Check Subscription (External API) - DEPRECATED ────────────────────────────
+// ⚠️ تم استبدال هذه الدالة بـ entitlements API الجديد
+// تم الاحتفاظ بها للتوافق مع الكود القديم
 Future<ChatwootSubscription?> checkSubscription({required String email}) async {
 try {
 final url = 'https://lynomia.com/api/chat/subscription?email=$email';
@@ -1490,6 +1489,9 @@ throw Exception('فشل إرسال الرسالة: $e');
     await CacheHelper.removeData(key: CacheHelper.keyUserId);
     await CacheHelper.removeData(key: CacheHelper.keyContactToken);
     await CacheHelper.removeData(key: CacheHelper.keyIsLoggedIn);
+    _dio.options.headers.remove('access-token');
+    _dio.options.headers.remove('client');
+    _dio.options.headers.remove('uid');
     _dio.options.headers.remove('api_access_token');
     _dio.options.headers.remove('Authorization');
     print('✅ Auth cleared');
@@ -1855,77 +1857,6 @@ throw Exception('فشل إرسال الرسالة: $e');
     } catch (e) {
       print('❌ Send Attachment Error: $e');
       throw Exception('فشل إرسال الملف: $e');
-    }
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-// Register/Login with Apple
-// ═══════════════════════════════════════════════════════════════
-  Future<ChatwootLoginResponse> registerWithApple({
-    required String userIdentifier,
-    required String email,
-    required String? givenName,
-    required String? familyName,
-    required String identityToken,
-    required String platform,
-  }) async {
-    try {
-      final url = 'https://lynomia.com/api/auth/apple/signup';
-      print('📤 POST Register with Apple: $url');
-      print('📤 Data: userIdentifier=$userIdentifier, email=$email, platform=$platform');
-
-      final response = await _dio.post(
-        url,
-        data: {
-          'userIdentifier': userIdentifier,
-          'email': email,
-          'givenName': givenName ?? '',
-          'familyName': familyName ?? '',
-          'identityToken': identityToken,
-          'platform': platform,
-        },
-        options: Options(headers: {'Content-Type': 'application/json'}),
-      );
-
-      print('📥 Register with Apple Status: ${response.statusCode}');
-      print('📥 Register with Apple Data: ${response.data}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data;
-
-        // ✅ استخراج البيانات
-        final accessToken = data['token'];          // Chatwoot token
-        final lynomiaToken = data['lynomia_token']; // Lynomia token
-        final userData = data['user'];
-        final userId = userData?['id'];
-        final userName = userData?['name'];
-        final userEmail = userData?['email'];
-
-        _authToken = accessToken;
-        _userId = userId is int ? userId : int.tryParse(userId.toString());
-
-        // ✅ حفظ في الكاش
-        await CacheHelper.saveData(key: CacheHelper.keyAuthToken, value: _authToken ?? '');
-        await CacheHelper.saveData(key: CacheHelper.keyUserId, value: _userId ?? 0);
-        await CacheHelper.saveData(key: CacheHelper.keyUserEmail, value: userEmail ?? '');
-        await CacheHelper.saveData(key: CacheHelper.keyUserName, value: userName ?? '');
-
-        if (lynomiaToken != null && lynomiaToken is String && lynomiaToken.isNotEmpty) {
-          await CacheHelper.saveData(key: CacheHelper.keyLynomiaToken, value: lynomiaToken);
-          print('✅ Lynomia token saved: $lynomiaToken');
-        }
-
-        _dio.options.headers['api_access_token'] = _authToken;
-        _dio.options.headers['Authorization'] = 'Bearer $_authToken';
-
-        print('✅ Apple Login Success - Token: $_authToken');
-        return ChatwootLoginResponse(authToken: _authToken, accountId: _accountId);
-      }
-
-      throw Exception('فشل تسجيل الدخول بـ Apple: ${response.statusCode}');
-    } catch (e) {
-      print('❌ Register with Apple Error: $e');
-      throw Exception('فشل تسجيل الدخول بـ Apple: $e');
     }
   }
 

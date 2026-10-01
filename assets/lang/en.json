@@ -198,5 +198,6 @@
   "Select Template & Send": "Select Template & Send",
   "Please enter a valid phone number": "Please enter a valid phone number",
   "Send From WhatsApp Number": "Send From WhatsApp Number",
-  "Select the sender WhatsApp number and recipient details": "Select the sender WhatsApp number and recipient details"
+  "Select the sender WhatsApp number and recipient details": "Select the sender WhatsApp number and recipient details",
+  "api_documentation": "API Documentation"
 }

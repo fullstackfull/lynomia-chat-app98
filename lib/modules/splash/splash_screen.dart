@@ -118,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                     // 📝 العنوان
                     Text(
-                      'Chatwoot',
+                      'Lynomia Chat',
                       style: TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.bold,
