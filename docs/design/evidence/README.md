@@ -23,6 +23,7 @@ Where a golden and a device disagree, the device is right.
 | `*-payment-*` | **The production widgets.** `PaymentForm` and `PaymentResultView`, pumped whole. |
 | `*-history-*` | **The production widgets.** `PaymentHistoryList`, `PaymentHistoryEmpty` and `PaymentHistoryFailure`, pumped whole. |
 | `*-policy-*` | **The production widget.** `PolicyCard`, pumped whole. The policy text in it is invented for the test and is not Lynomia's. |
+| `*-api-*` | **The production widgets**, but the PARTS rather than the page: `ApiMethodBadge`, `ApiCodeBlock` and `ApiParameterRow`. The screen around them reads two cubits from above it and carries 730 lines of its own content. |
 
 ## One limitation of the harness
 
@@ -32,6 +33,10 @@ Roboto and Noto Naskh Arabic from the SDK and appends the Arabic face as a `font
 
 A golden that paints nothing now **fails** instead of being written. It used to be written and
 reported as a pass, which is how four of these were briefly blank rectangles.
+
+Monospace is registered too, under the name Android's own alias uses, in three weights. Without it
+the engine has no monospace family at all and paints every identifier in the API reference as a
+filled rectangle — and with only its regular cut, it does the same to anything set above w500.
 
 ## Privacy
 
@@ -77,6 +82,9 @@ before-chat-arabic-rtl.png     after-chat-arabic-rtl.png
                                after-policy-light.png
                                after-policy-dark.png
                                after-policy-arabic-rtl.png
+                               after-api-light.png
+                               after-api-dark.png
+                               after-api-arabic-rtl.png
 ```
 
 Two of these are there to show a specific thing rather than a screen. `after-payment-result-success-unnamed-light.png`

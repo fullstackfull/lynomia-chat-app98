@@ -14,6 +14,8 @@
 //
 //   Roboto-Regular.ttf, NotoNaskhArabic-Regular.ttf
 //     $FLUTTER_ROOT/engine/src/flutter/txt/third_party/fonts/
+//   RobotoMono-Regular.ttf, RobotoMono-Medium.ttf, RobotoMono-Bold.ttf
+//     $FLUTTER_ROOT/bin/cache/dart-sdk/bin/resources/devtools/assets/fonts/Roboto_Mono/
 //   MaterialIcons-Regular.otf
 //     the asset bundle `flutter build web` writes
 //
@@ -37,13 +39,20 @@ const String kArabicFamily = 'NotoNaskhArabic';
 const List<String> kArabicFallback = <String>[kArabicFamily];
 
 Future<void> loadRealFonts() async {
-  Future<void> load(String family, String path) async {
-    final file = File(path);
-    if (!file.existsSync()) return;
-    final loader = FontLoader(family)
-      ..addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
+  /// Several cuts under one family name. The engine picks by weight within a family, so a family
+  /// registered with only its regular cut paints a w600 string as filled rectangles -- which is what
+  /// the first API-reference golden did to every monospace identifier on it.
+  Future<void> loadAll(String family, List<String> paths) async {
+    final files = paths.map(File.new).where((f) => f.existsSync()).toList();
+    if (files.isEmpty) return;
+    final loader = FontLoader(family);
+    for (final file in files) {
+      loader.addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
+    }
     await loader.load();
   }
+
+  Future<void> load(String family, String path) => loadAll(family, <String>[path]);
 
   await load('Roboto', 'test/visual/Roboto-Regular.ttf');
   // Roboto carries no Arabic glyphs, so without a face that does, every Arabic golden is a wall of
@@ -54,6 +63,14 @@ Future<void> loadRealFonts() async {
   await load('MaterialIcons', 'test/visual/MaterialIcons-Regular.otf');
   await load('FlutterTest', 'test/visual/Roboto-Regular.ttf');
   await load('Ahem', 'test/visual/Roboto-Regular.ttf');
+  // Registered under the name ANDROID'S PLATFORM ALIAS uses, so a code block in a golden is set in
+  // the same kind of face a device sets it in. Without it the engine has no monospace family at all
+  // and paints every identifier as a filled rectangle -- which says nothing about the app.
+  await loadAll('monospace', const <String>[
+    'test/visual/RobotoMono-Regular.ttf',
+    'test/visual/RobotoMono-Medium.ttf',
+    'test/visual/RobotoMono-Bold.ttf',
+  ]);
 }
 
 /// The real strings, read once from the real `assets/lang/*.json`, keyed by language code.

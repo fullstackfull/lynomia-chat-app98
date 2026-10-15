@@ -124,6 +124,32 @@ Both of those existed in two files, with the bug twice: `PrivacyScreen`, which *
 The three documents were also coloured success-green, indigo and warning-amber, so the "About us" tab
 was permanently painted in the colour this product uses to say something needs attention.
 
+## The API reference
+
+**Code was laid out right-to-left in Arabic.** Braces, quotes, slashes and colons are directionally
+NEUTRAL characters, and nothing locked the direction of an endpoint or a JSON body — so on an Arabic
+screen the bidi algorithm drew `/auth/sign_in` as `sign_in/auth/` and took every response apart at its
+punctuation. A developer copying a path out of the Arabic build got a broken one. Code is locked
+left-to-right now, and so is the block around it: a horizontal scroll view takes its origin from the
+ambient direction, so it had been opening scrolled to the far end of the code with the first
+characters off the left edge.
+
+**Nothing was monospaced on iOS.** The blocks asked for `fontFamily: 'monospace'`, which is a real
+family alias on Android and nothing at all on iOS, where it falls back silently to the proportional
+system face. The family is named explicitly now with Menlo and Courier behind it, so it resolves on
+both.
+
+**Every method badge failed contrast.** White on the four fills measures 3.30:1 (GET), 2.15:1 (POST),
+3.26:1 (PUT) and 3.76:1 (DELETE); a 12px bold label needs 4.5:1. A tint with the deeper ink on it —
+the pattern the status pills already use — measures 5.39 to 7.86:1 in light and 5.86 to 7.44:1 in
+dark, on every verb. The green-for-GET, red-for-DELETE convention stays, because every API reference
+a developer has already read uses it.
+
+**Fifteen collapsed cards in a flat list with nothing to navigate by.** There is a search field now,
+and each card shows its path without being opened. Also: the `required` tag was raw `Colors.red` on a
+tint of itself, the header's gradient branched on the theme into two identical stop pairs, and the
+base URL is now a tap to copy.
+
 ## A credential that was being written to the log
 
 `_verifyWithBackend` printed `purchase.verificationData.serverVerificationData` — the Google Play

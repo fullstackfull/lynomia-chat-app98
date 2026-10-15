@@ -196,7 +196,7 @@
   "Please enter a valid phone number": "Please enter a valid phone number",
   "Send From WhatsApp Number": "Send From WhatsApp Number",
   "Select the sender WhatsApp number and recipient details": "Select the sender WhatsApp number and recipient details",
-  "api_documentation": "API Documentation",
+  "api_documentation": "API documentation",
   "Today": "Today",
   "home_subtitle": "Every channel your customers use, in one inbox.",
   "home_conversations_open": "Open an inbox and reply",
@@ -245,5 +245,8 @@
   "history_network": "Could not reach the network. Check your connection and try again.",
   "history_server": "The server had a problem. Please try again shortly.",
   "history_session_expired": "Your session has expired. Please sign in again.",
-  "history_unexpected": "Something went wrong while loading your history. Please try again."
+  "history_unexpected": "Something went wrong while loading your history. Please try again.",
+  "Copy": "Copy",
+  "required": "required",
+  "Example": "Example"
 }
