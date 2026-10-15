@@ -84,6 +84,27 @@ again. It only rebuilds on plan states now.
 the Google Play verification round trip and `completePayment` are the same code; what changed is which
 string is emitted and which widget draws it.
 
+## The receipts
+
+`PaymentHistoryCubit` carried the same defect as `PaymentCubit`, eight more times: every failure it
+could report was a hardcoded Arabic sentence, printed to the reader as it stood. The screen itself had
+three more problems of its own.
+
+- **The date was hand-rolled.** `'${createdAt.day}/${createdAt.month}/${createdAt.year}'` — unpadded,
+  ambiguous between day-first and month-first, and set in Latin digits and slashes in the middle of an
+  Arabic screen. `DateFormat.yMMMd` with the active locale now, like the four call sites fixed in the
+  chat screen.
+- **A row with no plan name in the server's note titled itself "Unknown"**, in English, in both
+  languages. The model returns an empty name now and the view names it generically.
+- **The transaction reference did not fit.** A Stripe intent id is 27 characters and shared a row with
+  the payment method, about 150 pixels each, so it wrapped to three lines and left the two columns
+  ragged. It has its own full-width line now, left-to-right so the bidi algorithm cannot reorder its
+  segments on an Arabic screen, and in tabular figures because it is compared character by character.
+
+Also: `way.toUpperCase()` printed the database value, so the screen said "GOOGLE_PLAY". And the
+processor was coloured success-green for Google Play and warning-amber for anything else — which reads
+as the state of the payment, on a list where every row is a settled payment and none is a warning.
+
 ## A credential that was being written to the log
 
 `_verifyWithBackend` printed `purchase.verificationData.serverVerificationData` — the Google Play

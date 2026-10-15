@@ -169,7 +169,7 @@ class LayoutScreen extends StatelessWidget {
                   // ═══════════════════════════════════════════════════════
                   _buildMenuItem(
                     icon: Icons.receipt_long_outlined,
-                    label: AppLocalizations.tr(context, 'Payment History'),
+                    label: AppLocalizations.tr(context, 'Payment history'),
                     isDark: isDark,
                     onTap: () {
                       Navigator.pop(context);

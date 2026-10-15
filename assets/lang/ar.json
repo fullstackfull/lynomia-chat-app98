@@ -170,10 +170,9 @@
   "Failed to load plans.": "فشل تحميل الخطط",
   "Choose the plan that suits your needs.": "اختر الخطة المناسبة لاحتياجاتك",
   "All subscriptions made via Google Play automatically renew on a monthly basis. You can cancel the renewal at any time in your Google Play settings by using the \"Manage subscription\" button at the top.": "جميع الاشتراكات عن طريق بطاقات غوغل تتجدد تلقائياً شهرياً. يمكنك إلغاء التجديد في أي وقت من إعدادات Google Play من زر ادارة الاشتراك في الأعلى.",
-  "Payment History": "سجل الاشتراكات",
+  "Payment history": "سجل الاشتراكات",
   "No payment history": "لا يوجد سجل اشتراكات",
   "Error loading payment history": "خطأ في تحميل سجل الاشتراكات",
-  "Payment Method": "طريقة الدفع",
   "Failed to send": "فشل الإرسال",
   "You can only reply to this conversation using a template message due to 24 hour message window restriction": "يمكنك الرد على هذه المحادثة فقط باستخدام قالب رسالة بسبب قيود نافذة الـ 24 ساعة",
   "You can only reply using a template message due to 24-hour message window restriction": "يمكنك الرد فقط باستخدام قالب رسالة بسبب قيود نافذة الـ 24 ساعة",
@@ -239,5 +238,12 @@
   "purchase_timed_out": "انتهت مهلة الشراء قبل أن يستجيب Google Play.",
   "purchase_failed": "لم تتم عملية الشراء. يرجى المحاولة مرة أخرى.",
   "checkout_browser_unavailable": "تعذر فتح متصفح لإتمام الدفع.",
-  "checkout_open_failed": "تعذر فتح صفحة الدفع. يرجى المحاولة مرة أخرى."
+  "checkout_open_failed": "تعذر فتح صفحة الدفع. يرجى المحاولة مرة أخرى.",
+  "Subscription": "اشتراك",
+  "Receipts appear here after your first payment.": "تظهر الإيصالات هنا بعد أول عملية دفع.",
+  "history_no_account": "لم يتم العثور على حساب على هذا الجهاز. يرجى تسجيل الدخول مرة أخرى.",
+  "history_network": "تعذر الاتصال بالشبكة. تحقق من اتصالك وحاول مرة أخرى.",
+  "history_server": "حدثت مشكلة في الخادم. يرجى المحاولة بعد قليل.",
+  "history_session_expired": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+  "history_unexpected": "حدث خطأ أثناء تحميل السجل. يرجى المحاولة مرة أخرى."
 }

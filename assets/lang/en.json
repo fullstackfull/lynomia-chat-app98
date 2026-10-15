@@ -170,10 +170,9 @@
   "Subscription plans": "Subscription plans",
   "Choose the plan that suits your needs.": "Choose the plan that suits your needs.",
   "All subscriptions made via Google Play automatically renew on a monthly basis. You can cancel the renewal at any time in your Google Play settings by using the \"Manage subscription\" button at the top.": "All subscriptions made via Google Play automatically renew on a monthly basis. You can cancel the renewal at any time in your Google Play settings by using the \"Manage subscription\" button at the top.",
-  "Payment History": "Payment History",
+  "Payment history": "Payment history",
   "No payment history": "No payment history",
   "Error loading payment history": "Error loading payment history",
-  "Payment Method": "Payment Method",
   "Failed to send": "Failed to send",
   "You can only reply to this conversation using a template message due to 24 hour message window restriction": "You can only reply to this conversation using a template message due to 24 hour message window restriction",
   "You can only reply using a template message due to 24-hour message window restriction": "You can only reply using a template message due to 24-hour message window restriction",
@@ -239,5 +238,12 @@
   "purchase_timed_out": "The purchase timed out before Google Play answered.",
   "purchase_failed": "The purchase did not go through. Please try again.",
   "checkout_browser_unavailable": "No browser could be opened to take the payment.",
-  "checkout_open_failed": "The payment page could not be opened. Please try again."
+  "checkout_open_failed": "The payment page could not be opened. Please try again.",
+  "Subscription": "Subscription",
+  "Receipts appear here after your first payment.": "Receipts appear here after your first payment.",
+  "history_no_account": "No account was found on this device. Please sign in again.",
+  "history_network": "Could not reach the network. Check your connection and try again.",
+  "history_server": "The server had a problem. Please try again shortly.",
+  "history_session_expired": "Your session has expired. Please sign in again.",
+  "history_unexpected": "Something went wrong while loading your history. Please try again."
 }

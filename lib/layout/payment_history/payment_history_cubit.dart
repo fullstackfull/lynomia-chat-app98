@@ -18,7 +18,7 @@ class PaymentHistoryCubit extends Cubit<PaymentHistoryState> {
       final accountId = CacheHelper.getData(key: CacheHelper.keyAccountId) ?? 0;
 
       if (accountId == 0) {
-        emit(const PaymentHistoryError('لم يتم العثور على معرف الحساب. يرجى تسجيل الدخول.'));
+        emit(const PaymentHistoryError('history_no_account'));
         return;
       }
 
@@ -30,39 +30,36 @@ class PaymentHistoryCubit extends Cubit<PaymentHistoryState> {
     }
   }
 
+  /// Which failure this was, as a catalogue key.
+  ///
+  /// These were eight hardcoded Arabic sentences, and the error state prints the string it is given
+  /// as it stands, so an English user read them in Arabic. A cubit has no `BuildContext` and so
+  /// cannot translate; it names the failure and the view says it in the reader's language. `tr`
+  /// returns an unrecognised string unchanged, so a message the server wrote still shows verbatim.
   String _formatUserFriendlyError(dynamic error) {
     if (error is DioError) {
       if (error.type == DioErrorType.connectTimeout ||
           error.type == DioErrorType.sendTimeout ||
           error.type == DioErrorType.receiveTimeout ||
           error.type == DioErrorType.other) {
-        return 'تعذر الاتصال بالشبكة. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.';
+        return 'history_network';
       }
       final statusCode = error.response?.statusCode;
-      if (statusCode != null && statusCode >= 500) {
-        return 'حدث خطأ في الخادم (رمز $statusCode). يرجى المحاولة في وقت لاحق.';
-      }
-      if (statusCode == 401 || statusCode == 403) {
-        return 'انتهت جلسة الدخول. يرجى تسجيل الدخول مرة أخرى.';
-      }
-      return 'حدث خطأ أثناء الاتصال بالخادم. يرجى المحاولة مرة أخرى.';
+      if (statusCode == 401 || statusCode == 403) return 'history_session_expired';
+      if (statusCode != null && statusCode >= 500) return 'history_server';
+      return 'history_unexpected';
     }
 
-    String msg = error.toString();
-    if (msg.startsWith('Exception: ')) {
-      msg = msg.substring(11);
-    }
-
+    // Anything that reads like a transport failure rather than a sentence someone wrote: Dio's
+    // `toString` carries a stack trace, which is not something to show a customer.
+    final msg = error.toString();
     if (msg.contains('DioError') ||
         msg.contains('DioException') ||
         msg.contains('Http status error') ||
         msg.contains('Source stack:')) {
-      if (msg.contains('500')) {
-        return 'حدث خطأ في الخادم يرجى المحاولة في وقت لاحق.';
-      }
-      return 'حدث خطأ غير متوقع. يرجى المحاولة لاحقاً.';
+      return msg.contains('500') ? 'history_server' : 'history_unexpected';
     }
 
-    return msg;
+    return msg.startsWith('Exception: ') ? msg.substring(11) : msg;
   }
 }

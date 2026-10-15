@@ -66,7 +66,7 @@ class HomeView extends StatelessWidget {
         _row(
           context,
           icon: Icons.receipt_long_outlined,
-          label: AppLocalizations.tr(context, 'Payment History'),
+          label: AppLocalizations.tr(context, 'Payment history'),
           onTap: onOpenPaymentHistory,
         ),
         _row(

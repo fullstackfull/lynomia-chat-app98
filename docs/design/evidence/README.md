@@ -21,6 +21,7 @@ Where a golden and a device disagree, the device is right.
 | `*-chat-*` | The chat screen's app bar, bubbles and composer, rebuilt from the same tokens and the same geometry — the run-aware tail, the directional alignment. `chat_screen.dart` builds these inside private methods on a `State` that needs a Cubit, a socket and a live conversation. |
 | `*-plans-*` | **The production widget.** `PlanPicker` out of `lib/modules/payment/`, pumped whole, under the screen's own app bar. |
 | `*-payment-*` | **The production widgets.** `PaymentForm` and `PaymentResultView`, pumped whole. |
+| `*-history-*` | **The production widgets.** `PaymentHistoryList`, `PaymentHistoryEmpty` and `PaymentHistoryFailure`, pumped whole. |
 
 ## One limitation of the harness
 
@@ -67,6 +68,11 @@ before-chat-arabic-rtl.png     after-chat-arabic-rtl.png
                                after-payment-result-success-light.png
                                after-payment-result-success-unnamed-light.png
                                after-payment-result-failure-dark.png
+                               after-history-light.png
+                               after-history-dark.png
+                               after-history-arabic-rtl.png
+                               after-history-empty-light.png
+                               after-history-error-light.png
 ```
 
 Two of these are there to show a specific thing rather than a screen. `after-payment-result-success-unnamed-light.png`
