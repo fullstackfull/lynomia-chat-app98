@@ -142,6 +142,7 @@ Future<void> shoot(
   TextDirection direction = TextDirection.ltr,
   bool localizations = false,
   Locale locale = const Locale('en'),
+  bool settle = true,
 }) async {
   tester.view.physicalSize = size * tester.view.devicePixelRatio;
   tester.view.devicePixelRatio = 1.0;
@@ -164,13 +165,20 @@ Future<void> shoot(
       home: Directionality(textDirection: direction, child: child),
     ),
   );
-  await tester.pumpAndSettle(const Duration(milliseconds: 400));
+  // A screen with a perpetual animation on it -- a progress spinner -- never has a settled frame, so
+  // `pumpAndSettle` runs until it gives up and the test fails having rendered nothing. For those,
+  // advance a fixed distance instead and shoot whatever frame that lands on.
+  Future<void> advance() => settle
+      ? tester.pumpAndSettle(const Duration(milliseconds: 400))
+      : tester.pump(const Duration(milliseconds: 400));
+
+  await advance();
 
   // `Image.asset` decodes through a real codec, which the fake clock does not drive: without this the
   // FIRST screen in a file paints its logos as blank space while every later one has them, because by
   // then the image cache is warm. `runAsync` is where real work is allowed to finish.
   await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 120)));
-  await tester.pumpAndSettle(const Duration(milliseconds: 400));
+  await advance();
 
   // A golden that paints nothing is worse than no golden: `--update-goldens` writes it and the run
   // reports a pass. Every screen here has words on it, so their absence means the tree never built.

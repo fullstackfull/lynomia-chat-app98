@@ -19,6 +19,8 @@ Where a golden and a device disagree, the device is right.
 | `*-conversations-*` | **The production row.** `ConversationItem` straight out of `lib/modules/conversations_list/`. |
 | `*-inboxes-*` | The inbox card, rebuilt from the same `LynChannel` and `LynSurface` calls the screen makes. Its own screen cannot be pumped — it fetches on `initState`. |
 | `*-chat-*` | The chat screen's app bar, bubbles and composer, rebuilt from the same tokens and the same geometry — the run-aware tail, the directional alignment. `chat_screen.dart` builds these inside private methods on a `State` that needs a Cubit, a socket and a live conversation. |
+| `*-plans-*` | **The production widget.** `PlanPicker` out of `lib/modules/payment/`, pumped whole, under the screen's own app bar. |
+| `*-payment-*` | **The production widgets.** `PaymentForm` and `PaymentResultView`, pumped whole. |
 
 ## One limitation of the harness
 
@@ -54,7 +56,41 @@ before-chat-arabic-rtl.png     after-chat-arabic-rtl.png
                                after-login-arabic-rtl.png
                                after-inboxes-light.png
                                after-inboxes-arabic-rtl.png
+                               after-plans-light.png
+                               after-plans-dark.png
+                               after-plans-enterprise-light.png      (the top plan selected)
+                               after-plans-arabic-rtl.png
+                               after-payment-light.png
+                               after-payment-dark.png
+                               after-payment-arabic-rtl.png
+                               after-payment-processing-light.png    (mid-payment)
+                               after-payment-result-success-light.png
+                               after-payment-result-success-unnamed-light.png
+                               after-payment-result-failure-dark.png
 ```
+
+Two of these are there to show a specific thing rather than a screen. `after-payment-result-success-unnamed-light.png`
+is the success message when the server has not named the plan yet — the case that used to print an Arabic
+word into an English sentence. `after-payment-processing-light.png` is the frame mid-payment, where the
+button carries the progress and is disabled and the cancel link is gone, so there is nothing to press twice.
+
+**No Google Play card appears in the payment goldens.** The test engine is not Android, and that card is
+now `Platform.isAndroid`-only. On a phone running Android it is there, above the card you can see.
+
+The plan and payment screens have no `before-`, because what changed about them does not fit in a
+frame. Measured at 390 wide, by laying each one out against an unbounded height and reading the
+content's height off the render object:
+
+| | content height, before | scroll left to do, after |
+|---|---|---|
+| Choosing a plan | 1,519 px | **0** |
+| Paying | 1,116 px | **0** |
+
+The body of a 390×844 screen with an app bar on it is 788 px. So the old plan screen was 1.9 screens
+of scrolling and the old payment screen 1.4, with the button at the far end of both. Neither of the
+new ones scrolls at all — `maxScrollExtent` is 0 for both, and still 0 on the Enterprise plan, which
+has eight features rather than six. `git checkout main && flutter test test/visual --update-goldens`
+renders the old ones if you want to look.
 
 The home, conversations, login and inbox screens have no `before-`: the home screen did not exist
 (its body was an emoji over the word "welcome"), and for the other three the before state is on
