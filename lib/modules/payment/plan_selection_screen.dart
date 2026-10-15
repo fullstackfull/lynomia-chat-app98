@@ -389,13 +389,13 @@
 //   Color _getPlanColor(String planId) {
 //     switch (planId) {
 //       case 'startup':
-//         return HexColor('#6366F1'); // بنفسجي
+//         return LynPalette.indigo; // بنفسجي
 //       case 'growth':
 //         return HexColor('#8B5CF6'); // بنفسجي فاتح
 //       case 'enterprise':
 //         return HexColor('#EC4899'); // وردي
 //       default:
-//         return HexColor('#6366F1');
+//         return LynPalette.indigo;
 //     }
 //   }
 // }
@@ -413,6 +413,7 @@ import '../../layout/cubit/cubit.dart';
 import '../../models/plan_models.dart';
 import '../../shared/app_localizations.dart';
 import 'payment_screen.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 class PlanSelectionScreen extends StatelessWidget {
   const PlanSelectionScreen({super.key});
@@ -445,12 +446,12 @@ class PlanSelectionScreen extends StatelessWidget {
           //     onPressed: () => _openSubscriptionManagement(),
           //     icon: Icon(
           //       Icons.settings,
-          //       color: HexColor('#6366F1'),
+          //       color: LynPalette.indigo,
           //       size: 20,
           //     ),
           //     label: Text(AppLocalizations.tr(context, 'Subscriptions'),
           //       style: TextStyle(
-          //         color: HexColor('#6366F1'),
+          //         color: LynPalette.indigo,
           //         fontSize: 12,
           //         fontWeight: FontWeight.w600,
           //       ),
@@ -879,13 +880,13 @@ class PlanSelectionScreen extends StatelessWidget {
   Color _getPlanColor(String planId) {
     switch (planId) {
       case 'startup':
-        return HexColor('#6366F1');
+        return LynPalette.indigo;
       case 'growth':
         return HexColor('#8B5CF6');
       case 'enterprise':
         return HexColor('#EC4899');
       default:
-        return HexColor('#6366F1');
+        return LynPalette.indigo;
     }
   }
 }

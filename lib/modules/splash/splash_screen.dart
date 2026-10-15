@@ -14,6 +14,7 @@ import '../../shared/app_localizations.dart';
 import '../../shared/network/local/cache_helper.dart';
 import '../chat/chat_screen.dart';
 import '../login/login_screen.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 
 class SplashScreen extends StatefulWidget {
@@ -105,13 +106,13 @@ class _SplashScreenState extends State<SplashScreen>
                       width: 120,
                       height: 120,
                       decoration: BoxDecoration(
-                        color: HexColor('#6366F1').withOpacity(0.2),
+                        color: LynPalette.indigo.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.chat_bubble_rounded,
                         size: 60,
-                        color: HexColor('#6366F1'),
+                        color: LynPalette.indigo,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -139,7 +140,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                     // ⏳ المؤشر
                     SpinKitWave(
-                      color: HexColor('#6366F1'),
+                      color: LynPalette.indigo,
                       size: 30,
                     ),
                     const SizedBox(height: 48),
@@ -169,7 +170,7 @@ class _SplashScreenState extends State<SplashScreen>
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: HexColor('#6366F1'),
+                              color: LynPalette.indigo,
                               decoration: TextDecoration.underline,
                             ),
                           ),

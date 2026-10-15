@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../shared/app_localizations.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 class PrivacyScreen extends StatelessWidget {
   final String title;
@@ -14,7 +15,7 @@ class PrivacyScreen extends StatelessWidget {
     required this.title,
     required this.content,
     required this.icon,
-    this.accentColor = const Color(0xFF6366F1),
+    this.accentColor = LynPalette.indigo,
   });
 
   @override

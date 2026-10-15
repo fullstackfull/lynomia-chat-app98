@@ -497,7 +497,7 @@
 //           ),
 //           child: Icon(
 //             icon,
-//             color: HexColor('#6366F1'),
+//             color: LynPalette.indigo,
 //             size: 24,
 //           ),
 //         ),
@@ -532,13 +532,13 @@
 //   Color _getPlanColor(String planId) {
 //     switch (planId) {
 //       case 'startup':
-//         return HexColor('#6366F1');
+//         return LynPalette.indigo;
 //       case 'growth':
 //         return HexColor('#8B5CF6');
 //       case 'enterprise':
 //         return HexColor('#EC4899');
 //       default:
-//         return HexColor('#6366F1');
+//         return LynPalette.indigo;
 //     }
 //   }
 // }
@@ -658,7 +658,7 @@
 //                     style: ElevatedButton.styleFrom(
 //                       backgroundColor: isSuccess
 //                           ? HexColor('#10B981')
-//                           : HexColor('#6366F1'),
+//                           : LynPalette.indigo,
 //                       shape: RoundedRectangleBorder(
 //                         borderRadius: BorderRadius.circular(16),
 //                       ),
@@ -697,6 +697,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../layout/cubit/cubit.dart';
 import '../../models/plan_models.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 class PaymentScreen extends StatelessWidget {
   final PlanModel plan;
@@ -1232,7 +1233,7 @@ class PaymentScreen extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: HexColor('#6366F1'),
+            color: LynPalette.indigo,
             size: 24,
           ),
         ),
@@ -1267,13 +1268,13 @@ class PaymentScreen extends StatelessWidget {
   Color _getPlanColor(String planId) {
     switch (planId) {
       case 'startup':
-        return HexColor('#6366F1');
+        return LynPalette.indigo;
       case 'growth':
         return HexColor('#8B5CF6');
       case 'enterprise':
         return HexColor('#EC4899');
       default:
-        return HexColor('#6366F1');
+        return LynPalette.indigo;
     }
   }
 }
@@ -1451,7 +1452,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: widget.isSuccess
                           ? HexColor('#10B981')
-                          : HexColor('#6366F1'),
+                          : LynPalette.indigo,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),

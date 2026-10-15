@@ -5,6 +5,7 @@ import '../../layout/cubit/cubit.dart';
 import '../../layout/cubit/states.dart';
 import '../language/cubit/cubit.dart';
 import '../../shared/app_localizations.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 class PrivacyHubScreen extends StatefulWidget {
   const PrivacyHubScreen({super.key});
@@ -99,9 +100,9 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
               controller: _tabController,
               isScrollable: true,
               tabAlignment: TabAlignment.center,
-              indicatorColor: const Color(0xFF6366F1),
+              indicatorColor: LynPalette.indigo,
               indicatorWeight: 3,
-              labelColor: const Color(0xFF6366F1),
+              labelColor: LynPalette.indigo,
               unselectedLabelColor: subTextColor,
               labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
@@ -116,7 +117,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
                 IconButton(
                   icon: const Icon(Icons.refresh_rounded),
                   onPressed: _loadTerms,
-                  color: const Color(0xFF6366F1),
+                  color: LynPalette.indigo,
                 ),
             ],
           ),
@@ -150,7 +151,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
         final lang = localeCubit.isArabic ? 'ar' : 'eng';
         await context.read<AppCubit>().fetchTerms(lang: lang, forceRefresh: true);
       },
-      color: const Color(0xFF6366F1),
+      color: LynPalette.indigo,
       backgroundColor: cardColor,
       displacement: 40,
       child: TabBarView(
@@ -174,7 +175,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             title: AppLocalizations.tr(context, 'terms_of_service'),
             content: termsData['terms'] ?? '',
             icon: Icons.gavel_outlined,
-            accentColor: const Color(0xFF6366F1),
+            accentColor: LynPalette.indigo,
             isDark: isDark,
             cardColor: cardColor,
             textColor: textColor,
@@ -276,7 +277,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
 
   Widget _buildLoadingState(bool isDark) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
     Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: isDark ? const Color(0xFF1E293B) : Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)]), child: Column(children: [
-      SizedBox(width: 48, height: 48, child: CircularProgressIndicator(strokeWidth: 3, valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)), backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+      SizedBox(width: 48, height: 48, child: CircularProgressIndicator(strokeWidth: 3, valueColor: const AlwaysStoppedAnimation<Color>(LynPalette.indigo), backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
       const SizedBox(height: 20),
       Text(AppLocalizations.tr(context, 'loading'), style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 16, fontWeight: FontWeight.w500)),
     ])),
@@ -385,7 +386,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
               icon: const Icon(Icons.refresh),
               label: Text(AppLocalizations.tr(context, 'retry')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
+                backgroundColor: LynPalette.indigo,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 shape: RoundedRectangleBorder(

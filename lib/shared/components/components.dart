@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 
 import 'custom_toast.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 // ✅ Re-export ToastStates
 export 'custom_toast.dart' show ToastStates, CustomToast;
@@ -40,7 +41,7 @@ Widget defaultButton({
     height: height,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(radius),
-      color: background ?? HexColor('#6366F1'),
+      color: background ?? LynPalette.indigo,
     ),
     child: MaterialButton(
       onPressed: function,
@@ -102,7 +103,7 @@ Widget defaultFormField({
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: HexColor('#6366F1'), width: 2),
+        borderSide: BorderSide(color: LynPalette.indigo, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),

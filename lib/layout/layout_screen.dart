@@ -381,7 +381,7 @@
 //
 //                       decoration: BoxDecoration(
 //
-//                         color: const Color(0xFF6366F1).withOpacity(0.2),
+//                         color: LynPalette.indigo.withOpacity(0.2),
 //
 //                         borderRadius: BorderRadius.circular(8),
 //
@@ -393,7 +393,7 @@
 //
 //                         style: const TextStyle(
 //
-//                           color: Color(0xFF6366F1),
+//                           color: LynPalette.indigo,
 //
 //                           fontSize: 12,
 //
@@ -497,9 +497,9 @@
 //         //   colors:
 //         //   isDark
 //         //
-//         //       ? [const Color(0xFF312E81), const Color(0xFF6366F1)]:
+//         //       ? [const Color(0xFF312E81), LynPalette.indigo]:
 //         //
-//         //        [const Color(0xFF6366F1), const Color(0xFF818CF8)],
+//         //        [LynPalette.indigo, LynPalette.indigoOnDark],
 //         //
 //         // ),
 //
@@ -681,9 +681,9 @@
 //
 //           borderRadius: BorderRadius.circular(12),
 //
-//           splashColor: isEnabled ? const Color(0xFF6366F1).withOpacity(0.1) : Colors.transparent,
+//           splashColor: isEnabled ? LynPalette.indigo.withOpacity(0.1) : Colors.transparent,
 //
-//           highlightColor: isEnabled ? const Color(0xFF6366F1).withOpacity(0.05) : Colors.transparent,
+//           highlightColor: isEnabled ? LynPalette.indigo.withOpacity(0.05) : Colors.transparent,
 //
 //           child: Container(
 //
@@ -834,7 +834,7 @@
 //                   style: TextStyle(
 //                     fontSize: 11,
 //                     fontWeight: FontWeight.bold,
-//                     color: const Color(0xFF6366F1),
+//                     color: LynPalette.indigo,
 //                     decoration: TextDecoration.underline,
 //                   ),
 //                 ),
@@ -1174,7 +1174,7 @@
 //
 //             style: ElevatedButton.styleFrom(
 //
-//               backgroundColor: const Color(0xFF6366F1),
+//               backgroundColor: LynPalette.indigo,
 //
 //               foregroundColor: Colors.white,
 //
@@ -1376,7 +1376,7 @@
 //
 //             color: isSelected
 //
-//                 ? const Color(0xFF6366F1).withOpacity(0.1)
+//                 ? LynPalette.indigo.withOpacity(0.1)
 //
 //                 : Colors.transparent,
 //
@@ -1386,7 +1386,7 @@
 //
 //               color: isSelected
 //
-//                   ? const Color(0xFF6366F1)
+//                   ? LynPalette.indigo
 //
 //                   : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
 //
@@ -1436,7 +1436,7 @@
 //
 //                   Icons.check_circle,
 //
-//                   color: Color(0xFF6366F1),
+//                   color: LynPalette.indigo,
 //
 //                   size: 24,
 //
@@ -1471,6 +1471,7 @@ import '../modules/login/login_screen.dart';
 import '../modules/privacy/about_us_screen.dart';
 import '../shared/app_localizations.dart';
 import 'cubit/states.dart';
+import '../shared/styles/lyn_palette.dart';
 
 class LayoutScreen extends StatelessWidget {
   const LayoutScreen({super.key});
@@ -1661,13 +1662,13 @@ class LayoutScreen extends StatelessWidget {
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withOpacity(0.2),
+                        color: LynPalette.indigo.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         localeCubit.isArabic ? 'العربية' : 'English',
                         style: const TextStyle(
-                          color: Color(0xFF6366F1),
+                          color: LynPalette.indigo,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1763,7 +1764,7 @@ class LayoutScreen extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFF6366F1).withOpacity(0.15),
+                      LynPalette.indigo.withOpacity(0.15),
                       const Color(0xFF8B5CF6).withOpacity(0.05),
                     ],
                   ),
@@ -1777,12 +1778,12 @@ class LayoutScreen extends StatelessWidget {
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                          colors: [LynPalette.indigo, Color(0xFF8B5CF6)],
                         ),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF6366F1).withOpacity(0.3),
+                            color: LynPalette.indigo.withOpacity(0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 8),
                           ),
@@ -1834,12 +1835,12 @@ class LayoutScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1).withOpacity(0.1),
+                              color: LynPalette.indigo.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
                               Icons.info_outline_rounded,
-                              color: Color(0xFF6366F1),
+                              color: LynPalette.indigo,
                               size: 20,
                             ),
                           ),
@@ -1886,13 +1887,13 @@ class LayoutScreen extends StatelessWidget {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6366F1),
+                          backgroundColor: LynPalette.indigo,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          shadowColor: const Color(0xFF6366F1).withOpacity(0.4),
+                          shadowColor: LynPalette.indigo.withOpacity(0.4),
                         ),
                       ),
                     ),
@@ -2016,8 +2017,8 @@ class LayoutScreen extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          splashColor: isEnabled ? const Color(0xFF6366F1).withOpacity(0.1) : Colors.transparent,
-          highlightColor: isEnabled ? const Color(0xFF6366F1).withOpacity(0.05) : Colors.transparent,
+          splashColor: isEnabled ? LynPalette.indigo.withOpacity(0.1) : Colors.transparent,
+          highlightColor: isEnabled ? LynPalette.indigo.withOpacity(0.05) : Colors.transparent,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
@@ -2105,7 +2106,7 @@ class LayoutScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF6366F1),
+                    color: LynPalette.indigo,
                     decoration: TextDecoration.underline,
                   ),
                 ),
@@ -2297,7 +2298,7 @@ class LayoutScreen extends StatelessWidget {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: LynPalette.indigo,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -2395,12 +2396,12 @@ class LayoutScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFF6366F1).withOpacity(0.1)
+                ? LynPalette.indigo.withOpacity(0.1)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected
-                  ? const Color(0xFF6366F1)
+                  ? LynPalette.indigo
                   : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               width: 1,
             ),
@@ -2425,7 +2426,7 @@ class LayoutScreen extends StatelessWidget {
               if (isSelected)
                 const Icon(
                   Icons.check_circle,
-                  color: Color(0xFF6366F1),
+                  color: LynPalette.indigo,
                   size: 24,
                 ),
             ],

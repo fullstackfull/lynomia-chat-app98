@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../layout/cubit/cubit.dart';
 import '../../modules/language/cubit/cubit.dart';
 import '../../shared/app_localizations.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 class ApiDocumentationScreen extends StatefulWidget {
   const ApiDocumentationScreen({super.key});
@@ -770,13 +771,13 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [const Color(0xFF6366F1), const Color(0xFF8B5CF6)]
-              : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
+              ? [LynPalette.indigo, const Color(0xFF8B5CF6)]
+              : [LynPalette.indigo, const Color(0xFF8B5CF6)],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.3),
+            color: LynPalette.indigo.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -854,7 +855,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
             width: 4,
             height: 24,
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1),
+              color: LynPalette.indigo,
               borderRadius: BorderRadius.circular(2),
             ),
           ),

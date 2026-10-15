@@ -10,6 +10,7 @@ import '../../layout/payment_history/payment_history_states.dart';
 import '../../models/payment_history_model.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/network/payment_api_service.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 class PaymentHistoryScreen extends StatelessWidget {
   const PaymentHistoryScreen({super.key});
@@ -46,7 +47,7 @@ class PaymentHistoryScreen extends StatelessWidget {
             if (state is PaymentHistoryLoading) {
               return Center(
                 child: CircularProgressIndicator(
-                  color: isDark ? HexColor('#6366F1') : HexColor('#6366F1'),
+                  color: isDark ? LynPalette.indigo : LynPalette.indigo,
                 ),
               );
             } else if (state is PaymentHistoryLoaded) {
@@ -111,7 +112,7 @@ class PaymentHistoryScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: HexColor('#6366F1'),
+                    color: LynPalette.indigo,
                     decoration: TextDecoration.underline,
                   ),
                 ),
@@ -173,7 +174,7 @@ class PaymentHistoryScreen extends StatelessWidget {
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: Text(AppLocalizations.tr(context, 'Retry')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: HexColor('#6366F1'),
+                backgroundColor: LynPalette.indigo,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -193,7 +194,7 @@ class PaymentHistoryScreen extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () =>
           context.read<PaymentHistoryCubit>().fetchPaymentHistory(),
-      color: isDark ? HexColor('#6366F1') : HexColor('#6366F1'),
+      color: isDark ? LynPalette.indigo : LynPalette.indigo,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: history.length,
@@ -366,7 +367,7 @@ class PaymentHistoryScreen extends StatelessWidget {
   Color _getPaymentColor(String way) {
     switch (way.toLowerCase()) {
       case 'stripe':
-        return HexColor('#6366F1');
+        return LynPalette.indigo;
       case 'google_play':
         return HexColor('#10B981');
       default:

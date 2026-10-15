@@ -3,9 +3,9 @@ import 'dart:typed_data';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/material.dart';
 
 import '../local/cache_helper.dart';
+import '../../../shared/styles/lyn_palette.dart';
 
 // ============================================
 // Handler للخلفية (Background)
@@ -160,7 +160,7 @@ class FirebaseHelper {
         summaryText: 'New message',
       ),
 
-      color: const Color(0xFF6366F1),
+      color: LynPalette.indigo,
       visibility: NotificationVisibility.public,
       category: AndroidNotificationCategory.message,
     );

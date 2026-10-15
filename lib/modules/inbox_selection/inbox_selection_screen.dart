@@ -11,6 +11,7 @@ import '../../shared/components/custom_toast.dart';
 import '../chat/chat_screen.dart';
 import '../conversations_list/conversations_list_screen.dart';
 import '../login/login_screen.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 class InboxSelectionScreen extends StatefulWidget {
   const InboxSelectionScreen({super.key});
@@ -120,7 +121,7 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
             body: state is AppFetchInboxesLoadingState
                 ? Center(
                     child: CircularProgressIndicator(
-                      color: HexColor('#6366F1'),
+                      color: LynPalette.indigo,
                     ),
                   )
                 : inboxes.isEmpty
@@ -311,7 +312,7 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
       case 'sms':
         return HexColor('#8B5CF6'); // Purple
       case 'api':
-        return HexColor('#6366F1'); // Indigo
+        return LynPalette.indigo; // Indigo
       default:
         return HexColor('#64748B'); // Gray
     }

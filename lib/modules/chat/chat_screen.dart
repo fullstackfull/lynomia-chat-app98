@@ -28,6 +28,7 @@ import '../../layout/cubit/states.dart';
 import '../../models/chatwoot_models.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/components/components.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // ChatScreen - Professional WhatsApp-like Experience v2.0
@@ -631,7 +632,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   PreferredSizeWidget _buildSelectionAppBar(AppCubit cubit, bool isDark) {
     return AppBar(
       elevation: 0,
-      backgroundColor: HexColor('#6366F1'),
+      backgroundColor: LynPalette.indigo,
       leading: IconButton(
         icon: const Icon(Icons.close, color: Colors.white),
         onPressed: _clearSelection,
@@ -719,7 +720,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: hasAvatar ? null : HexColor('#6366F1').withOpacity(0.2),
+          color: hasAvatar ? null : LynPalette.indigo.withOpacity(0.2),
           shape: BoxShape.circle,
           border: Border.all(color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'), width: 2),
           image: hasAvatar
@@ -730,7 +731,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ? Center(
           child: Text(
             contactName.isNotEmpty ? contactName[0].toUpperCase() : '?',
-            style: TextStyle(color: HexColor('#6366F1'), fontWeight: FontWeight.bold, fontSize: size * 0.45),
+            style: TextStyle(color: LynPalette.indigo, fontWeight: FontWeight.bold, fontSize: size * 0.45),
           ),
         )
             : null,
@@ -798,12 +799,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     child: ElevatedButton.icon(
                       onPressed: isLoading ? null : () => _showEditNameDialog(cubit, isDark, name, conversation.contactId!),
                       icon: isLoading
-                          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: isDark ? Colors.white : HexColor('#6366F1')))
-                          : Icon(Icons.edit, color: isDark ? Colors.white : HexColor('#6366F1')),
-                      label: Text(AppLocalizations.tr(context, 'Edit Name'), style: TextStyle(color: isDark ? Colors.white : HexColor('#6366F1'), fontWeight: FontWeight.w600)),
+                          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: isDark ? Colors.white : LynPalette.indigo))
+                          : Icon(Icons.edit, color: isDark ? Colors.white : LynPalette.indigo),
+                      label: Text(AppLocalizations.tr(context, 'Edit Name'), style: TextStyle(color: isDark ? Colors.white : LynPalette.indigo, fontWeight: FontWeight.w600)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDark ? HexColor('#334155') : HexColor('#F1F5F9'),
-                        foregroundColor: isDark ? Colors.white : HexColor('#6366F1'),
+                        foregroundColor: isDark ? Colors.white : LynPalette.indigo,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
@@ -836,13 +837,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         width: 100,
         height: 100,
         decoration: BoxDecoration(
-          color: avatarUrl == null ? HexColor('#6366F1').withOpacity(0.15) : null,
+          color: avatarUrl == null ? LynPalette.indigo.withOpacity(0.15) : null,
           shape: BoxShape.circle,
           border: Border.all(color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'), width: 3),
           image: avatarUrl != null ? DecorationImage(image: CachedNetworkImageProvider(avatarUrl), fit: BoxFit.cover) : null,
         ),
         child: avatarUrl == null
-            ? Center(child: Text(contactName.isNotEmpty ? contactName[0].toUpperCase() : '?', style: TextStyle(color: HexColor('#6366F1'), fontWeight: FontWeight.bold, fontSize: 40)))
+            ? Center(child: Text(contactName.isNotEmpty ? contactName[0].toUpperCase() : '?', style: TextStyle(color: LynPalette.indigo, fontWeight: FontWeight.bold, fontSize: 40)))
             : null,
       ),
     );
@@ -857,7 +858,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             width: 40,
             height: 40,
             decoration: BoxDecoration(color: isDark ? HexColor('#334155') : HexColor('#F1F5F9'), borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: HexColor('#6366F1'), size: 20),
+            child: Icon(icon, color: LynPalette.indigo, size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -893,7 +894,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             filled: true,
             fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: HexColor('#6366F1'), width: 2)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: LynPalette.indigo, width: 2)),
           ),
         ),
         actions: [
@@ -906,7 +907,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               }
               Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: HexColor('#6366F1'), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            style: ElevatedButton.styleFrom(backgroundColor: LynPalette.indigo, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             child: Text(AppLocalizations.tr(context, 'Save')),
           ),
         ],
@@ -929,7 +930,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       itemBuilder: (context, index) {
         // ✅ في القائمة المعكوسة: آخر index = أعلى الشاشة (مؤشر التحميل)
         if (_isLoadingMore && index == messages.length) {
-          return Center(child: Padding(padding: const EdgeInsets.all(16), child: CircularProgressIndicator(color: HexColor('#6366F1'), strokeWidth: 2)));
+          return Center(child: Padding(padding: const EdgeInsets.all(16), child: CircularProgressIndicator(color: LynPalette.indigo, strokeWidth: 2)));
         }
 
         // ✅ عكس المؤشر: index 0 في القائمة المعكوسة = أحدث رسالة
@@ -974,7 +975,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Container(
         width: double.infinity,
         color: isSelected
-            ? (isDark ? HexColor('#6366F1').withOpacity(0.15) : HexColor('#6366F1').withOpacity(0.08))
+            ? (isDark ? LynPalette.indigo.withOpacity(0.15) : LynPalette.indigo.withOpacity(0.08))
             : Colors.transparent,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -1031,7 +1032,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Container(
         width: 24,
         height: 24,
-        decoration: BoxDecoration(color: HexColor('#6366F1'), shape: BoxShape.circle),
+        decoration: BoxDecoration(color: LynPalette.indigo, shape: BoxShape.circle),
         child: const Icon(Icons.check, color: Colors.white, size: 16),
       ),
     );
@@ -1050,7 +1051,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           decoration: BoxDecoration(
             color: isFailed
                 ? (isDark ? HexColor('#451A1A') : HexColor('#FEE2E2'))
-                : (isOutgoing ? HexColor('#6366F1') : (isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'))),
+                : (isOutgoing ? LynPalette.indigo : (isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'))),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(18),
               topRight: const Radius.circular(18),
@@ -1058,7 +1059,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               bottomRight: Radius.circular(isOutgoing ? 4 : 18),
             ),
             border: isSelected
-                ? Border.all(color: HexColor('#6366F1'), width: 2.5)
+                ? Border.all(color: LynPalette.indigo, width: 2.5)
                 : (isFailed ? Border.all(color: HexColor('#FCA5A5'), width: 1) : null),
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
           ),
@@ -1226,7 +1227,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         constraints: const BoxConstraints(maxWidth: 280),
         decoration: BoxDecoration(
-          color: isOutgoing ? HexColor('#6366F1').withOpacity(0.95) : (isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
+          color: isOutgoing ? LynPalette.indigo.withOpacity(0.95) : (isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -1237,7 +1238,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: isOutgoing ? Colors.white.withOpacity(0.2) : HexColor('#6366F1').withOpacity(0.1),
+                color: isOutgoing ? Colors.white.withOpacity(0.2) : LynPalette.indigo.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -1247,12 +1248,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    color: isOutgoing ? Colors.white : HexColor('#6366F1'),
+                    color: isOutgoing ? Colors.white : LynPalette.indigo,
                   ),
                 )
                     : Icon(
                   isPlaying ? Icons.pause : Icons.play_arrow,
-                  color: isOutgoing ? Colors.white : HexColor('#6366F1'),
+                  color: isOutgoing ? Colors.white : LynPalette.indigo,
                   size: 26,
                 ),
               ),
@@ -1274,9 +1275,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         trackHeight: 3,
                         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
                         overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
-                        activeTrackColor: isOutgoing ? Colors.white.withOpacity(0.8) : HexColor('#6366F1'),
-                        inactiveTrackColor: isOutgoing ? Colors.white.withOpacity(0.3) : HexColor('#6366F1').withOpacity(0.2),
-                        thumbColor: isOutgoing ? Colors.white : HexColor('#6366F1'),
+                        activeTrackColor: isOutgoing ? Colors.white.withOpacity(0.8) : LynPalette.indigo,
+                        inactiveTrackColor: isOutgoing ? Colors.white.withOpacity(0.3) : LynPalette.indigo.withOpacity(0.2),
+                        thumbColor: isOutgoing ? Colors.white : LynPalette.indigo,
                       ),
                       child: Slider(
                         value: _audioDuration.inMilliseconds > 0
@@ -1292,7 +1293,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       height: 3,
                       margin: const EdgeInsets.symmetric(vertical: 13),
                       decoration: BoxDecoration(
-                        color: isOutgoing ? Colors.white.withOpacity(0.3) : HexColor('#6366F1').withOpacity(0.2),
+                        color: isOutgoing ? Colors.white.withOpacity(0.3) : LynPalette.indigo.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -1375,7 +1376,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         padding: const EdgeInsets.all(12),
         constraints: const BoxConstraints(maxWidth: 260),
         decoration: BoxDecoration(
-          color: isOutgoing ? HexColor('#6366F1').withOpacity(0.95) : (isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
+          color: isOutgoing ? LynPalette.indigo.withOpacity(0.95) : (isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -1385,11 +1386,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: isOutgoing ? Colors.white.withOpacity(0.2) : HexColor('#6366F1').withOpacity(0.1),
+                color: isOutgoing ? Colors.white.withOpacity(0.2) : LynPalette.indigo.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
-                child: Text(extension, style: TextStyle(color: isOutgoing ? Colors.white : HexColor('#6366F1'), fontSize: 12, fontWeight: FontWeight.bold)),
+                child: Text(extension, style: TextStyle(color: isOutgoing ? Colors.white : LynPalette.indigo, fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(width: 12),
@@ -1437,13 +1438,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               onTap: () { Navigator.pop(context); _deleteSingleMessage(messageId, isDark); },
             ),
             ListTile(
-              leading: Icon(Icons.check_circle_outline, color: HexColor('#6366F1')),
+              leading: Icon(Icons.check_circle_outline, color: LynPalette.indigo),
               title: Text(AppLocalizations.tr(context, 'Select Messages'), style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'))),
               onTap: () { Navigator.pop(context); _toggleMessageSelection(messageId); },
             ),
             if (content.isNotEmpty)
               ListTile(
-                leading: Icon(Icons.copy, color: HexColor('#6366F1')),
+                leading: Icon(Icons.copy, color: LynPalette.indigo),
                 title: Text(AppLocalizations.tr(context, 'Copy Text'), style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'))),
                 onTap: () {
                   Navigator.pop(context);
@@ -1511,7 +1512,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       margin: const EdgeInsets.symmetric(horizontal: 2),
                       width: 3,
                       height: height,
-                      decoration: BoxDecoration(color: HexColor('#6366F1'), borderRadius: BorderRadius.circular(2)),
+                      decoration: BoxDecoration(color: LynPalette.indigo, borderRadius: BorderRadius.circular(2)),
                     );
                   },
                 );
@@ -1522,7 +1523,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           // ✅ المدة
           Text(
             _formatDuration(_recordingSeconds),
-            style: TextStyle(color: HexColor('#6366F1'), fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(color: LynPalette.indigo, fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(width: 12),
 
@@ -1532,7 +1533,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             child: Container(
               width: 48,
               height: 48,
-              decoration: BoxDecoration(color: HexColor('#6366F1'), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: LynPalette.indigo, shape: BoxShape.circle),
               child: const Icon(Icons.send, color: Colors.white, size: 22),
             ),
           ),
@@ -1607,7 +1608,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             icon: const Icon(Icons.description, size: 18),
             label: Text(AppLocalizations.tr(context, 'Send Template')),
             style: ElevatedButton.styleFrom(
-              backgroundColor: HexColor('#6366F1'),
+              backgroundColor: LynPalette.indigo,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1621,7 +1622,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       children: [
         if (isWhatsAppChannel)
           IconButton(
-            icon: Icon(Icons.description_outlined, color: HexColor('#6366F1')),
+            icon: Icon(Icons.description_outlined, color: LynPalette.indigo),
             tooltip: AppLocalizations.tr(context, 'Whatsapp Templates'),
             onPressed: () => _showWhatsAppTemplatesModal(context, cubit, isDark),
           ),
@@ -1637,9 +1638,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             }
           },
           itemBuilder: (context) => [
-            PopupMenuItem(value: 'camera', child: Row(children: [Icon(Icons.camera_alt, color: HexColor('#6366F1')), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'Camera'))])),
-            PopupMenuItem(value: 'gallery', child: Row(children: [Icon(Icons.photo_library, color: HexColor('#6366F1')), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'Gallery'))])),
-            PopupMenuItem(value: 'file', child: Row(children: [Icon(Icons.insert_drive_file, color: HexColor('#6366F1')), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'File'))])),
+            PopupMenuItem(value: 'camera', child: Row(children: [Icon(Icons.camera_alt, color: LynPalette.indigo), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'Camera'))])),
+            PopupMenuItem(value: 'gallery', child: Row(children: [Icon(Icons.photo_library, color: LynPalette.indigo), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'Gallery'))])),
+            PopupMenuItem(value: 'file', child: Row(children: [Icon(Icons.insert_drive_file, color: LynPalette.indigo), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'File'))])),
           ],
         ),
 
@@ -1672,7 +1673,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           child: Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(color: HexColor('#6366F1'), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: LynPalette.indigo, shape: BoxShape.circle),
             child: const Icon(Icons.mic, color: Colors.white, size: 22),
           ),
         )
@@ -1681,7 +1682,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           child: Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(color: HexColor('#6366F1'), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: LynPalette.indigo, shape: BoxShape.circle),
             child: const Icon(Icons.send, color: Colors.white, size: 22),
           ),
         ),
@@ -1725,7 +1726,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       margin: const EdgeInsets.symmetric(horizontal: 2),
       width: 8,
       height: 8,
-      decoration: BoxDecoration(color: HexColor('#6366F1').withOpacity(0.4 + (index * 0.3)), shape: BoxShape.circle),
+      decoration: BoxDecoration(color: LynPalette.indigo.withOpacity(0.4 + (index * 0.3)), shape: BoxShape.circle),
     );
   }
 
@@ -1735,7 +1736,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildScrollToBottomButton() {
     return FloatingActionButton.small(
       onPressed: () => _scrollToBottom(),
-      backgroundColor: HexColor('#6366F1'),
+      backgroundColor: LynPalette.indigo,
       child: const Icon(Icons.arrow_downward, color: Colors.white, size: 20),
     );
   }
@@ -1922,7 +1923,7 @@ class _DeleteDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: Text(AppLocalizations.tr(context, 'cancel'), style: TextStyle(color: HexColor('#6366F1'))),
+          child: Text(AppLocalizations.tr(context, 'cancel'), style: TextStyle(color: LynPalette.indigo)),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
@@ -2147,7 +2148,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                   ),
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.refresh, color: HexColor('#6366F1')),
+                  icon: Icon(Icons.refresh, color: LynPalette.indigo),
                   onPressed: () => widget.cubit.fetchWhatsAppTemplates(),
                 ),
               ),
@@ -2158,7 +2159,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
           // Template List View
           Expanded(
             child: state is AppFetchWhatsAppTemplatesLoadingState && templates.isEmpty
-                ? Center(child: CircularProgressIndicator(color: HexColor('#6366F1')))
+                ? Center(child: CircularProgressIndicator(color: LynPalette.indigo))
                 : templates.isEmpty
                     ? Center(
                         child: Text(
@@ -2321,7 +2322,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                           style: TextStyle(color: widget.isDark ? Colors.white : HexColor('#1E293B')),
                           decoration: InputDecoration(
                             labelText: 'Variable {{ $varName }}',
-                            labelStyle: TextStyle(color: HexColor('#6366F1')),
+                            labelStyle: TextStyle(color: LynPalette.indigo),
                             filled: true,
                             fillColor: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
                             border: OutlineInputBorder(
@@ -2358,7 +2359,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                 child: ElevatedButton(
                   onPressed: state is AppSendWhatsAppTemplateLoadingState ? null : _sendTemplate,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: HexColor('#6366F1'),
+                    backgroundColor: LynPalette.indigo,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

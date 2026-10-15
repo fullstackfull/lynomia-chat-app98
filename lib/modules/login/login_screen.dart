@@ -13,6 +13,7 @@ import '../../shared/components/components.dart';
 import '../../shared/network/local/cache_helper.dart';
 import '../inbox_selection/inbox_selection_screen.dart';
 import '../splash/splash_screen.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -108,13 +109,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: HexColor('#6366F1').withOpacity(0.2),
+                          color: LynPalette.indigo.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.chat_bubble_rounded,
                           size: 40,
-                          color: HexColor('#6366F1'),
+                          color: LynPalette.indigo,
                         ),
                       ),
                     ),
@@ -219,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         children: [
                           CircularProgressIndicator(
-                            color: HexColor('#6366F1'),
+                            color: LynPalette.indigo,
                           ),
                           const SizedBox(height: 12),
                           Text(
@@ -358,7 +359,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: HexColor('#6366F1'),
+                              color: LynPalette.indigo,
                               decoration: TextDecoration.underline,
                             ),
                           ),

@@ -13,6 +13,7 @@ import '../../shared/components/components.dart';
 import '../../shared/network/local/cache_helper.dart';
 import '../chat/chat_screen.dart';
 import '../login/login_screen.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 class ConversationsScreen extends StatefulWidget {
   const ConversationsScreen({super.key});
@@ -73,7 +74,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
               ? _buildEmptyState(isDark)
               : RefreshIndicator(
             onRefresh: () => cubit.fetchConversations(),
-            color: HexColor('#6366F1'),
+            color: LynPalette.indigo,
             child: ListView.builder(
               itemCount: conversations.length,
               itemBuilder: (context, index) {
@@ -98,7 +99,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
           floatingActionButton: isEmailInbox
               ? FloatingActionButton.extended(
             onPressed: () => _showNewConversationDialog(context),
-            backgroundColor: HexColor('#6366F1'),
+            backgroundColor: LynPalette.indigo,
             icon: const Icon(Icons.edit, color: Colors.white),
             label: Text(
               AppLocalizations.tr(context, 'New Conversation'),
@@ -279,7 +280,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                           ),
                           child: Row(
                             children: [
-                              CircularProgressIndicator(color: HexColor('#6366F1'), strokeWidth: 2),
+                              CircularProgressIndicator(color: LynPalette.indigo, strokeWidth: 2),
                               const SizedBox(width: 12),
                               Text(
                                 AppLocalizations.tr(context, 'Loading inboxes...'),
@@ -303,7 +304,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: HexColor('#6366F1'), width: 2),
+                            borderSide: BorderSide(color: LynPalette.indigo, width: 2),
                           ),
                         ),
                         validator: (value) => value == null || value.trim().isEmpty
@@ -326,7 +327,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: HexColor('#6366F1'), width: 2),
+                            borderSide: BorderSide(color: LynPalette.indigo, width: 2),
                           ),
                         ),
                         validator: (value) {
@@ -355,7 +356,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                       //     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       //     focusedBorder: OutlineInputBorder(
                       //       borderRadius: BorderRadius.circular(12),
-                      //       borderSide: BorderSide(color: HexColor('#6366F1'), width: 2),
+                      //       borderSide: BorderSide(color: LynPalette.indigo, width: 2),
                       //     ),
                       //   ),
                       // ),
@@ -375,7 +376,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: HexColor('#6366F1'), width: 2),
+                            borderSide: BorderSide(color: LynPalette.indigo, width: 2),
                           ),
                           alignLabelWithHint: true,
                         ),
@@ -428,7 +429,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: HexColor('#6366F1'),
+                                backgroundColor: LynPalette.indigo,
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 elevation: 0,
@@ -652,7 +653,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
   Widget _buildLoadingState() {
     return Center(
       child: CircularProgressIndicator(
-        color: HexColor('#6366F1'),
+        color: LynPalette.indigo,
       ),
     );
   }
@@ -714,7 +715,7 @@ class ConversationItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? HexColor('#6366F1').withOpacity(0.1)
+              ? LynPalette.indigo.withOpacity(0.1)
               : Colors.transparent,
           border: Border(
             bottom: BorderSide(
@@ -777,7 +778,7 @@ class ConversationItem extends StatelessWidget {
                         timeText,
                         style: TextStyle(
                           color: hasUnread
-                              ? HexColor('#6366F1')
+                              ? LynPalette.indigo
                               : isDark
                               ? HexColor('#64748B')
                               : HexColor('#94A3B8'),
@@ -819,7 +820,7 @@ class ConversationItem extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: HexColor('#6366F1'),
+                            color: LynPalette.indigo,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -852,7 +853,7 @@ class ConversationItem extends StatelessWidget {
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: hasAvatar ? null : HexColor('#6366F1').withOpacity(0.2),
+        color: hasAvatar ? null : LynPalette.indigo.withOpacity(0.2),
         shape: BoxShape.circle,
         border: Border.all(color: Colors.grey,width: 2),
         image: hasAvatar
@@ -868,7 +869,7 @@ class ConversationItem extends StatelessWidget {
         child: Text(
           contactName.isNotEmpty ? contactName[0].toUpperCase() : '?',
           style: TextStyle(
-            color: HexColor('#6366F1'),
+            color: LynPalette.indigo,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
