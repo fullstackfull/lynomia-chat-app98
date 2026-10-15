@@ -41,3 +41,7 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+# Fonts copied out of `flutter build web`'s asset bundle so golden tests render words rather than boxes.
+# Regenerate with: cp build/web/assets/fonts/fallback/Roboto-Regular.ttf build/web/assets/fonts/MaterialIcons-Regular.otf test/visual/
+test/visual/*.ttf
+test/visual/*.otf
