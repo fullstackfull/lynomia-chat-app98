@@ -57,11 +57,11 @@
 //
 //             elevation: 0,
 //
-//             backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+//             backgroundColor: LynSurface.surface(isDark),
 //
 //             iconTheme: IconThemeData(
 //
-//               color: isDark ? Colors.white : const Color(0xFF334155),
+//               color: LynSurface.textPrimary(isDark),
 //
 //             ),
 //
@@ -149,7 +149,7 @@
 //
 //     return Drawer(
 //
-//       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+//       backgroundColor: LynSurface.canvas(isDark),
 //
 //       child: SafeArea(
 //
@@ -715,9 +715,9 @@
 //
 //                   color: isEnabled
 //
-//                       ? (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))
+//                       ? (LynSurface.textSecondary(isDark))
 //
-//                       : (isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8)),  // ✅ لون أفتح للغير مفعّل
+//                       : (LynSurface.textTertiary(isDark)),  // ✅ لون أفتح للغير مفعّل
 //
 //                   size: 22,
 //
@@ -735,9 +735,9 @@
 //
 //                       color: isEnabled
 //
-//                           ? (isDark ? Colors.white : const Color(0xFF1E293B))
+//                           ? (LynSurface.textPrimary(isDark))
 //
-//                           : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),  // ✅ لون أفتح للغير مفعّل
+//                           : (LynSurface.textTertiary(isDark)),  // ✅ لون أفتح للغير مفعّل
 //
 //                       fontSize: 16,
 //
@@ -757,9 +757,9 @@
 //
 //                       color: isEnabled
 //
-//                           ? (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1))
+//                           ? (LynSurface.borderStrong(isDark))
 //
-//                           : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+//                           : (LynSurface.borderStrong(isDark)),
 //
 //                       size: 14,
 //
@@ -825,7 +825,7 @@
 //                   'Powered by ',
 //                   style: TextStyle(
 //                     fontSize: 11,
-//                     color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+//                     color: LynSurface.textTertiary(isDark),
 //                   ),
 //                 ),
 //                 SizedBox(width: 2,),
@@ -908,7 +908,7 @@
 //
 //       builder: (dialogContext) => AlertDialog(
 //
-//         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+//         backgroundColor: LynSurface.surface(isDark),
 //
 //         shape: RoundedRectangleBorder(
 //
@@ -924,7 +924,7 @@
 //
 //           style: TextStyle(
 //
-//             color: isDark ? Colors.white : const Color(0xFF1E293B),
+//             color: LynSurface.textPrimary(isDark),
 //
 //             fontWeight: FontWeight.bold,
 //
@@ -938,7 +938,7 @@
 //
 //           style: TextStyle(
 //
-//             color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+//             color: LynSurface.textSecondary(isDark),
 //
 //           ),
 //
@@ -956,7 +956,7 @@
 //
 //               style: TextStyle(
 //
-//                 color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+//                 color: LynSurface.textSecondary(isDark),
 //
 //               ),
 //
@@ -1038,7 +1038,7 @@
 //
 //       builder: (context) => AlertDialog(
 //
-//         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+//         backgroundColor: LynSurface.surface(isDark),
 //
 //         shape: RoundedRectangleBorder(
 //
@@ -1084,7 +1084,7 @@
 //
 //               style: TextStyle(
 //
-//                 color: isDark ? Colors.white : const Color(0xFF1E293B),
+//                 color: LynSurface.textPrimary(isDark),
 //
 //                 fontWeight: FontWeight.bold,
 //
@@ -1110,7 +1110,7 @@
 //
 //               style: TextStyle(
 //
-//                 color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+//                 color: LynSurface.textSecondary(isDark),
 //
 //                 fontSize: 15,
 //
@@ -1128,7 +1128,7 @@
 //
 //               style: TextStyle(
 //
-//                 color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+//                 color: LynSurface.textSecondary(isDark),
 //
 //                 fontSize: 14,
 //
@@ -1152,7 +1152,7 @@
 //
 //               style: TextStyle(
 //
-//                 color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+//                 color: LynSurface.textSecondary(isDark),
 //
 //               ),
 //
@@ -1234,7 +1234,7 @@
 //
 //       builder: (dialogContext) => AlertDialog(
 //
-//         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+//         backgroundColor: LynSurface.surface(isDark),
 //
 //         shape: RoundedRectangleBorder(
 //
@@ -1250,7 +1250,7 @@
 //
 //           style: TextStyle(
 //
-//             color: isDark ? Colors.white : const Color(0xFF1E293B),
+//             color: LynSurface.textPrimary(isDark),
 //
 //             fontWeight: FontWeight.bold,
 //
@@ -1388,7 +1388,7 @@
 //
 //                   ? LynPalette.indigo
 //
-//                   : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+//                   : (LynSurface.border(isDark)),
 //
 //               width: 1,
 //
@@ -1418,7 +1418,7 @@
 //
 //                   style: TextStyle(
 //
-//                     color: isDark ? Colors.white : const Color(0xFF1E293B),
+//                     color: LynSurface.textPrimary(isDark),
 //
 //                     fontSize: 16,
 //
@@ -1489,9 +1489,9 @@ class LayoutScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             elevation: 0,
-            backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            backgroundColor: LynSurface.surface(isDark),
             iconTheme: IconThemeData(
-              color: isDark ? Colors.white : const Color(0xFF334155),
+              color: LynSurface.textPrimary(isDark),
             ),
             title: Text(
               AppLocalizations.tr(context, 'Lynomia Chat'),
@@ -1535,7 +1535,7 @@ class LayoutScreen extends StatelessWidget {
     final subscription = cubit.currentSubscription;
 
     return Drawer(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: LynSurface.canvas(isDark),
       child: SafeArea(
         child: Column(
           children: [
@@ -1739,7 +1739,7 @@ class LayoutScreen extends StatelessWidget {
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            color: LynSurface.surface(isDark),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
@@ -1800,7 +1800,7 @@ class LayoutScreen extends StatelessWidget {
                       AppLocalizations.tr(context, 'not_subscribed'),
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        color: LynSurface.textPrimary(isDark),
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         height: 1.3,
@@ -1850,7 +1850,7 @@ class LayoutScreen extends StatelessWidget {
                               AppLocalizations.tr(context, 'subscribe_prompt'),
                               textAlign: TextAlign.start,
                               style: TextStyle(
-                                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
+                                color: LynSurface.textSecondary(isDark),
                                 fontSize: 14,
                                 height: 1.6,
                                 fontWeight: FontWeight.w500,
@@ -1906,7 +1906,7 @@ class LayoutScreen extends StatelessWidget {
                         child: Text(
                           AppLocalizations.tr(context, 'cancel'),
                           style: TextStyle(
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: LynSurface.textSecondary(isDark),
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),
@@ -2034,8 +2034,8 @@ class LayoutScreen extends StatelessWidget {
                 Icon(
                   icon,
                   color: isEnabled
-                      ? (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))
-                      : (isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8)),
+                      ? (LynSurface.textSecondary(isDark))
+                      : (LynSurface.textTertiary(isDark)),
                   size: 22,
                 ),
                 const SizedBox(width: 16),
@@ -2044,8 +2044,8 @@ class LayoutScreen extends StatelessWidget {
                     label,
                     style: TextStyle(
                       color: isEnabled
-                          ? (isDark ? Colors.white : const Color(0xFF1E293B))
-                          : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
+                          ? (LynSurface.textPrimary(isDark))
+                          : (LynSurface.textTertiary(isDark)),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -2055,8 +2055,8 @@ class LayoutScreen extends StatelessWidget {
                     Icon(
                       Icons.arrow_forward_ios,
                       color: isEnabled
-                          ? (isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1))
-                          : (isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+                          ? (LynSurface.borderStrong(isDark))
+                          : (LynSurface.borderStrong(isDark)),
                       size: 14,
                     ),
               ],
@@ -2097,7 +2097,7 @@ class LayoutScreen extends StatelessWidget {
                   'Powered by ',
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    color: LynSurface.textTertiary(isDark),
                   ),
                 ),
                 SizedBox(width: 2),
@@ -2171,7 +2171,7 @@ class LayoutScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        backgroundColor: LynSurface.surface(isDark),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -2179,7 +2179,7 @@ class LayoutScreen extends StatelessWidget {
           AppLocalizations.tr(context, 'logout_confirm_title'),
           textAlign: TextAlign.right,
           style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
+            color: LynSurface.textPrimary(isDark),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -2187,7 +2187,7 @@ class LayoutScreen extends StatelessWidget {
           AppLocalizations.tr(context, 'logout_confirm_message'),
           textAlign: TextAlign.right,
           style: TextStyle(
-            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            color: LynSurface.textSecondary(isDark),
           ),
         ),
         actions: [
@@ -2196,7 +2196,7 @@ class LayoutScreen extends StatelessWidget {
             child: Text(
               AppLocalizations.tr(context, 'cancel'),
               style: TextStyle(
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: LynSurface.textSecondary(isDark),
               ),
             ),
           ),
@@ -2232,7 +2232,7 @@ class LayoutScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        backgroundColor: LynSurface.surface(isDark),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -2255,7 +2255,7 @@ class LayoutScreen extends StatelessWidget {
               'غير مشترك',
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                color: LynSurface.textPrimary(isDark),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -2268,7 +2268,7 @@ class LayoutScreen extends StatelessWidget {
               'أنت غير مشترك في أي خطة مدفوعة حالياً.',
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: LynSurface.textSecondary(isDark),
                 fontSize: 15,
               ),
             ),
@@ -2277,7 +2277,7 @@ class LayoutScreen extends StatelessWidget {
               AppLocalizations.tr(context, 'subscribe_prompt'),
               textAlign: TextAlign.right,
               style: TextStyle(
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: LynSurface.textSecondary(isDark),
                 fontSize: 14,
               ),
             ),
@@ -2289,7 +2289,7 @@ class LayoutScreen extends StatelessWidget {
             child: Text(
               AppLocalizations.tr(context, 'cancel'),
               style: TextStyle(
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: LynSurface.textSecondary(isDark),
               ),
             ),
           ),
@@ -2328,7 +2328,7 @@ class LayoutScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        backgroundColor: LynSurface.surface(isDark),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -2336,7 +2336,7 @@ class LayoutScreen extends StatelessWidget {
           AppLocalizations.tr(context, 'language'),
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
+            color: LynSurface.textPrimary(isDark),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -2402,7 +2402,7 @@ class LayoutScreen extends StatelessWidget {
             border: Border.all(
               color: isSelected
                   ? LynPalette.indigo
-                  : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                  : (LynSurface.border(isDark)),
               width: 1,
             ),
           ),
@@ -2417,7 +2417,7 @@ class LayoutScreen extends StatelessWidget {
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                    color: LynSurface.textPrimary(isDark),
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),

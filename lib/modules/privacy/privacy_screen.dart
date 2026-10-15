@@ -21,10 +21,10 @@ class PrivacyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
-    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final bgColor = LynSurface.canvas(isDark);
+    final cardColor = LynSurface.surface(isDark);
+    final textColor = LynSurface.textPrimary(isDark);
+    final subTextColor = LynSurface.textSecondary(isDark);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -35,7 +35,7 @@ class PrivacyScreen extends StatelessWidget {
             expandedHeight: 180,
             pinned: true,
             elevation: 0,
-            backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+            backgroundColor: LynSurface.canvas(isDark),
             systemOverlayStyle: SystemUiOverlayStyle(
               statusBarColor: Colors.transparent,
               statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,

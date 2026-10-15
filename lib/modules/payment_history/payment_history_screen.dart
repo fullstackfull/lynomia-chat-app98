@@ -23,19 +23,19 @@ class PaymentHistoryScreen extends StatelessWidget {
       create: (context) =>
           PaymentHistoryCubit(PaymentApiService(Dio()))..fetchPaymentHistory(),
       child: Scaffold(
-        backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+        backgroundColor: LynSurface.canvas(isDark),
         appBar: AppBar(
-          backgroundColor: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
+          backgroundColor: LynSurface.surface(isDark),
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back,
-                color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B')),
+                color: LynSurface.textPrimary(isDark)),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
             AppLocalizations.tr(context, 'Payment History'),
             style: TextStyle(
-              color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+              color: LynSurface.textPrimary(isDark),
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -73,13 +73,13 @@ class PaymentHistoryScreen extends StatelessWidget {
           Icon(
             Icons.receipt_long_outlined,
             size: 80,
-            color: isDark ? HexColor('#475569') : HexColor('#CBD5E1'),
+            color: LynSurface.borderStrong(isDark),
           ),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.tr(context, 'No payment history'),
             style: TextStyle(
-              color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+              color: LynSurface.textSecondary(isDark),
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
@@ -101,7 +101,7 @@ class PaymentHistoryScreen extends StatelessWidget {
                   'Powered by ',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
+                    color: LynSurface.textTertiary(isDark),
                   ),
                 ),
                 SizedBox(
@@ -135,20 +135,20 @@ class PaymentHistoryScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: HexColor('#EF4444').withOpacity(0.1),
+                color: LynPalette.danger.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.error_outline_rounded,
                 size: 64,
-                color: isDark ? HexColor('#F87171') : HexColor('#EF4444'),
+                color: isDark ? HexColor('#F87171') : LynPalette.danger,
               ),
             ),
             const SizedBox(height: 20),
             Text(
               AppLocalizations.tr(context, 'Error loading payment history'),
               style: TextStyle(
-                color: isDark ? HexColor('#F1F5F9') : HexColor('#1E293B'),
+                color: LynSurface.textPrimary(isDark),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -160,7 +160,7 @@ class PaymentHistoryScreen extends StatelessWidget {
               child: Text(
                 error,
                 style: TextStyle(
-                  color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                  color: LynSurface.textSecondary(isDark),
                   fontSize: 14,
                   height: 1.4,
                 ),
@@ -212,7 +212,7 @@ class PaymentHistoryScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
+        color: LynSurface.surface(isDark),
         boxShadow: [
           BoxShadow(
             color: isDark
@@ -292,7 +292,7 @@ class PaymentHistoryScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Divider(color: isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
+            Divider(color: LynSurface.border(isDark)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -332,7 +332,7 @@ class PaymentHistoryScreen extends StatelessWidget {
           Icon(
             icon,
             size: 16,
-            color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
+            color: LynSurface.textTertiary(isDark),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -342,7 +342,7 @@ class PaymentHistoryScreen extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
+                    color: LynSurface.textTertiary(isDark),
                     fontSize: 11,
                   ),
                 ),
@@ -350,7 +350,7 @@ class PaymentHistoryScreen extends StatelessWidget {
                 Text(
                   value,
                   style: TextStyle(
-                    color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                    color: LynSurface.textPrimary(isDark),
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -369,9 +369,9 @@ class PaymentHistoryScreen extends StatelessWidget {
       case 'stripe':
         return LynPalette.indigo;
       case 'google_play':
-        return HexColor('#10B981');
+        return LynPalette.success;
       default:
-        return HexColor('#F59E0B');
+        return LynPalette.warning;
     }
   }
 

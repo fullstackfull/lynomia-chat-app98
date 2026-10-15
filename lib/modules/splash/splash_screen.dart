@@ -5,7 +5,6 @@ import 'package:chat/modules/inbox_selection/inbox_selection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../layout/cubit/cubit.dart';
@@ -123,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen>
                       style: TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? HexColor('#F8FAFC') : HexColor('#0F172A'),
+                        color: LynSurface.textPrimary(isDark),
                         letterSpacing: 1.5,
                       ),
                     ),
@@ -133,7 +132,7 @@ class _SplashScreenState extends State<SplashScreen>
                       AppLocalizations.tr(context, 'Instant support team communication'),
                       style: TextStyle(
                         fontSize: 16,
-                        color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
+                        color: LynSurface.textSecondary(isDark),
                       ),
                     ),
                     const SizedBox(height: 48),
@@ -161,7 +160,7 @@ class _SplashScreenState extends State<SplashScreen>
                             'Powered by ',
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
+                              color: LynSurface.textTertiary(isDark),
                             ),
                           ),
                           SizedBox(width: 2,),

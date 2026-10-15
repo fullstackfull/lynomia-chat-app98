@@ -128,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? HexColor('#F8FAFC') : HexColor('#0F172A'),
+                          color: LynSurface.textPrimary(isDark),
                         ),
                       ),
                     ),
@@ -139,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         AppLocalizations.tr(context, 'Enter your details to start chatting'),
                         style: TextStyle(
                           fontSize: 16,
-                          color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
+                          color: LynSurface.textSecondary(isDark),
                         ),
                       ),
                     ),
@@ -150,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? HexColor('#E2E8F0') : HexColor('#334155'),
+                        color: LynSurface.textPrimary(isDark),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -177,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? HexColor('#E2E8F0') : HexColor('#334155'),
+                        color: LynSurface.textPrimary(isDark),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -228,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? AppLocalizations.tr(context, 'Checking subscription...')
                                 : AppLocalizations.tr(context, 'Logging in...'),
                             style: TextStyle(
-                              color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                              color: LynSurface.textSecondary(isDark),
                               fontSize: 14,
                             ),
                           ),
@@ -350,7 +350,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             'Powered by ',
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
+                              color: LynSurface.textTertiary(isDark),
                             ),
                           ),
                           SizedBox(width: 2,),

@@ -59,16 +59,16 @@
 //     return Scaffold(
 //       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 //       appBar: AppBar(
-//         backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
+//         backgroundColor: LynSurface.canvas(isDark),
 //         elevation: 0,
 //         leading: IconButton(
-//           icon: Icon(Icons.arrow_back, color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B')),
+//           icon: Icon(Icons.arrow_back, color: LynSurface.textPrimary(isDark)),
 //           onPressed: () => Navigator.pop(context),
 //         ),
 //         title: Text(
 //           AppLocalizations.tr(context, 'Complete Payment'),
 //           style: TextStyle(
-//             color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//             color: LynSurface.textPrimary(isDark),
 //             fontSize: 20,
 //             fontWeight: FontWeight.w600,
 //           ),
@@ -91,7 +91,7 @@
 //             ScaffoldMessenger.of(context).showSnackBar(
 //               SnackBar(
 //                 content: Text(state.message),
-//                 backgroundColor: HexColor('#EF4444'),
+//                 backgroundColor: LynPalette.danger,
 //                 behavior: SnackBarBehavior.floating,
 //               ),
 //             );
@@ -99,7 +99,7 @@
 //             ScaffoldMessenger.of(context).showSnackBar(
 //               SnackBar(
 //                 content: Text(AppLocalizations.tr(context, 'Payment cancelled')),
-//                 backgroundColor: HexColor('#F59E0B'),
+//                 backgroundColor: LynPalette.warning,
 //                 behavior: SnackBarBehavior.floating,
 //               ),
 //             );
@@ -117,7 +117,7 @@
 //                     width: double.infinity,
 //                     padding: const EdgeInsets.all(24),
 //                     decoration: BoxDecoration(
-//                       color: isDark ? HexColor('#1E293B') : Colors.white,
+//                       color: LynSurface.surface(isDark),
 //                       borderRadius: BorderRadius.circular(20),
 //                       border: Border.all(
 //                         color: color.withOpacity(0.3),
@@ -156,7 +156,7 @@
 //                                   Text(
 //                                     plan.name,
 //                                     style: TextStyle(
-//                                       color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//                                       color: LynSurface.textPrimary(isDark),
 //                                       fontSize: 24,
 //                                       fontWeight: FontWeight.w700,
 //                                     ),
@@ -177,7 +177,7 @@
 //                         ),
 //                         const SizedBox(height: 16),
 //                         Divider(
-//                           color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+//                           color: LynSurface.border(isDark),
 //                         ),
 //                         const SizedBox(height: 12),
 //                         // ✅ الحدود المترجمة ديناميكياً
@@ -208,7 +208,7 @@
 //                   Text(
 //                     AppLocalizations.tr(context, 'Payment Method'),
 //                     style: TextStyle(
-//                       color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//                       color: LynSurface.textPrimary(isDark),
 //                       fontSize: 18,
 //                       fontWeight: FontWeight.w600,
 //                     ),
@@ -246,7 +246,7 @@
 //                   Text(
 //                     AppLocalizations.tr(context, 'Included Features'),
 //                     style: TextStyle(
-//                       color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//                       color: LynSurface.textPrimary(isDark),
 //                       fontSize: 18,
 //                       fontWeight: FontWeight.w600,
 //                     ),
@@ -259,14 +259,14 @@
 //                         children: [
 //                           Icon(
 //                             Icons.check_circle,
-//                             color: HexColor('#10B981'),
+//                             color: LynPalette.success,
 //                             size: 20,
 //                           ),
 //                           const SizedBox(width: 12),
 //                           Text(
 //                             _translateFeature(context, feature),
 //                             style: TextStyle(
-//                               color: isDark ? HexColor('#E2E8F0') : HexColor('#334155'),
+//                               color: LynSurface.textPrimary(isDark),
 //                               fontSize: 16,
 //                             ),
 //                           ),
@@ -292,7 +292,7 @@
 //                           Text(
 //                             AppLocalizations.tr(context, 'Processing payment...'),
 //                             style: TextStyle(
-//                               color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+//                               color: LynSurface.textSecondary(isDark),
 //                               fontSize: 16,
 //                             ),
 //                           ),
@@ -349,7 +349,7 @@
 //                         child: Text(
 //                           AppLocalizations.tr(context, 'cancel'),
 //                           style: TextStyle(
-//                             color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+//                             color: LynSurface.textSecondary(isDark),
 //                             fontSize: 16,
 //                           ),
 //                         ),
@@ -378,7 +378,7 @@
 //         Text(
 //           text,
 //           style: TextStyle(
-//             color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+//             color: LynSurface.textSecondary(isDark),
 //             fontSize: 14,
 //           ),
 //         ),
@@ -400,10 +400,10 @@
 //       child: Container(
 //         padding: const EdgeInsets.all(16),
 //         decoration: BoxDecoration(
-//           color: isDark ? HexColor('#1E293B') : Colors.white,
+//           color: LynSurface.surface(isDark),
 //           borderRadius: BorderRadius.circular(12),
 //           border: Border.all(
-//             color: isSelected ? color : (isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
+//             color: isSelected ? color : (LynSurface.border(isDark)),
 //             width: isSelected ? 2 : 1,
 //           ),
 //         ),
@@ -425,7 +425,7 @@
 //                   Text(
 //                     title,
 //                     style: TextStyle(
-//                       color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//                       color: LynSurface.textPrimary(isDark),
 //                       fontSize: 16,
 //                       fontWeight: FontWeight.w600,
 //                     ),
@@ -434,7 +434,7 @@
 //                   Text(
 //                     subtitle,
 //                     style: TextStyle(
-//                       color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+//                       color: LynSurface.textSecondary(isDark),
 //                       fontSize: 14,
 //                     ),
 //                   ),
@@ -492,7 +492,7 @@
 //           width: 48,
 //           height: 48,
 //           decoration: BoxDecoration(
-//             color: isDark ? HexColor('#1E293B') : HexColor('#F1F5F9'),
+//             color: LynSurface.surface(isDark),
 //             borderRadius: BorderRadius.circular(12),
 //           ),
 //           child: Icon(
@@ -509,7 +509,7 @@
 //               Text(
 //                 title,
 //                 style: TextStyle(
-//                   color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//                   color: LynSurface.textPrimary(isDark),
 //                   fontSize: 16,
 //                   fontWeight: FontWeight.w600,
 //                 ),
@@ -518,7 +518,7 @@
 //               Text(
 //                 description,
 //                 style: TextStyle(
-//                   color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+//                   color: LynSurface.textSecondary(isDark),
 //                   fontSize: 14,
 //                 ),
 //               ),
@@ -562,7 +562,7 @@
 //     return Scaffold(
 //       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 //       appBar: AppBar(
-//         backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
+//         backgroundColor: LynSurface.canvas(isDark),
 //         elevation: 0,
 //         automaticallyImplyLeading: false,
 //       ),
@@ -578,13 +578,13 @@
 //                   height: 120,
 //                   decoration: BoxDecoration(
 //                     color: isSuccess
-//                         ? HexColor('#10B981').withOpacity(0.2)
-//                         : HexColor('#EF4444').withOpacity(0.2),
+//                         ? LynPalette.success.withOpacity(0.2)
+//                         : LynPalette.danger.withOpacity(0.2),
 //                     shape: BoxShape.circle,
 //                   ),
 //                   child: Icon(
 //                     isSuccess ? Icons.check_circle : Icons.error,
-//                     color: isSuccess ? HexColor('#10B981') : HexColor('#EF4444'),
+//                     color: isSuccess ? LynPalette.success : LynPalette.danger,
 //                     size: 64,
 //                   ),
 //                 ),
@@ -594,7 +594,7 @@
 //                       ? AppLocalizations.tr(context, 'Payment Successful!')
 //                       : AppLocalizations.tr(context, 'Payment Failed'),
 //                   style: TextStyle(
-//                     color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//                     color: LynSurface.textPrimary(isDark),
 //                     fontSize: 28,
 //                     fontWeight: FontWeight.w700,
 //                   ),
@@ -607,7 +607,7 @@
 //                       .replaceFirst('{plan}', planName)
 //                       : AppLocalizations.tr(context, 'An error occurred while processing the payment. Please try again.'),
 //                   style: TextStyle(
-//                     color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
+//                     color: LynSurface.textSecondary(isDark),
 //                     fontSize: 16,
 //                   ),
 //                   textAlign: TextAlign.center,
@@ -618,10 +618,10 @@
 //                     width: double.infinity,
 //                     padding: const EdgeInsets.all(16),
 //                     decoration: BoxDecoration(
-//                       color: isDark ? HexColor('#1E293B') : Colors.white,
+//                       color: LynSurface.surface(isDark),
 //                       borderRadius: BorderRadius.circular(12),
 //                       border: Border.all(
-//                         color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+//                         color: LynSurface.border(isDark),
 //                         width: 1,
 //                       ),
 //                     ),
@@ -631,7 +631,7 @@
 //                         Text(
 //                           AppLocalizations.tr(context, 'Transaction ID'),
 //                           style: TextStyle(
-//                             color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+//                             color: LynSurface.textSecondary(isDark),
 //                             fontSize: 12,
 //                           ),
 //                         ),
@@ -639,7 +639,7 @@
 //                         Text(
 //                           paymentId,
 //                           style: TextStyle(
-//                             color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//                             color: LynSurface.textPrimary(isDark),
 //                             fontSize: 14,
 //                             fontWeight: FontWeight.w600,
 //                           ),
@@ -657,7 +657,7 @@
 //                     },
 //                     style: ElevatedButton.styleFrom(
 //                       backgroundColor: isSuccess
-//                           ? HexColor('#10B981')
+//                           ? LynPalette.success
 //                           : LynPalette.indigo,
 //                       shape: RoundedRectangleBorder(
 //                         borderRadius: BorderRadius.circular(16),
@@ -742,16 +742,16 @@ class PaymentScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
+        backgroundColor: LynSurface.canvas(isDark),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B')),
+          icon: Icon(Icons.arrow_back, color: LynSurface.textPrimary(isDark)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           AppLocalizations.tr(context, 'Complete Payment'),
           style: TextStyle(
-            color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+            color: LynSurface.textPrimary(isDark),
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -774,7 +774,7 @@ class PaymentScreen extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: HexColor('#EF4444'),
+                backgroundColor: LynPalette.danger,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -782,7 +782,7 @@ class PaymentScreen extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(AppLocalizations.tr(context, 'Payment cancelled')),
-                backgroundColor: HexColor('#F59E0B'),
+                backgroundColor: LynPalette.warning,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -800,7 +800,7 @@ class PaymentScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: isDark ? HexColor('#1E293B') : Colors.white,
+                      color: LynSurface.surface(isDark),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: color.withOpacity(0.3),
@@ -839,7 +839,7 @@ class PaymentScreen extends StatelessWidget {
                                   Text(
                                     plan.name,
                                     style: TextStyle(
-                                      color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                                      color: LynSurface.textPrimary(isDark),
                                       fontSize: 24,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -860,7 +860,7 @@ class PaymentScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Divider(
-                          color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                          color: LynSurface.border(isDark),
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -893,7 +893,7 @@ class PaymentScreen extends StatelessWidget {
                   //     color: HexColor('#FEF3C7').withOpacity(0.3),
                   //     borderRadius: BorderRadius.circular(12),
                   //     border: Border.all(
-                  //       color: HexColor('#F59E0B').withOpacity(0.3),
+                  //       color: LynPalette.warning.withOpacity(0.3),
                   //     ),
                   //   ),
                   //   child: Column(
@@ -910,7 +910,7 @@ class PaymentScreen extends StatelessWidget {
                   //           Text(
                   //             'تجديد تلقائي',
                   //             style: TextStyle(
-                  //               color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                  //               color: LynSurface.textPrimary(isDark),
                   //               fontSize: 16,
                   //               fontWeight: FontWeight.w700,
                   //             ),
@@ -921,7 +921,7 @@ class PaymentScreen extends StatelessWidget {
                   //       Text(
                   //         'هذا الاشتراك يتجدد تلقائياً كل شهر. سيتم خصم ${plan.formattedPrice} من طريقة الدفع المختارة شهرياً.',
                   //         style: TextStyle(
-                  //           color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
+                  //           color: LynSurface.textSecondary(isDark),
                   //           fontSize: 14,
                   //         ),
                   //       ),
@@ -943,7 +943,7 @@ class PaymentScreen extends StatelessWidget {
                   Text(
                     AppLocalizations.tr(context, 'Payment Method:'),
                     style: TextStyle(
-                      color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                      color: LynSurface.textPrimary(isDark),
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -981,7 +981,7 @@ class PaymentScreen extends StatelessWidget {
                   Text(
                     AppLocalizations.tr(context, 'Included Features'),
                     style: TextStyle(
-                      color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                      color: LynSurface.textPrimary(isDark),
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -994,14 +994,14 @@ class PaymentScreen extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.check_circle,
-                            color: HexColor('#10B981'),
+                            color: LynPalette.success,
                             size: 20,
                           ),
                           const SizedBox(width: 12),
                           Text(
                             _translateFeature(context, feature),
                             style: TextStyle(
-                              color: isDark ? HexColor('#E2E8F0') : HexColor('#334155'),
+                              color: LynSurface.textPrimary(isDark),
                               fontSize: 16,
                             ),
                           ),
@@ -1027,7 +1027,7 @@ class PaymentScreen extends StatelessWidget {
                           Text(
                             AppLocalizations.tr(context, 'Processing payment...'),
                             style: TextStyle(
-                              color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                              color: LynSurface.textSecondary(isDark),
                               fontSize: 16,
                             ),
                           ),
@@ -1084,7 +1084,7 @@ class PaymentScreen extends StatelessWidget {
                         child: Text(
                           AppLocalizations.tr(context, 'cancel'),
                           style: TextStyle(
-                            color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                            color: LynSurface.textSecondary(isDark),
                             fontSize: 16,
                           ),
                         ),
@@ -1113,7 +1113,7 @@ class PaymentScreen extends StatelessWidget {
         Text(
           text,
           style: TextStyle(
-            color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+            color: LynSurface.textSecondary(isDark),
             fontSize: 14,
           ),
         ),
@@ -1136,10 +1136,10 @@ class PaymentScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? HexColor('#1E293B') : Colors.white,
+          color: LynSurface.surface(isDark),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? color : (isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
+            color: isSelected ? color : (LynSurface.border(isDark)),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -1161,7 +1161,7 @@ class PaymentScreen extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                      color: LynSurface.textPrimary(isDark),
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1170,7 +1170,7 @@ class PaymentScreen extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                      color: LynSurface.textSecondary(isDark),
                       fontSize: 14,
                     ),
                   ),
@@ -1228,7 +1228,7 @@ class PaymentScreen extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: isDark ? HexColor('#1E293B') : HexColor('#F1F5F9'),
+            color: LynSurface.surface(isDark),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -1245,7 +1245,7 @@ class PaymentScreen extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                  color: LynSurface.textPrimary(isDark),
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1254,7 +1254,7 @@ class PaymentScreen extends StatelessWidget {
               Text(
                 description,
                 style: TextStyle(
-                  color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                  color: LynSurface.textSecondary(isDark),
                   fontSize: 14,
                 ),
               ),
@@ -1321,7 +1321,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
+        backgroundColor: LynSurface.canvas(isDark),
         elevation: 0,
         automaticallyImplyLeading: false,
       ),
@@ -1337,13 +1337,13 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                   height: 120,
                   decoration: BoxDecoration(
                     color: widget.isSuccess
-                        ? HexColor('#10B981').withOpacity(0.2)
-                        : HexColor('#EF4444').withOpacity(0.2),
+                        ? LynPalette.success.withOpacity(0.2)
+                        : LynPalette.danger.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     widget.isSuccess ? Icons.check_circle : Icons.error,
-                    color: widget.isSuccess ? HexColor('#10B981') : HexColor('#EF4444'),
+                    color: widget.isSuccess ? LynPalette.success : LynPalette.danger,
                     size: 64,
                   ),
                 ),
@@ -1353,7 +1353,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                       ? AppLocalizations.tr(context, 'Payment Successful!')
                       : AppLocalizations.tr(context, 'Payment Failed'),
                   style: TextStyle(
-                    color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                    color: LynSurface.textPrimary(isDark),
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
                   ),
@@ -1366,7 +1366,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                       .replaceFirst('{plan}', widget.planName)
                       : AppLocalizations.tr(context, 'An error occurred while processing the payment. Please try again.'),
                   style: TextStyle(
-                    color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
+                    color: LynSurface.textSecondary(isDark),
                     fontSize: 16,
                   ),
                   textAlign: TextAlign.center,
@@ -1383,7 +1383,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                 //       color: HexColor('#FEF3C7').withOpacity(0.3),
                 //       borderRadius: BorderRadius.circular(12),
                 //       border: Border.all(
-                //         color: HexColor('#F59E0B').withOpacity(0.3),
+                //         color: LynPalette.warning.withOpacity(0.3),
                 //       ),
                 //     ),
                 //     child: Row(
@@ -1412,10 +1412,10 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isDark ? HexColor('#1E293B') : Colors.white,
+                      color: LynSurface.surface(isDark),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                        color: LynSurface.border(isDark),
                         width: 1,
                       ),
                     ),
@@ -1425,7 +1425,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                         Text(
                           AppLocalizations.tr(context, 'Transaction ID'),
                           style: TextStyle(
-                            color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                            color: LynSurface.textSecondary(isDark),
                             fontSize: 12,
                           ),
                         ),
@@ -1433,7 +1433,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                         Text(
                           widget.paymentId,
                           style: TextStyle(
-                            color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                            color: LynSurface.textPrimary(isDark),
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1451,7 +1451,7 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: widget.isSuccess
-                          ? HexColor('#10B981')
+                          ? LynPalette.success
                           : LynPalette.indigo,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),

@@ -57,9 +57,9 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = LynSurface.textPrimary(isDark);
+    final subTextColor = LynSurface.textSecondary(isDark);
+    final cardColor = LynSurface.surface(isDark);
 
     return BlocBuilder<AppCubit, AppStates>(
       builder: (context, state) {
@@ -82,12 +82,12 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
         }
 
         return Scaffold(
-          backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+          backgroundColor: LynSurface.canvas(isDark),
           appBar: AppBar(
             elevation: 0,
-            backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+            backgroundColor: LynSurface.canvas(isDark),
             iconTheme: IconThemeData(
-              color: isDark ? Colors.white : const Color(0xFF334155),
+              color: LynSurface.textPrimary(isDark),
             ),
             title: Text(
               AppLocalizations.tr(context, 'legal_info'),
@@ -164,7 +164,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             title: AppLocalizations.tr(context, 'privacy_policy'),
             content: termsData['privacy'] ?? '',
             icon: Icons.privacy_tip_outlined,
-            accentColor: const Color(0xFF10B981),
+            accentColor: LynPalette.success,
             isDark: isDark,
             cardColor: cardColor,
             textColor: textColor,
@@ -186,7 +186,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             title: AppLocalizations.tr(context, 'about_us'),
             content: termsData['aboutus'] ?? '',
             icon: Icons.info_outline,
-            accentColor: const Color(0xFFF59E0B),
+            accentColor: LynPalette.warning,
             isDark: isDark,
             cardColor: cardColor,
             textColor: textColor,
@@ -276,10 +276,10 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
   }
 
   Widget _buildLoadingState(bool isDark) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-    Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: isDark ? const Color(0xFF1E293B) : Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)]), child: Column(children: [
-      SizedBox(width: 48, height: 48, child: CircularProgressIndicator(strokeWidth: 3, valueColor: const AlwaysStoppedAnimation<Color>(LynPalette.indigo), backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+    Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: LynSurface.surface(isDark), borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)]), child: Column(children: [
+      SizedBox(width: 48, height: 48, child: CircularProgressIndicator(strokeWidth: 3, valueColor: const AlwaysStoppedAnimation<Color>(LynPalette.indigo), backgroundColor: LynSurface.border(isDark))),
       const SizedBox(height: 20),
-      Text(AppLocalizations.tr(context, 'loading'), style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 16, fontWeight: FontWeight.w500)),
+      Text(AppLocalizations.tr(context, 'loading'), style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 16, fontWeight: FontWeight.w500)),
     ])),
   ]));
 
@@ -300,7 +300,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
         color: isDark ? const Color(0xFF92400E) : const Color(0xFFFEF3C7),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? const Color(0xFFF59E0B) : const Color(0xFFFCD34D),
+          color: isDark ? LynPalette.warning : const Color(0xFFFCD34D),
         ),
       ),
       child: Row(
@@ -351,7 +351,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
                     ? Icons.wifi_off_rounded
                     : Icons.error_outline,
                 size: 48,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: LynSurface.textSecondary(isDark),
               ),
             ),
             const SizedBox(height: 24),
@@ -360,7 +360,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             Text(
               errorMessage,
               style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                color: LynSurface.textPrimary(isDark),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),

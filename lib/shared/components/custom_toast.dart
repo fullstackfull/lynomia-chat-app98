@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
+import '../../shared/styles/lyn_palette.dart';
 
 // ─── Toast States ─────────────────────────────
 enum ToastStates { success, error, warning, info }
@@ -164,9 +165,9 @@ class _ToastWidgetState extends State<_ToastWidget>
       case ToastStates.success:
         return HexColor('#22C55E').withOpacity(0.95);
       case ToastStates.error:
-        return HexColor('#EF4444').withOpacity(0.95);
+        return LynPalette.danger.withOpacity(0.95);
       case ToastStates.warning:
-        return HexColor('#F59E0B').withOpacity(0.95);
+        return LynPalette.warning.withOpacity(0.95);
       case ToastStates.info:
         return HexColor('#3B82F6').withOpacity(0.95);
     }

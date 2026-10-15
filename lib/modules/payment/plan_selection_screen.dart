@@ -25,16 +25,16 @@
 //       child: Scaffold(
 //         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 //         appBar: AppBar(
-//           backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
+//           backgroundColor: LynSurface.canvas(isDark),
 //           elevation: 0,
 //           leading: IconButton(
-//             icon: Icon(Icons.arrow_back, color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B')),
+//             icon: Icon(Icons.arrow_back, color: LynSurface.textPrimary(isDark)),
 //             onPressed: () => Navigator.pop(context),
 //           ),
 //           title: Text(
 //             'اختر الخطة',
 //             style: TextStyle(
-//               color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//               color: LynSurface.textPrimary(isDark),
 //               fontSize: 20,
 //               fontWeight: FontWeight.w600,
 //             ),
@@ -46,7 +46,7 @@
 //               ScaffoldMessenger.of(context).showSnackBar(
 //                 SnackBar(
 //                   content: Text('لا يتوفر اتصال بالانترنت'),
-//                   backgroundColor: HexColor('#EF4444'),
+//                   backgroundColor: LynPalette.danger,
 //                   behavior: SnackBarBehavior.floating,
 //                 ),
 //               );
@@ -62,12 +62,12 @@
 //                 child: Column(
 //                   mainAxisAlignment: MainAxisAlignment.center,
 //                   children: [
-//                     Icon(Icons.error_outline, size: 64, color: HexColor('#EF4444')),
+//                     Icon(Icons.error_outline, size: 64, color: LynPalette.danger),
 //                     const SizedBox(height: 16),
 //                     Text(
 //                       'فشل تحميل الخطط',
 //                       style: TextStyle(
-//                         color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//                         color: LynSurface.textPrimary(isDark),
 //                         fontSize: 20,
 //                         fontWeight: FontWeight.bold,
 //                       ),
@@ -142,7 +142,7 @@
 //                   Text(
 //                     'خطط الاشتراك',
 //                     style: TextStyle(
-//                       color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//                       color: LynSurface.textPrimary(isDark),
 //                       fontSize: 28,
 //                       fontWeight: FontWeight.w700,
 //                     ),
@@ -151,7 +151,7 @@
 //                   Text(
 //                     'اختر الخطة المناسبة لاحتياجاتك',
 //                     style: TextStyle(
-//                       color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
+//                       color: LynSurface.textSecondary(isDark),
 //                       fontSize: 16,
 //                     ),
 //                   ),
@@ -177,10 +177,10 @@
 //     return Container(
 //       margin: const EdgeInsets.only(bottom: 20),
 //       decoration: BoxDecoration(
-//         color: isDark ? HexColor('#1E293B') : Colors.white,
+//         color: LynSurface.surface(isDark),
 //         borderRadius: BorderRadius.circular(20),
 //         border: Border.all(
-//           color: isRecommended ? color : (isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
+//           color: isRecommended ? color : (LynSurface.border(isDark)),
 //           width: isRecommended ? 2 : 1,
 //         ),
 //         boxShadow: isDark ? null : [
@@ -225,7 +225,7 @@
 //                 Text(
 //                   plan.name,
 //                   style: TextStyle(
-//                     color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+//                     color: LynSurface.textPrimary(isDark),
 //                     fontSize: 24,
 //                     fontWeight: FontWeight.w700,
 //                   ),
@@ -250,7 +250,7 @@
 //                       child: Text(
 //                         '/شهر',
 //                         style: TextStyle(
-//                           color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+//                           color: LynSurface.textSecondary(isDark),
 //                           fontSize: 16,
 //                         ),
 //                       ),
@@ -281,7 +281,7 @@
 //
 //                 // Divider
 //                 Divider(
-//                   color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+//                   color: LynSurface.border(isDark),
 //                 ),
 //                 const SizedBox(height: 16),
 //
@@ -297,7 +297,7 @@
 //                           child: Text(
 //                             _translateFeature(context, feature),  // ← ترجمة ديناميكية!
 //                             style: TextStyle(
-//                               color: isDark ? HexColor('#E2E8F0') : HexColor('#334155'),
+//                               color: LynSurface.textPrimary(isDark),
 //                               fontSize: 16,
 //                             ),
 //                           ),
@@ -427,15 +427,15 @@ class PlanSelectionScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
+          backgroundColor: LynSurface.canvas(isDark),
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B')),
+            icon: Icon(Icons.arrow_back, color: LynSurface.textPrimary(isDark)),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(AppLocalizations.tr(context, 'Choose the plan'),
             style: TextStyle(
-              color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+              color: LynSurface.textPrimary(isDark),
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -465,7 +465,7 @@ class PlanSelectionScreen extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('لا يتوفر اتصال بالانترنت'),
-                  backgroundColor: HexColor('#EF4444'),
+                  backgroundColor: LynPalette.danger,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -481,11 +481,11 @@ class PlanSelectionScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64, color: HexColor('#EF4444')),
+                    Icon(Icons.error_outline, size: 64, color: LynPalette.danger),
                     const SizedBox(height: 16),
                     Text(AppLocalizations.tr(context, 'Failed to load plans.'),
                       style: TextStyle(
-                        color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                        color: LynSurface.textPrimary(isDark),
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -565,7 +565,7 @@ class PlanSelectionScreen extends StatelessWidget {
                 children: [
                   Text(AppLocalizations.tr(context, 'Subscription Plans'),
                     style: TextStyle(
-                      color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                      color: LynSurface.textPrimary(isDark),
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
                     ),
@@ -573,7 +573,7 @@ class PlanSelectionScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(AppLocalizations.tr(context, 'Choose the plan that suits your needs.'),
                     style: TextStyle(
-                      color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
+                      color: LynSurface.textSecondary(isDark),
                       fontSize: 16,
                     ),
                   ),
@@ -607,7 +607,7 @@ class PlanSelectionScreen extends StatelessWidget {
             //           children: [
             //             Text(AppLocalizations.tr(context, 'Automatic renewal'),
             //               style: TextStyle(
-            //                 color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+            //                 color: LynSurface.textPrimary(isDark),
             //                 fontSize: 14,
             //                 fontWeight: FontWeight.w700,
             //               ),
@@ -615,7 +615,7 @@ class PlanSelectionScreen extends StatelessWidget {
             //             const SizedBox(height: 4),
             //             Text(AppLocalizations.tr(context, 'All subscriptions made via Google Play automatically renew on a monthly basis. You can cancel the renewal at any time in your Google Play settings by using the "Manage subscription" button at the top.'),
             //               style: TextStyle(
-            //                 color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
+            //                 color: LynSurface.textSecondary(isDark),
             //                 fontSize: 12,
             //               ),
             //             ),
@@ -643,10 +643,10 @@ class PlanSelectionScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: isDark ? HexColor('#1E293B') : Colors.white,
+        color: LynSurface.surface(isDark),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isRecommended ? color : (isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
+          color: isRecommended ? color : (LynSurface.border(isDark)),
           width: isRecommended ? 2 : 1,
         ),
         boxShadow: isDark ? null : [
@@ -691,7 +691,7 @@ class PlanSelectionScreen extends StatelessWidget {
                 Text(
                   plan.name,
                   style: TextStyle(
-                    color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
+                    color: LynSurface.textPrimary(isDark),
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
                   ),
@@ -716,7 +716,7 @@ class PlanSelectionScreen extends StatelessWidget {
                       child: Text(
                         '/شهر',
                         style: TextStyle(
-                          color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                          color: LynSurface.textSecondary(isDark),
                           fontSize: 16,
                         ),
                       ),
@@ -776,7 +776,7 @@ class PlanSelectionScreen extends StatelessWidget {
 
                 // Divider
                 Divider(
-                  color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                  color: LynSurface.border(isDark),
                 ),
                 const SizedBox(height: 16),
 
@@ -792,7 +792,7 @@ class PlanSelectionScreen extends StatelessWidget {
                           child: Text(
                             _translateFeature(context, feature),
                             style: TextStyle(
-                              color: isDark ? HexColor('#E2E8F0') : HexColor('#334155'),
+                              color: LynSurface.textPrimary(isDark),
                               fontSize: 16,
                             ),
                           ),

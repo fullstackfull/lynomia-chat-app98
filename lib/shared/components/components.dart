@@ -80,26 +80,26 @@ Widget defaultFormField({
     onTap: onTap,
     onFieldSubmitted: onSubmit,
     onChanged: onChange,
-    style: TextStyle(color: isDark ? HexColor('#F1F5F9') : HexColor('#0F172A')),
+    style: TextStyle(color: LynSurface.textPrimary(isDark)),
     decoration: InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
-      prefixIcon: Icon(prefix, color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+      hintStyle: TextStyle(color: LynSurface.textTertiary(isDark)),
+      prefixIcon: Icon(prefix, color: LynSurface.textSecondary(isDark)),
       suffixIcon: suffix != null
           ? IconButton(
         onPressed: suffixPressed,
-        icon: Icon(suffix, color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+        icon: Icon(suffix, color: LynSurface.textSecondary(isDark)),
       )
           : null,
       filled: true,
-      fillColor: isDark ? HexColor('#1E293B') : HexColor('#F1F5F9'),
+      fillColor: LynSurface.surface(isDark),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
+        borderSide: BorderSide(color: LynSurface.border(isDark)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -107,7 +107,7 @@ Widget defaultFormField({
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: HexColor('#EF4444')),
+        borderSide: BorderSide(color: LynPalette.danger),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
     ),

@@ -57,13 +57,13 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
         final isWhatsAppInbox = selectedChannelType.contains('whatsapp');
 
         return Scaffold(
-          backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+          backgroundColor: LynSurface.canvas(isDark),
           appBar: AppBar(
             elevation: 0,
-            backgroundColor: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
+            backgroundColor: LynSurface.surface(isDark),
             title: Text(AppLocalizations.tr(context, 'conversations'),
               style: TextStyle(
-                color: isDark ? Colors.white : HexColor('#1E293B'),
+                color: LynSurface.textPrimary(isDark),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -196,7 +196,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                 right: 24,
               ),
               decoration: BoxDecoration(
-                color: isDark ? HexColor('#1E293B') : Colors.white,
+                color: LynSurface.surface(isDark),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: SingleChildScrollView(
@@ -212,7 +212,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                           width: 40,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: isDark ? HexColor('#475569') : HexColor('#CBD5E1'),
+                            color: LynSurface.borderStrong(isDark),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -224,7 +224,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : HexColor('#1E293B'),
+                          color: LynSurface.textPrimary(isDark),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -232,7 +232,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                         AppLocalizations.tr(context, 'Start a new conversation via email'),
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                          color: LynSurface.textSecondary(isDark),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -242,12 +242,12 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                         DropdownButtonFormField<ChatwootInbox>(
                           value: selectedInbox,
                           isExpanded: true,
-                          dropdownColor: isDark ? HexColor('#1E293B') : Colors.white,
+                          dropdownColor: LynSurface.surface(isDark),
                           decoration: InputDecoration(
                             labelText: AppLocalizations.tr(context, 'Select Inbox'),
-                            labelStyle: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                            labelStyle: TextStyle(color: LynSurface.textSecondary(isDark)),
                             filled: true,
-                            fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                            fillColor: LynSurface.canvas(isDark),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -262,7 +262,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                               value: inbox,
                               child: Text(
                                 inbox.name ?? 'Inbox ${inbox.id}',
-                                style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                                style: TextStyle(color: LynSurface.textPrimary(isDark)),
                               ),
                             );
                           }).toList(),
@@ -275,7 +275,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: isDark ? HexColor('#334155') : HexColor('#F1F5F9'),
+                            color: LynSurface.surfaceMuted(isDark),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -284,7 +284,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                               const SizedBox(width: 12),
                               Text(
                                 AppLocalizations.tr(context, 'Loading inboxes...'),
-                                style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                                style: TextStyle(color: LynSurface.textSecondary(isDark)),
                               ),
                             ],
                           ),
@@ -295,12 +295,12 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                       TextFormField(
                         controller: nameController,
                         textAlign: TextAlign.right,
-                        style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                        style: TextStyle(color: LynSurface.textPrimary(isDark)),
                         decoration: InputDecoration(
                           labelText: AppLocalizations.tr(context, 'Contact Name'),
-                          labelStyle: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                          labelStyle: TextStyle(color: LynSurface.textSecondary(isDark)),
                           filled: true,
-                          fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                          fillColor: LynSurface.canvas(isDark),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -318,12 +318,12 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                         controller: emailController,
                         textAlign: TextAlign.right,
                         keyboardType: TextInputType.emailAddress,
-                        style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                        style: TextStyle(color: LynSurface.textPrimary(isDark)),
                         decoration: InputDecoration(
                           labelText: AppLocalizations.tr(context, 'Email Address'),
-                          labelStyle: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                          labelStyle: TextStyle(color: LynSurface.textSecondary(isDark)),
                           filled: true,
-                          fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                          fillColor: LynSurface.canvas(isDark),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -347,12 +347,12 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                       //   controller: phoneController,
                       //   textAlign: TextAlign.right,
                       //   keyboardType: TextInputType.phone,
-                      //   style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                      //   style: TextStyle(color: LynSurface.textPrimary(isDark)),
                       //   decoration: InputDecoration(
                       //     labelText: '${AppLocalizations.tr(context, 'Phone')} (${AppLocalizations.tr(context, 'Optional')})',
-                      //     labelStyle: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                      //     labelStyle: TextStyle(color: LynSurface.textSecondary(isDark)),
                       //     filled: true,
-                      //     fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                      //     fillColor: LynSurface.canvas(isDark),
                       //     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                       //     focusedBorder: OutlineInputBorder(
                       //       borderRadius: BorderRadius.circular(12),
@@ -367,12 +367,12 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                         controller: messageController,
                         textAlign: TextAlign.right,
                         maxLines: 4,
-                        style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                        style: TextStyle(color: LynSurface.textPrimary(isDark)),
                         decoration: InputDecoration(
                           labelText: AppLocalizations.tr(context, 'Message'),
-                          labelStyle: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                          labelStyle: TextStyle(color: LynSurface.textSecondary(isDark)),
                           filled: true,
-                          fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                          fillColor: LynSurface.canvas(isDark),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -477,7 +477,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setModalState) => AlertDialog(
-          backgroundColor: isDark ? HexColor('#1E293B') : Colors.white,
+          backgroundColor: LynSurface.surface(isDark),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: [
@@ -494,7 +494,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                 child: Text(
                   AppLocalizations.tr(context, 'New WhatsApp Chat'),
                   style: TextStyle(
-                    color: isDark ? Colors.white : HexColor('#1E293B'),
+                    color: LynSurface.textPrimary(isDark),
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -512,7 +512,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                   Text(
                     AppLocalizations.tr(context, 'Select the sender WhatsApp number and recipient details'),
                     style: TextStyle(
-                      color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                      color: LynSurface.textSecondary(isDark),
                       fontSize: 13,
                     ),
                   ),
@@ -521,13 +521,13 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                     DropdownButtonFormField<ChatwootInbox>(
                       value: selectedInbox,
                       isExpanded: true,
-                      dropdownColor: isDark ? HexColor('#1E293B') : Colors.white,
+                      dropdownColor: LynSurface.surface(isDark),
                       decoration: InputDecoration(
                         labelText: AppLocalizations.tr(context, 'Send From WhatsApp Number'),
                         labelStyle: TextStyle(color: HexColor('#25D366')),
                         prefixIcon: Icon(Icons.phone_android, color: HexColor('#25D366')),
                         filled: true,
-                        fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                        fillColor: LynSurface.canvas(isDark),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       items: whatsappInboxes.map((inbox) {
@@ -535,7 +535,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                           value: inbox,
                           child: Text(
                             inbox.name ?? 'WhatsApp (${inbox.id})',
-                            style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                            style: TextStyle(color: LynSurface.textPrimary(isDark)),
                           ),
                         );
                       }).toList(),
@@ -554,13 +554,13 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                   TextFormField(
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
-                    style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                    style: TextStyle(color: LynSurface.textPrimary(isDark)),
                     decoration: InputDecoration(
                       labelText: AppLocalizations.tr(context, 'WhatsApp Number (with country code)'),
                       hintText: '+1234567890',
                       prefixIcon: Icon(Icons.send_to_mobile, color: HexColor('#25D366')),
                       filled: true,
-                      fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                      fillColor: LynSurface.canvas(isDark),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     validator: (val) {
@@ -573,12 +573,12 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: nameController,
-                    style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+                    style: TextStyle(color: LynSurface.textPrimary(isDark)),
                     decoration: InputDecoration(
                       labelText: AppLocalizations.tr(context, 'Contact Name (Optional)'),
                       prefixIcon: Icon(Icons.person, color: HexColor('#64748B')),
                       filled: true,
-                      fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                      fillColor: LynSurface.canvas(isDark),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
@@ -586,19 +586,19 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isDark ? HexColor('#451A1A') : HexColor('#FEE2E2'),
+                      color: LynSurface.dangerSurface(isDark),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: HexColor('#FCA5A5'), width: 0.5),
+                      border: Border.all(color: LynPalette.dangerSoft, width: 0.5),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: HexColor('#EF4444'), size: 18),
+                        Icon(Icons.info_outline, color: LynPalette.danger, size: 18),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             AppLocalizations.tr(context, 'Starting a new WhatsApp chat requires sending a WhatsApp template message first.'),
                             style: TextStyle(
-                              color: isDark ? HexColor('#FCA5A5') : HexColor('#991B1B'),
+                              color: LynSurface.dangerText(isDark),
                               fontSize: 11,
                             ),
                           ),
@@ -615,7 +615,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
               onPressed: () => Navigator.pop(dialogContext),
               child: Text(
                 AppLocalizations.tr(context, 'cancel'),
-                style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                style: TextStyle(color: LynSurface.textSecondary(isDark)),
               ),
             ),
             ElevatedButton.icon(
@@ -666,13 +666,13 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
           Icon(
             Icons.chat_bubble_outline,
             size: 80,
-            color: isDark ? HexColor('#334155') : HexColor('#CBD5E1'),
+            color: LynSurface.borderStrong(isDark),
           ),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.tr(context, 'No conversations'),
             style: TextStyle(
-              color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
+              color: LynSurface.textTertiary(isDark),
               fontSize: 18,
             ),
           ),
@@ -741,7 +741,7 @@ class ConversationItem extends StatelessWidget {
                       color: HexColor('#22C55E'),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isDark ? HexColor('#1E293B') : Colors.white,
+                        color: LynSurface.surface(isDark),
                         width: 2,
                       ),
                     ),
@@ -764,7 +764,7 @@ class ConversationItem extends StatelessWidget {
                         child: Text(
                           contactName,
                           style: TextStyle(
-                            color: isDark ? Colors.white : HexColor('#1E293B'),
+                            color: LynSurface.textPrimary(isDark),
                             fontSize: 16,
                             fontWeight: hasUnread
                                 ? FontWeight.bold
@@ -799,8 +799,8 @@ class ConversationItem extends StatelessWidget {
                           lastMessage,
                           style: TextStyle(
                             color: hasUnread
-                                ? (isDark ? Colors.white : HexColor('#1E293B'))
-                                : (isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                                ? (LynSurface.textPrimary(isDark))
+                                : (LynSurface.textSecondary(isDark)),
                             fontSize: 14,
                             fontWeight: hasUnread
                                 ? FontWeight.w600

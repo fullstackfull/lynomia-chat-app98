@@ -34,9 +34,9 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        backgroundColor: LynSurface.surface(isDark),
         iconTheme: IconThemeData(
-          color: isDark ? Colors.white : const Color(0xFF334155),
+          color: LynSurface.textPrimary(isDark),
         ),
         title: Text(
           AppLocalizations.tr(context, 'api_documentation'),
@@ -48,7 +48,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
         centerTitle: true,
       ),
       body: Container(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        color: LynSurface.canvas(isDark),
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -863,7 +863,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
           Text(
             title,
             style: TextStyle(
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
+              color: LynSurface.textPrimary(isDark),
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -890,7 +890,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
     
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: LynSurface.surface(isDark),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -917,7 +917,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
                       Text(
                         title,
                         style: TextStyle(
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          color: LynSurface.textPrimary(isDark),
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -926,7 +926,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
                       Text(
                         description,
                         style: TextStyle(
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: LynSurface.textSecondary(isDark),
                           fontSize: 13,
                         ),
                       ),
@@ -936,7 +936,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
                 IconButton(
                   icon: Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: LynSurface.textSecondary(isDark),
                   ),
                   onPressed: () => _toggleCard(cardId),
                 ),
@@ -1015,11 +1015,11 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
     
     switch (method.toUpperCase()) {
       case 'GET':
-        bgColor = const Color(0xFF10B981);
+        bgColor = LynPalette.success;
         textColor = Colors.white;
         break;
       case 'POST':
-        bgColor = const Color(0xFFF59E0B);
+        bgColor = LynPalette.warning;
         textColor = Colors.white;
         break;
       case 'PUT':
@@ -1027,7 +1027,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
         textColor = Colors.white;
         break;
       case 'DELETE':
-        bgColor = const Color(0xFFEF4444);
+        bgColor = LynPalette.danger;
         textColor = Colors.white;
         break;
       default:
@@ -1067,7 +1067,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
         Text(
           title,
           style: TextStyle(
-            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            color: LynSurface.textSecondary(isDark),
             fontSize: 12,
             fontWeight: FontWeight.bold,
           ),
@@ -1078,11 +1078,11 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isCode
-                  ? (isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9))
+                  ? (LynSurface.canvasAlt(isDark))
                   : (isDark ? const Color(0xFF334155).withOpacity(0.5) : const Color(0xFFF8FAFC)),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
+                color: LynSurface.borderStrong(isDark),
               ),
             ),
             child: Text(
@@ -1107,7 +1107,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
         color: isDark ? const Color(0xFF334155).withOpacity(0.3) : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
+          color: LynSurface.borderStrong(isDark),
         ),
       ),
       child: Column(
@@ -1128,13 +1128,13 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
+                  color: LynSurface.borderStrong(isDark),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   param.type,
                   style: TextStyle(
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: LynSurface.textSecondary(isDark),
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1164,7 +1164,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
           Text(
             param.description,
             style: TextStyle(
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              color: LynSurface.textSecondary(isDark),
               fontSize: 12,
             ),
           ),

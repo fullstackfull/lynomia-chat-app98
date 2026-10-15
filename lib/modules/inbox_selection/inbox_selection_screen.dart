@@ -44,17 +44,17 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: cubit.isDark ? HexColor('#1E293B') : Colors.white,
+        backgroundColor: LynSurface.surface(cubit.isDark),
         title: Text(
           'تسجيل الخروج',
           style: TextStyle(
-            color: cubit.isDark ? Colors.white : HexColor('#1E293B'),
+            color: LynSurface.textPrimary(cubit.isDark),
           ),
         ),
         content: Text(
           'هل أنت متأكد من تسجيل الخروج؟',
           style: TextStyle(
-            color: cubit.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+            color: LynSurface.textSecondary(cubit.isDark),
           ),
         ),
         actions: [
@@ -76,7 +76,7 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
             },
             child: Text(
               'تسجيل الخروج',
-              style: TextStyle(color: HexColor('#EF4444')),
+              style: TextStyle(color: LynPalette.danger),
             ),
           ),
         ],
@@ -106,7 +106,7 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
           child: Scaffold(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             appBar: AppBar(
-              backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
+              backgroundColor: LynSurface.canvas(isDark),
               elevation: 0,
               centerTitle: true,
               title: Text(
@@ -114,7 +114,7 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? HexColor('#F1F5F9') : HexColor('#1E293B'),
+                  color: LynSurface.textPrimary(isDark),
                 ),
               ),
             ),
@@ -141,21 +141,21 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
           Icon(
             Icons.inbox_outlined,
             size: 80,
-            color: isDark ? HexColor('#334155') : HexColor('#CBD5E1'),
+            color: LynSurface.borderStrong(isDark),
           ),
           const SizedBox(height: 16),
           Text(AppLocalizations.tr(context, 'No Inboxes'),
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+              color: LynSurface.textSecondary(isDark),
             ),
           ),
           const SizedBox(height: 8),
           Text(AppLocalizations.tr(context, 'Make sure you have access permissions'),
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
+              color: LynSurface.textTertiary(isDark),
             ),
           ),
           const SizedBox(height: 24),
@@ -191,12 +191,12 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isDark ? HexColor('#1E293B') : Colors.white,
+      color: LynSurface.surface(isDark),
       elevation: isDark ? 0 : 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+          color: LynSurface.border(isDark),
           width: 1,
         ),
       ),
@@ -230,7 +230,7 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? HexColor('#F1F5F9') : HexColor('#1E293B'),
+                        color: LynSurface.textPrimary(isDark),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -239,14 +239,14 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
                         Icon(
                           _getChannelIcon(inbox.channelType),
                           size: 14,
-                          color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                          color: LynSurface.textSecondary(isDark),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           _getChannelDisplayName(context, inbox.channelType),
                           style: TextStyle(
                             fontSize: 14,
-                            color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                            color: LynSurface.textSecondary(isDark),
                           ),
                         ),
                       ],
@@ -256,7 +256,7 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
               ),
               Icon(
                 Icons.arrow_back_ios_new,
-                color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
+                color: LynSurface.textTertiary(isDark),
                 size: 16,
               ),
             ],
@@ -304,7 +304,7 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
       case 'whatsapp':
         return HexColor('#25D366'); // WhatsApp Green
       case 'email':
-        return HexColor('#F59E0B'); // Amber
+        return LynPalette.warning; // Amber
       case 'telegram':
         return HexColor('#0088CC'); // Telegram Blue
       case 'line':

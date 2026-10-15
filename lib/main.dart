@@ -16,6 +16,7 @@ import 'layout/cubit/cubit.dart';
 import 'layout/cubit/states.dart';
 import 'modules/language/cubit/cubit.dart';
 import 'modules/splash/splash_screen.dart';
+import 'shared/styles/lyn_palette.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -88,7 +89,7 @@ class MyApp extends StatelessWidget {
             SystemUiOverlayStyle(
               statusBarColor: Colors.transparent,
               statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-              systemNavigationBarColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+              systemNavigationBarColor: LynSurface.canvas(isDark),
               systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
             ),
           );
