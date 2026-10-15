@@ -87,8 +87,11 @@ class LynPoweredBy extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Powered by ',
+          Text('Powered by',
               style: LynType.caption.copyWith(color: LynSurface.textTertiary(isDark))),
+          // A real gap, not a trailing space inside the string: a Text's own trailing whitespace is
+          // trimmed during layout, so the two words ran together as "Powered byLynomia".
+          const SizedBox(width: LynSpace.xs),
           Text(
             'Lynomia',
             style: LynType.caption.copyWith(

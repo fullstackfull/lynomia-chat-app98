@@ -150,6 +150,8 @@ ThemeData _withFonts(ThemeData theme) {
 /// delegate, which reads the real `assets/lang/<code>.json`, so a golden shows the shipped copy rather
 /// than the fallback keys. [locale] then picks which file, and is what an Arabic golden needs in
 /// addition to [direction] -- direction alone mirrors the layout but leaves the words in English.
+///
+/// Set [after] to drive the tree before the shot: opening a drawer, pressing a tab.
 Future<void> shoot(
   WidgetTester tester, {
   required String name,
@@ -160,6 +162,7 @@ Future<void> shoot(
   bool localizations = false,
   Locale locale = const Locale('en'),
   bool settle = true,
+  Future<void> Function(WidgetTester tester)? after,
 }) async {
   tester.view.physicalSize = size * tester.view.devicePixelRatio;
   tester.view.devicePixelRatio = 1.0;
@@ -196,6 +199,13 @@ Future<void> shoot(
   // then the image cache is warm. `runAsync` is where real work is allowed to finish.
   await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 120)));
   await advance();
+
+  // Some surfaces only exist once something has been opened -- a Drawer is not in the tree until the
+  // Scaffold is asked for it. This runs after the first frames have settled and before the shot.
+  if (after != null) {
+    await after(tester);
+    await advance();
+  }
 
   // A golden that paints nothing is worse than no golden: `--update-goldens` writes it and the run
   // reports a pass. Every screen here has words on it, so their absence means the tree never built.

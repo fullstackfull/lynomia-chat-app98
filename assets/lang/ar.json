@@ -254,5 +254,8 @@
   "Attach a file": "إرفاق ملف",
   "Discard recording": "حذف التسجيل",
   "Hold the microphone to record a voice message.": "اضغط مطولاً على الميكروفون لتسجيل رسالة صوتية.",
-  "Replies are closed. Send a template to reopen this conversation.": "الردود مغلقة. أرسل قالباً لإعادة فتح هذه المحادثة."
+  "Replies are closed. Send a template to reopen this conversation.": "الردود مغلقة. أرسل قالباً لإعادة فتح هذه المحادثة.",
+  "section_workspace": "العمل",
+  "section_account": "الحساب",
+  "section_app": "التطبيق"
 }

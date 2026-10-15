@@ -1,5 +1,4 @@
 import 'package:chat/layout/cubit/cubit.dart';
-import 'package:chat/models/chatwoot_models.dart';
 import 'package:chat/modules/inbox_selection/inbox_selection_screen.dart';
 import 'package:chat/modules/payment/plan_selection_screen.dart';
 import 'package:chat/modules/payment_history/payment_history_screen.dart';
@@ -14,6 +13,7 @@ import '../modules/privacy/about_us_screen.dart';
 import '../shared/app_localizations.dart';
 import 'cubit/states.dart';
 import 'home_view.dart';
+import 'widgets/app_drawer.dart';
 import '../shared/styles/lyn_controls.dart';
 import '../shared/styles/lyn_palette.dart';
 import '../shared/styles/lyn_type.dart';
@@ -72,191 +72,122 @@ class LayoutScreen extends StatelessWidget {
   // ═══════════════════════════════════════════════════════════════
   // Drawer - الدرج الجانبي الاحترافي
   // ═══════════════════════════════════════════════════════════════
+  /// The drawer's content, decided here; how it looks lives in `widgets/app_drawer.dart`.
+  ///
+  /// Three groups rather than one flat list of six: the one destination an agent opens forty times a
+  /// day was sitting between the payment history and the privacy policy. EVERY item closes the drawer
+  /// before it navigates -- "Conversations" did not, so the destination people actually use left the
+  /// drawer standing open behind it.
   Widget _buildDrawer(BuildContext context, bool isDark) {
     final cubit = AppCubit.get(context);
     final localeCubit = context.read<LocaleCubit>();
     final isSubscribed = cubit.isSubscribed;
     final subscription = cubit.currentSubscription;
 
-    return Drawer(
-      backgroundColor: LynSurface.canvas(isDark),
-      child: SafeArea(
-        child: Column(
-          children: [
-            // ═══════════════════════════════════════════════════════
-            // Header - صورة المستخدم والمعلومات + حالة الاشتراك
-            // ═══════════════════════════════════════════════════════
-            Stack(
-              children: [
-                _buildDrawerHeader(isDark, context, isSubscribed: isSubscribed, subscription: subscription),
-                PositionedDirectional(
-                  top: LynSpace.md,
-                  end: LynSpace.md,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: LynSurface.surfaceRaised(isDark),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: LynSurface.border(isDark)),
-                    ),
-                    child: IconButton(
-                      tooltip: AppLocalizations.tr(context, isDark ? 'light_mode' : 'dark_mode'),
-                      icon: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        transitionBuilder: (child, anim) => RotationTransition(
-                          turns: anim,
-                          child: FadeTransition(opacity: anim, child: child),
-                        ),
-                        child: Icon(
-                          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                          key: ValueKey<bool>(isDark),
-                          size: 20,
-                          color: LynSurface.textPrimary(isDark),
-                        ),
-                      ),
-                      onPressed: () {
-                        cubit.changeTheme();
-                      },
-                    ),
-                  ),
-                ),
-              ],
+    final parsed = subscription?.endsAt == null ? null : DateTime.tryParse(subscription!.endsAt!);
+    final renewsOn = parsed != null
+        ? intl.DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(parsed.toLocal())
+        : subscription?.endsAt;
+
+    void go(Widget screen) {
+      Navigator.pop(context);
+      Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+    }
+
+    return AppDrawer(
+      isDark: isDark,
+      isSubscribed: isSubscribed,
+      planLabel: isSubscribed
+          ? (subscription?.plan ?? AppLocalizations.tr(context, 'subscriber'))
+          : AppLocalizations.tr(context, 'not_subscriber'),
+      renewsOn: isSubscribed ? renewsOn : null,
+      onToggleTheme: cubit.changeTheme,
+      onBrandTap: () async {
+        final Uri url = Uri.parse('https://lynomia.com');
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        }
+      },
+      onLogout: () {
+        Navigator.pop(context);
+        _showLogoutDialog(context, isDark);
+      },
+      sections: [
+        DrawerSection(
+          labelKey: 'section_workspace',
+          destinations: [
+            DrawerDestination(
+              icon: Icons.chat_bubble_outline,
+              label: AppLocalizations.tr(context, 'conversations'),
+              isLocked: !isSubscribed,
+              onTap: () {
+                Navigator.pop(context);
+                if (isSubscribed) {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const InboxSelectionScreen()));
+                } else {
+                  _showSubscriptionPromptDialog(context, isDark);
+                }
+              },
             ),
-
-            // ═══════════════════════════════════════════════════════
-            // القائمة الرئيسية - التبويبات
-            // ═══════════════════════════════════════════════════════
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: LynSpace.md, vertical: LynSpace.md),
-                children: [
-                  _buildMenuItem(
-                    icon: Icons.chat_bubble_outline,
-                    label: AppLocalizations.tr(context, 'conversations'),
-                    isDark: isDark,
-                    isEnabled: isSubscribed,
-                    onTap: () {
-                      if (isSubscribed) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const InboxSelectionScreen()),
-                        );
-                      } else {
-                        _showSubscriptionPromptDialog(context, isDark);
-                      }
-                    },
-                  ),
-
-                  // ✅ الاشتراكات - مع فحص الاشتراك
-                  _buildMenuItem(
-                    icon: Icons.card_membership_outlined,
-                    label: AppLocalizations.tr(context, 'subscriptions'),
-                    isDark: isDark,
-                    isEnabled: true,
-                    trailing: LynStatusPill(isActive: isSubscribed, isDark: isDark),
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PlanSelectionScreen(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // ═══════════════════════════════════════════════════════
-                  // سجل الاشتراكات
-                  // ═══════════════════════════════════════════════════════
-                  _buildMenuItem(
-                    icon: Icons.receipt_long_outlined,
-                    label: AppLocalizations.tr(context, 'Payment history'),
-                    isDark: isDark,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PaymentHistoryScreen(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // ═══════════════════════════════════════════════════════
-                  // زر تغيير اللغة
-                  // ═══════════════════════════════════════════════════════
-                  _buildMenuItem(
-                    icon: Icons.language,
-                    label: AppLocalizations.tr(context, 'language'),
-                    isDark: isDark,
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: LynSpace.sm, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: LynPalette.indigo.withOpacity(isDark ? 0.22 : 0.10),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        localeCubit.isArabic ? 'العربية' : 'English',
-                        style: LynType.micro.copyWith(
-                          color: isDark ? LynPalette.indigoOnDark : LynPalette.indigoDeep,
-                        ),
-                      ),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showLanguageDialog(context, isDark);
-                    },
-                  ),
-
-                  // _buildMenuItem(
-                  //   icon: Icons.help_outline,
-                  //   label: AppLocalizations.tr(context, 'Help'),
-                  //   isDark: isDark,
-                  //   onTap: () {
-                  //     Navigator.pop(context);
-                  //   },
-                  // ),
-                  _buildMenuItem(
-                    icon: Icons.privacy_tip_outlined,
-                    label: AppLocalizations.tr(context, 'privacy_policy'),
-                    isDark: isDark,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyHubScreen()));
-                    },
-                  ),
-                  
-                  // ═══════════════════════════════════════════════════════
-                  // API Documentation
-                  // ═══════════════════════════════════════════════════════
-                  _buildMenuItem(
-                    icon: Icons.code,
-                    label: AppLocalizations.tr(context, 'api_documentation'),
-                    isDark: isDark,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ApiDocumentationScreen()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // ═══════════════════════════════════════════════════════
-            // Footer - تسجيل الخروج
-            // ═══════════════════════════════════════════════════════
-            _buildDrawerFooter(context, isDark),
           ],
         ),
-      ),
+        DrawerSection(
+          labelKey: 'section_account',
+          destinations: [
+            DrawerDestination(
+              icon: Icons.card_membership_outlined,
+              label: AppLocalizations.tr(context, 'subscriptions'),
+              trailing: LynStatusPill(isActive: isSubscribed, isDark: isDark),
+              onTap: () => go(const PlanSelectionScreen()),
+            ),
+            DrawerDestination(
+              icon: Icons.receipt_long_outlined,
+              label: AppLocalizations.tr(context, 'Payment history'),
+              onTap: () => go(const PaymentHistoryScreen()),
+            ),
+          ],
+        ),
+        DrawerSection(
+          labelKey: 'section_app',
+          destinations: [
+            DrawerDestination(
+              icon: Icons.language,
+              label: AppLocalizations.tr(context, 'language'),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: LynSpace.sm, vertical: 2),
+                decoration: BoxDecoration(
+                  color: LynPalette.indigo.withOpacity(isDark ? 0.22 : 0.10),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  localeCubit.isArabic ? 'العربية' : 'English',
+                  style: LynType.micro.copyWith(
+                    color: isDark ? LynPalette.indigoOnDark : LynPalette.indigoDeep,
+                  ),
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showLanguageDialog(context, isDark);
+              },
+            ),
+            DrawerDestination(
+              icon: Icons.privacy_tip_outlined,
+              label: AppLocalizations.tr(context, 'privacy_policy'),
+              onTap: () => go(const PrivacyHubScreen()),
+            ),
+            DrawerDestination(
+              icon: Icons.code,
+              label: AppLocalizations.tr(context, 'api_documentation'),
+              onTap: () => go(const ApiDocumentationScreen()),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Dialog الاشتراك - للمستخدم غير المشترك (محدث ومحترف)
   // ═══════════════════════════════════════════════════════════════
   void _showSubscriptionPromptDialog(BuildContext context, bool isDark) {
     showDialog(
@@ -445,210 +376,6 @@ class LayoutScreen extends StatelessWidget {
   // ═══════════════════════════════════════════════════════════════
   // Header - صورة المستخدم + حالة الاشتراك
   // ═══════════════════════════════════════════════════════════════
-  Widget _buildDrawerHeader(bool isDark, BuildContext context, {required bool isSubscribed, ChatwootSubscription? subscription}) {
-    final endsAt = subscription?.endsAt;
-    final parsed = endsAt == null ? null : DateTime.tryParse(endsAt);
-    final ends = parsed != null
-        ? intl.DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(parsed.toLocal())
-        : endsAt;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(LynSpace.xl, LynSpace.xl, LynSpace.xl, LynSpace.lg),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: LynSurface.border(isDark))),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Image.asset(
-            'assets/images/Drawer.png',
-            fit: BoxFit.fitWidth,
-            errorBuilder: (context, error, stackTrace) => Text(
-              AppLocalizations.tr(context, 'Lynomia Chat'),
-              style: LynType.title.copyWith(color: LynSurface.textPrimary(isDark)),
-            ),
-          ),
-          const SizedBox(height: LynSpace.lg),
-          Row(
-            children: [
-              LynStatusPill(isActive: isSubscribed, isDark: isDark),
-              const SizedBox(width: LynSpace.sm),
-              Expanded(
-                child: Text(
-                  isSubscribed
-                      ? (subscription?.plan ?? AppLocalizations.tr(context, 'subscriber'))
-                      : AppLocalizations.tr(context, 'not_subscriber'),
-                  style: LynType.callout.copyWith(color: LynSurface.textPrimary(isDark)),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          if (isSubscribed && ends != null) ...[
-            const SizedBox(height: LynSpace.xs),
-            Text(
-              // Was a hardcoded Arabic "ينتهي:", which the English app showed as-is.
-              '${AppLocalizations.tr(context, 'renews_on')} $ends',
-              style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark)),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  // عنصر القائمة
-  // ═══════════════════════════════════════════════════════════════
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String label,
-    required bool isDark,
-    required VoidCallback onTap,
-    Widget? trailing,
-    bool isEnabled = true,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(LynSpace.md),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(LynSpace.md),
-          splashColor: isEnabled ? LynPalette.indigo.withOpacity(0.1) : Colors.transparent,
-          highlightColor: isEnabled ? LynPalette.indigo.withOpacity(0.05) : Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: LynSpace.md, vertical: LynSpace.md + 2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(LynSpace.md),
-              color: isEnabled ? Colors.transparent : LynSurface.surfaceMuted(isDark),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: isEnabled
-                      ? (LynSurface.textSecondary(isDark))
-                      : (LynSurface.textTertiary(isDark)),
-                  size: 20,
-                ),
-                const SizedBox(width: LynSpace.lg),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: LynType.callout.copyWith(
-                      color: isEnabled
-                          ? (LynSurface.textPrimary(isDark))
-                          : (LynSurface.textTertiary(isDark)),
-                    ),
-                  ),
-                ),
-                trailing ?? LynChevron(color: LynSurface.borderStrong(isDark), size: 14),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  // Footer - تسجيل الخروج
-  // ═══════════════════════════════════════════════════════════════
-  Widget _buildDrawerFooter(BuildContext context, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: LynSurface.border(isDark),
-          ),
-        ),
-      ),
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: () async {
-              final Uri url = Uri.parse('https://lynomia.com');
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-              }
-            },
-            child: Row(
-              textDirection: TextDirection.ltr,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Powered by ',
-                  style: LynType.micro.copyWith(
-                    color: LynSurface.textTertiary(isDark),
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                SizedBox(width: 2),
-                Text(
-                  'Lynomia',
-                  style: LynType.micro.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: LynPalette.indigo,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              onTap: () {
-                Navigator.pop(context);
-                _showLogoutDialog(context, isDark);
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.red.withOpacity(0.2),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.logout,
-                      color: Colors.red,
-                      size: 22,
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      AppLocalizations.tr(context, 'logout_button'),
-                      style: LynType.body.copyWith(
-                        color: Colors.red,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Spacer(),
-                    const Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.red,
-                      size: 14,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════════
   // Dialog تسجيل الخروج
   // ═══════════════════════════════════════════════════════════════
   void _showLogoutDialog(BuildContext context, bool isDark) {
@@ -695,14 +422,17 @@ class LayoutScreen extends StatelessWidget {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: LynPalette.danger,
               foregroundColor: Colors.white,
+              elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(LynSpace.md),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: LynSpace.xl, vertical: LynSpace.md),
             ),
-            child: Text(AppLocalizations.tr(context, 'logout_button')),
+            child: Text(AppLocalizations.tr(context, 'logout_button'),
+                style: LynType.callout.copyWith(color: Colors.white)),
           ),
         ],
       ),

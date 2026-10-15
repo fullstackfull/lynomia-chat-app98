@@ -248,5 +248,14 @@
   "history_unexpected": "Something went wrong while loading your history. Please try again.",
   "Copy": "Copy",
   "required": "required",
-  "Example": "Example"
+  "Example": "Example",
+  "Send message": "Send message",
+  "Hold to record": "Hold to record",
+  "Attach a file": "Attach a file",
+  "Discard recording": "Discard recording",
+  "Hold the microphone to record a voice message.": "Hold the microphone to record a voice message.",
+  "Replies are closed. Send a template to reopen this conversation.": "Replies are closed. Send a template to reopen this conversation.",
+  "section_workspace": "Work",
+  "section_account": "Account",
+  "section_app": "App"
 }
