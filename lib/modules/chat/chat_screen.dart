@@ -32,6 +32,8 @@ import '../../shared/styles/lyn_feedback.dart';
 import '../../shared/styles/lyn_palette.dart';
 import '../../shared/styles/lyn_type.dart';
 import 'widgets/chat_composer.dart';
+import 'widgets/contact_details_sheet.dart';
+import 'widgets/message_actions_sheet.dart';
 import 'widgets/typing_indicator.dart';
 
 // ═══════════════════════════════════════════════════════════════
@@ -768,163 +770,29 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         builder: (context, state) {
           final details = cubit.currentContactDetails;
           final name = details?['name']?.toString() ?? conversation.contactName ?? '';
-          final email = details?['email']?.toString() ?? conversation.contactEmail ?? '';
-          final phone = details?['phone_number']?.toString() ?? conversation.contactPhone ?? '';
-          final avatar = details?['thumbnail']?.toString() ?? conversation.contactAvatar;
-          final isLoading = state is AppFetchContactDetailsLoadingState || state is AppUpdateContactLoadingState;
 
-          return Container(
-            decoration: BoxDecoration(
-              color: LynSurface.surface(isDark),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          return ContactDetailsSheet(
+            contact: ContactDetails(
+              name: name,
+              email: details?['email']?.toString() ?? conversation.contactEmail ?? '',
+              phone: details?['phone_number']?.toString() ?? conversation.contactPhone ?? '',
+              avatarUrl: details?['thumbnail']?.toString() ?? conversation.contactAvatar,
+              channelType: conversation.channelType,
+              lastActivity: conversation.lastMessageAt,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildBottomSheetHandle(isDark),
-                const SizedBox(height: 24),
-                _buildLargeAvatar(avatar, name, isDark),
-                const SizedBox(height: 16),
-                Text(name, style: LynType.title.copyWith(
-                  color: LynSurface.textPrimary(isDark),
-                )),
-                const SizedBox(height: 4),
-                Text(conversation.channelType?.replaceAll('Channel::', '') ?? '', style: LynType.callout.copyWith(
-                  color: LynSurface.textSecondary(isDark),
-                  fontWeight: FontWeight.w400,
-                )),
-                const SizedBox(height: 24),
-                _buildInfoTile(icon: Icons.email_outlined, label: AppLocalizations.tr(context, 'Email'), value: email.isNotEmpty ? email : AppLocalizations.tr(context, 'Not available'), isDark: isDark),
-                _buildInfoTile(icon: Icons.phone_outlined, label: AppLocalizations.tr(context, 'Phone'), value: phone.isNotEmpty ? phone : AppLocalizations.tr(context, 'Not available'), isDark: isDark),
-                _buildInfoTile(icon: Icons.access_time, label: AppLocalizations.tr(context, 'Last Activity'), value: conversation.lastMessageAt != null ? intl.DateFormat('yyyy-MM-dd HH:mm').format(conversation.lastMessageAt!) : AppLocalizations.tr(context, 'Not available'), isDark: isDark),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: isLoading ? null : () => _showEditNameDialog(cubit, isDark, name, conversation.contactId!),
-                      icon: isLoading
-                          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: isDark ? Colors.white : LynPalette.indigo))
-                          : Icon(Icons.edit, color: isDark ? Colors.white : LynPalette.indigo),
-                      label: Text(AppLocalizations.tr(context, 'Edit Name'), style: TextStyle(color: isDark ? Colors.white : LynPalette.indigo, fontWeight: FontWeight.w600)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: LynSurface.surfaceMuted(isDark),
-                        foregroundColor: isDark ? Colors.white : LynPalette.indigo,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-              ],
+            isDark: isDark,
+            isLoading: state is AppFetchContactDetailsLoadingState ||
+                state is AppUpdateContactLoadingState,
+            onEditName: () => showDialog(
+              context: context,
+              builder: (_) => EditContactNameDialog(
+                currentName: name,
+                isDark: isDark,
+                onSave: (next) => cubit.updateContactName(conversation.contactId!, next),
+              ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildBottomSheetHandle(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      width: 40,
-      height: 4,
-      decoration: BoxDecoration(color: LynSurface.borderStrong(isDark), borderRadius: BorderRadius.circular(2)),
-    );
-  }
-
-  Widget _buildLargeAvatar(String? avatarUrl, String contactName, bool isDark) {
-    return Hero(
-      tag: 'contact_avatar_large_${contactName.hashCode}',
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          color: avatarUrl == null ? LynPalette.indigo.withOpacity(0.15) : null,
-          shape: BoxShape.circle,
-          border: Border.all(color: LynSurface.border(isDark), width: 3),
-          image: avatarUrl != null ? DecorationImage(image: CachedNetworkImageProvider(avatarUrl), fit: BoxFit.cover) : null,
-        ),
-        child: avatarUrl == null
-            ? Center(child: Text(contactName.isNotEmpty ? contactName[0].toUpperCase() : '?', style: LynType.display.copyWith(
-              color: LynPalette.indigo,
-            )))
-            : null,
-      ),
-    );
-  }
-
-  Widget _buildInfoTile({required IconData icon, required String label, required String value, required bool isDark}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: LynSurface.surfaceMuted(isDark), borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: LynPalette.indigo, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: LynType.caption.copyWith(
-                  color: LynSurface.textSecondary(isDark),
-                  fontWeight: FontWeight.w400,
-                )),
-                const SizedBox(height: 2),
-                Text(value, style: LynType.body.copyWith(
-                  color: LynSurface.textPrimary(isDark),
-                  fontWeight: FontWeight.w500,
-                ), overflow: TextOverflow.ellipsis),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditNameDialog(AppCubit cubit, bool isDark, String currentName, int contactId) {
-    final controller = TextEditingController(text: currentName);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: LynSurface.surface(isDark),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(AppLocalizations.tr(context, 'Edit Contact Name'), textAlign: TextAlign.center, style: TextStyle(color: LynSurface.textPrimary(isDark), fontWeight: FontWeight.bold)),
-        content: TextField(
-          controller: controller,
-          textAlign: TextAlign.right,
-          style: TextStyle(color: LynSurface.textPrimary(isDark)),
-          decoration: InputDecoration(
-            hintText: AppLocalizations.tr(context, 'Enter new name'),
-            hintStyle: TextStyle(color: LynSurface.textTertiary(isDark)),
-            filled: true,
-            fillColor: LynSurface.canvas(isDark),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: LynPalette.indigo, width: 2)),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.tr(context, 'Cancel'), style: TextStyle(color: LynSurface.textSecondary(isDark)))),
-          ElevatedButton(
-            onPressed: () {
-              final newName = controller.text.trim();
-              if (newName.isNotEmpty && newName != currentName) {
-                cubit.updateContactName(contactId, newName);
-              }
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: LynPalette.indigo, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-            child: Text(AppLocalizations.tr(context, 'Save')),
-          ),
-        ],
       ),
     );
   }
@@ -1568,37 +1436,22 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       context: context,
       backgroundColor: LynSurface.surface(isDark),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: LynSurface.borderStrong(isDark), borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: Text(AppLocalizations.tr(context, 'Delete Message'), style: TextStyle(color: LynSurface.textPrimary(isDark))),
-              onTap: () { Navigator.pop(context); _deleteSingleMessage(messageId, isDark); },
-            ),
-            ListTile(
-              leading: Icon(Icons.check_circle_outline, color: LynPalette.indigo),
-              title: Text(AppLocalizations.tr(context, 'Select Messages'), style: TextStyle(color: LynSurface.textPrimary(isDark))),
-              onTap: () { Navigator.pop(context); _toggleMessageSelection(messageId); },
-            ),
-            if (content.isNotEmpty)
-              ListTile(
-                leading: Icon(Icons.copy, color: LynPalette.indigo),
-                title: Text(AppLocalizations.tr(context, 'Copy Text'), style: TextStyle(color: LynSurface.textPrimary(isDark))),
-                onTap: () {
-                  Navigator.pop(context);
-                  Clipboard.setData(ClipboardData(text: content));
-                  LynFeedback.show(context, 'Copied',
-                      tone: LynTone.success, duration: const Duration(seconds: 1));
-                },
-              ),
-            const SizedBox(height: 16),
-          ],
-        ),
+      builder: (sheetContext) => MessageActionsSheet(
+        isDark: isDark,
+        canCopy: content.isNotEmpty,
+        onCopy: () {
+          Navigator.pop(sheetContext);
+          Clipboard.setData(ClipboardData(text: content));
+          LynFeedback.show(context, 'Copied', tone: LynTone.success, duration: const Duration(seconds: 1));
+        },
+        onSelect: () {
+          Navigator.pop(sheetContext);
+          _toggleMessageSelection(messageId);
+        },
+        onDelete: () {
+          Navigator.pop(sheetContext);
+          _deleteSingleMessage(messageId, isDark);
+        },
       ),
     );
   }
@@ -1766,8 +1619,6 @@ class _ImageViewerScreen extends StatefulWidget {
 }
 
 class _ImageViewerScreenState extends State<_ImageViewerScreen> {
-bool _isLoading = true;
-
 @override
 Widget build(BuildContext context) {
 return Scaffold(
