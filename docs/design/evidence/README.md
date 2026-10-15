@@ -1,0 +1,73 @@
+# Evidence
+
+## What these images are
+
+Flutter's own golden files. `flutter test test/visual --update-goldens` builds the widgets, lays them
+out with the real engine at 390×844 — an iPhone 14 / Pixel 7 — and writes exactly what it painted.
+Nothing here is a mockup, a drawing, or a theme preview.
+
+**They are not device screenshots, and this file does not claim they are.** There is no Android or
+iOS emulator in this build environment and no KVM to host one, so `flutter screenshot` is closed.
+Where a golden and a device disagree, the device is right.
+
+## How close each one is to the running app
+
+| Shot | What is rendered |
+|---|---|
+| `*-home-*` | **The production widget.** `HomeView` straight out of `lib/layout/`, pumped whole. |
+| `*-login-*` | **The production screen.** `LoginScreen` pumped whole, with its real Cubit and an empty SharedPreferences store. |
+| `*-conversations-*` | **The production row.** `ConversationItem` straight out of `lib/modules/conversations_list/`. |
+| `*-inboxes-*` | The inbox card, rebuilt from the same `LynChannel` and `LynSurface` calls the screen makes. Its own screen cannot be pumped — it fetches on `initState`. |
+| `*-chat-*` | The chat screen's app bar, bubbles and composer, rebuilt from the same tokens and the same geometry — the run-aware tail, the directional alignment. `chat_screen.dart` builds these inside private methods on a `State` that needs a Cubit, a socket and a live conversation. |
+
+## One limitation of the harness
+
+No emoji face is registered — the colour one is 4.7MB — so an emoji inside a string paints as a box.
+That is the test engine, not the app. Everything else, Arabic included, renders: the harness loads
+Roboto and Noto Naskh Arabic from the SDK and appends the Arabic face as a `fontFamilyFallback`.
+
+A golden that paints nothing now **fails** instead of being written. It used to be written and
+reported as a pass, which is how four of these were briefly blank rectangles.
+
+## Privacy
+
+No shot touches a server, and none contains a real customer. The contacts, inbox names, plan and
+dates in them are invented for the tests and live in the test files.
+
+## The files
+
+Each screen has a `before-` and an `after-` pair where there was something to compare.
+
+```
+before-chat-light.png          after-chat-light.png
+before-chat-dark.png           after-chat-dark.png
+before-chat-arabic-rtl.png     after-chat-arabic-rtl.png
+                               after-home-light.png
+                               after-home-dark.png
+                               after-home-locked.png        (no subscription)
+                               after-home-arabic-rtl.png
+                               after-conversations-light.png
+                               after-conversations-dark.png
+                               after-conversations-arabic-rtl.png
+                               after-login-light.png
+                               after-login-dark.png
+                               after-login-arabic-rtl.png
+                               after-inboxes-light.png
+                               after-inboxes-arabic-rtl.png
+```
+
+The home, conversations, login and inbox screens have no `before-`: the home screen did not exist
+(its body was an emoji over the word "welcome"), and for the other three the before state is on
+`main`, reachable by `git checkout main && flutter test test/visual --update-goldens`.
+
+## Regenerating
+
+The font files are gitignored — they belong to the SDK, not to this product. Fetch them first:
+
+```
+$FLUTTER_ROOT/engine/src/flutter/txt/third_party/fonts/Roboto-Regular.ttf        -> test/visual/
+$FLUTTER_ROOT/engine/src/flutter/txt/third_party/fonts/NotoNaskhArabic-Regular.ttf -> test/visual/
+MaterialIcons-Regular.otf, out of `flutter build web`'s asset bundle              -> test/visual/
+```
+
+Then `flutter test test/visual --update-goldens`.
