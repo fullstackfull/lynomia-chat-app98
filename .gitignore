@@ -45,3 +45,8 @@ bin/
 # Regenerate with: cp build/web/assets/fonts/fallback/Roboto-Regular.ttf build/web/assets/fonts/MaterialIcons-Regular.otf test/visual/
 test/visual/*.ttf
 test/visual/*.otf
+
+# Flutter's per-configuration build cache: kernel snapshots, .filecache, dependency stamps. These are
+# artifacts of whichever machine ran the build, meaningless on any other, and ~50MB per configuration.
+# (Two such directories were committed before this rule; it does not untrack them, only stops new ones.)
+.dart_tool/flutter_build/
