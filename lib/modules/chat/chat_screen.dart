@@ -28,13 +28,22 @@ import '../../models/chatwoot_models.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/components/components.dart';
 import '../../shared/styles/lyn_channel.dart';
+import '../../shared/styles/lyn_feedback.dart';
 import '../../shared/styles/lyn_palette.dart';
 import '../../shared/styles/lyn_type.dart';
 import 'widgets/chat_composer.dart';
+import 'widgets/typing_indicator.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // ChatScreen - Professional WhatsApp-like Experience v2.0
 // ═══════════════════════════════════════════════════════════════
+/// The content strings this app writes INSTEAD of a caption when it uploads an attachment, so the
+/// server has something to show in a conversation list. They are protocol values, not copy: the
+/// audio one is written by `chatwoot_api_service.dart`, and the other two sit in the message history
+/// of installs that predate it. A bubble must recognise them so it does not print "🎵 تسجيل صوتي" as
+/// a line of text under the clip it is describing.
+const Set<String> _attachmentPlaceholders = {'📷 صورة', '📎 ملف', '🎵 تسجيل صوتي'};
+
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
 
@@ -253,9 +262,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final micStatus = await Permission.microphone.request();
     if (micStatus != PermissionStatus.granted) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.tr(context, 'Microphone permission required'))),
-        );
+        LynFeedback.show(context, 'Microphone permission required', tone: LynTone.warning);
       }
       return;
     }
@@ -308,9 +315,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       print('❌ Start Recording Error: $e');
       print(stackTrace);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ فشل بدء التسجيل: $e')),
-        );
+        LynFeedback.show(context, 'Could not start recording',
+            tone: LynTone.error, actionKey: 'Retry', onAction: _startRecording);
       }
     }
   }
@@ -336,9 +342,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           } else {
             print('⚠️ Recording file too small, might be empty');
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('⚠️ التسجيل قصير جداً')),
-              );
+              LynFeedback.show(context, 'Recording too short', tone: LynTone.warning);
             }
           }
         } else {
@@ -351,9 +355,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       print('❌ Stop Recording Error: $e');
       print(stackTrace);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ فشل إيقاف التسجيل: $e')),
-        );
+        LynFeedback.show(context, 'Could not stop recording', tone: LynTone.error);
       }
     }
   }
@@ -408,9 +410,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           _isAudioLoading = false;
           _isPlayingAudio = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ فشل تشغيل الصوت: $e')),
-        );
+        LynFeedback.show(context, 'Could not play this audio', tone: LynTone.error);
       }
     }
   }
@@ -485,9 +485,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     } catch (e) {
       print('❌ Open File Error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.tr(context, 'Cannot open file'))),
-        );
+        LynFeedback.show(context, 'Cannot open file', tone: LynTone.error);
       }
     }
   }
@@ -523,9 +521,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       setState(() => cubit.messages.removeWhere((m) => m['id'] == messageId));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ ${AppLocalizations.tr(context, 'Delete failed')}'), backgroundColor: Colors.red),
-        );
+        LynFeedback.show(context, 'Delete failed', tone: LynTone.error);
       }
     }
   }
@@ -558,9 +554,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ فشل الحذف: $e'), backgroundColor: Colors.red),
-        );
+        LynFeedback.show(context, 'Delete failed', tone: LynTone.error);
       }
     }
   }
@@ -600,7 +594,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ? _buildEmptyState(isDark)
                     : _buildMessagesList(messages, isDark, state),
               ),
-              if (cubit.isTyping) _buildTypingIndicator(isDark),
+              if (cubit.isTyping) TypingIndicator(isDark: isDark),
               _buildInputField(isDark),
             ],
           ),
@@ -768,9 +762,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             _showContactDetailsBottomSheet(cubit, isDark);
           }
           if (state is AppUpdateContactErrorState) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error), backgroundColor: Colors.red),
-            );
+            LynFeedback.show(context, state.error, tone: LynTone.error);
           }
         },
         builder: (context, state) {
@@ -1064,6 +1056,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final isSelected = _selectedMessageIds.contains(messageId);
     final attachments = message['attachments'] as List<dynamic>?;
     final hasAttachments = attachments != null && attachments.isNotEmpty;
+    final hasText = content.isNotEmpty && !_attachmentPlaceholders.contains(content);
 
     return GestureDetector(
       onTap: () {
@@ -1105,23 +1098,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           child: Text(senderName,
                               style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark))),
                         ),
-                      if (hasAttachments) _buildAttachmentsList(attachments!, isDark, isOutgoing, messageId),
-                      // ✅ عرض النص فقط إذا لم يكن placeholder للملف
-                      if (content.isNotEmpty &&
-                          content != '📷 صورة' &&
-                          content != '📎 ملف' &&
-                          content != '🎵 تسجيل صوتي' &&
-                          !hasAttachments)
-                        _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected,
-                            endsRun: endsRun),
-                      // ✅ إذا كان هناك مرفقات + نص عادي، نعرض النص
-                      if (content.isNotEmpty &&
-                          content != '📷 صورة' &&
-                          content != '📎 ملف' &&
-                          content != '🎵 تسجيل صوتي' &&
-                          hasAttachments)
+                      if (hasAttachments) _buildAttachmentsList(attachments, isDark, isOutgoing, messageId),
+                      // Real text, if there is any: a placeholder standing in for the attachment is
+                      // not something to print beside the attachment itself.
+                      if (hasText)
                         Padding(
-                          padding: const EdgeInsets.only(top: LynSpace.xs),
+                          // Clear of the attachment it captions; flush when it is the whole message.
+                          padding: EdgeInsets.only(top: hasAttachments ? LynSpace.xs : 0),
                           child: _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected,
                               endsRun: endsRun),
                         ),
@@ -1160,6 +1143,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }) {
     final status = message['status']?.toString().toLowerCase();
     final isFailed = status == 'failed' || message['is_failed'] == true;
+    // In flight: the optimistic copy the cubit appends before the request returns. It carries
+    // `is_temp` until the real message replaces it, which is the one delivery fact this app actually
+    // holds -- the API gives no per-message read receipt.
+    final isSending = message['is_temp'] == true;
 
     // The tail -- the one corner that is cut back to 4 -- marks the side a message came from, so it
     // belongs on the LAST bubble of a run and nowhere else. The other three corners stay at 18.
@@ -1227,7 +1214,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   ),
                   if (isOutgoing && !isFailed) ...[
                     const SizedBox(width: LynSpace.xs),
-                    Icon(Icons.done_all, size: 14, color: Colors.white.withOpacity(0.92)),
+                    // ONE check, not two. `Icons.done_all` is the double tick every messaging app on
+                    // earth uses for "delivered", and it was drawn on every outgoing message
+                    // regardless -- including one still waiting on the request. This app is never
+                    // told that a message was delivered or read, so it says only what it knows: a
+                    // clock while the send is in flight, a single check once the server has it.
+                    Semantics(
+                      label: AppLocalizations.tr(context, isSending ? 'Sending...' : 'Sent'),
+                      child: Icon(
+                        isSending ? Icons.schedule : Icons.done,
+                        size: 14,
+                        color: Colors.white.withOpacity(isSending ? 0.72 : 0.92),
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -1275,10 +1274,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         final isImage = attachment['is_image'] == true;
         final isAudio = attachment['is_audio'] == true;
         final isVideo = attachment['is_video'] == true;
-        final isFile = attachment['is_file'] == true;
         final fileUrl = attachment['file_url']?.toString() ?? '';
         final thumbUrl = attachment['thumb_url']?.toString();
-        final fileName = attachment['file_name']?.toString() ?? 'ملف';
+        final fileName = attachment['file_name']?.toString() ?? AppLocalizations.tr(context, 'File');
         final attachmentId = attachment['id'] ?? 0;
 
         if (isImage) {
@@ -1594,9 +1592,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 onTap: () {
                   Navigator.pop(context);
                   Clipboard.setData(ClipboardData(text: content));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('✅ ${AppLocalizations.tr(context, 'Copied')}'), duration: const Duration(seconds: 1)),
-                  );
+                  LynFeedback.show(context, 'Copied',
+                      tone: LynTone.success, duration: const Duration(seconds: 1));
                 },
               ),
             const SizedBox(height: 16),
@@ -1677,48 +1674,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  // TYPING INDICATOR
-  // ═══════════════════════════════════════════════════════════════
-  Widget _buildTypingIndicator(bool isDark) {
-    return Align(
-      alignment: AlignmentDirectional.centerStart,
-      child: Container(
-        margin: const EdgeInsetsDirectional.only(start: LynSpace.lg, bottom: LynSpace.sm),
-        padding: const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.md),
-        decoration: BoxDecoration(
-          color: LynSurface.surface(isDark),
-          border: Border.all(color: LynSurface.border(isDark)),
-          // Same tail as an incoming bubble, on the same edge, because that is what it is standing in for.
-          borderRadius: const BorderRadiusDirectional.only(
-            topStart: Radius.circular(18),
-            topEnd: Radius.circular(18),
-            bottomEnd: Radius.circular(18),
-            bottomStart: Radius.circular(4),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildDot(0, isDark),
-            _buildDot(1, isDark),
-            _buildDot(2, isDark),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDot(int index, bool isDark) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(color: LynPalette.indigo.withOpacity(0.4 + (index * 0.3)), shape: BoxShape.circle),
     );
   }
 
@@ -1853,9 +1808,7 @@ backgroundColor: Colors.black,
 
 Future<void> _downloadImage() async {
   try {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('⬇️ جاري التحميل...')),
-    );
+    LynFeedback.show(context, 'Saving image');
 
     // ✅ طلب إذن التخزين للأندرويد
     if (Platform.isAndroid) {
@@ -1878,19 +1831,16 @@ Future<void> _downloadImage() async {
     }
     
     final fileName = 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final savedFile = await file.copy('${directory.path}/$fileName');
+    await file.copy('${directory.path}/$fileName');
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✅ تم حفظ الصورة في: ${savedFile.path}')),
-      );
+      LynFeedback.show(context, 'Image saved', tone: LynTone.success);
     }
   } catch (e) {
     print('❌ Download Error: $e');
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ فشل حفظ الصورة: $e')),
-      );
+      LynFeedback.show(context, 'Could not save image',
+          tone: LynTone.error, actionKey: 'Retry', onAction: _downloadImage);
     }
   }
 }

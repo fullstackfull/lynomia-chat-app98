@@ -257,5 +257,13 @@
   "Replies are closed. Send a template to reopen this conversation.": "الردود مغلقة. أرسل قالباً لإعادة فتح هذه المحادثة.",
   "section_workspace": "العمل",
   "section_account": "الحساب",
-  "section_app": "التطبيق"
+  "section_app": "التطبيق",
+  "Could not start recording": "تعذّر بدء التسجيل",
+  "Could not stop recording": "تعذّر إيقاف التسجيل",
+  "Recording too short": "التسجيل قصير جدًا",
+  "Could not play this audio": "تعذّر تشغيل هذا المقطع الصوتي",
+  "Saving image": "جارٍ حفظ الصورة…",
+  "Image saved": "تم حفظ الصورة",
+  "Could not save image": "تعذّر حفظ الصورة",
+  "Sent": "تم الإرسال"
 }

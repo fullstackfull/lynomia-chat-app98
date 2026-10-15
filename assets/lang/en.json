@@ -257,5 +257,13 @@
   "Replies are closed. Send a template to reopen this conversation.": "Replies are closed. Send a template to reopen this conversation.",
   "section_workspace": "Work",
   "section_account": "Account",
-  "section_app": "App"
+  "section_app": "App",
+  "Could not start recording": "Could not start recording",
+  "Could not stop recording": "Could not stop recording",
+  "Recording too short": "Recording too short",
+  "Could not play this audio": "Could not play this audio",
+  "Saving image": "Saving image…",
+  "Image saved": "Image saved",
+  "Could not save image": "Could not save image",
+  "Sent": "Sent"
 }

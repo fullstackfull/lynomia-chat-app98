@@ -163,6 +163,8 @@ Future<void> shoot(
   Locale locale = const Locale('en'),
   bool settle = true,
   Future<void> Function(WidgetTester tester)? after,
+  Finder? present,
+  bool disableAnimations = false,
 }) async {
   tester.view.physicalSize = size * tester.view.devicePixelRatio;
   tester.view.devicePixelRatio = 1.0;
@@ -182,7 +184,12 @@ Future<void> shoot(
       localizationsDelegates: localizations ? _testDelegates : null,
       supportedLocales:
           localizations ? AppLocalizations.supportedLocales : const <Locale>[Locale('en')],
-      home: Directionality(textDirection: direction, child: child),
+      home: MediaQuery(
+        // The system's "reduce motion" switch, as a widget reads it. A looping animation is exactly
+        // what that setting exists to stop, so a golden has to be able to show both states.
+        data: MediaQueryData(size: size, disableAnimations: disableAnimations),
+        child: Directionality(textDirection: direction, child: child),
+      ),
     ),
   );
   // A screen with a perpetual animation on it -- a progress spinner -- never has a settled frame, so
@@ -208,9 +215,12 @@ Future<void> shoot(
   }
 
   // A golden that paints nothing is worse than no golden: `--update-goldens` writes it and the run
-  // reports a pass. Every screen here has words on it, so their absence means the tree never built.
-  if (find.byType(Text).evaluate().isEmpty) {
-    fail('"$name" painted no text -- the widget tree did not build, so the golden was not written.');
+  // reports a pass. Almost every screen here has words on it, so their absence means the tree never
+  // built; a widget whose whole content is three dots does not, and passes its own [present] finder.
+  final required = present ?? find.byType(Text);
+  if (required.evaluate().isEmpty) {
+    fail('"$name" did not paint ${required.description} -- '
+        'the widget tree did not build, so the golden was not written.');
   }
 
   await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/$name.png'));
