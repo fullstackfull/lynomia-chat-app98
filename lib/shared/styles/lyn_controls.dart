@@ -6,8 +6,14 @@ import '../app_localizations.dart';
 
 /// A chevron that points the way the script runs.
 ///
-/// `Icons.arrow_forward_ios` does not mirror itself, so a row that ends in one shows Arabic readers a
-/// "more" arrow pointing back the way they came. This picks the glyph from the ambient direction.
+/// WHICH IS WHAT FLUTTER ALREADY DOES. This used to swap the glyph on `Directionality`, under a
+/// comment claiming `Icons.arrow_forward_ios` "does not mirror itself". It does: the icon is
+/// declared `matchTextDirection: true` (material/icons.dart:2510), and `Icon` answers that by
+/// flipping the glyph horizontally under RTL (widgets/icon.dart:334-342). So the swap was a SECOND
+/// mirror on top of Flutter's, and the net effect in Arabic was a "more" chevron pointing right --
+/// exactly the bug the swap was written to prevent.
+///
+/// One glyph, no condition. Arabic gets it pointing left because the framework turns it.
 class LynChevron extends StatelessWidget {
   const LynChevron({super.key, required this.color, this.size = 16});
 
@@ -16,9 +22,7 @@ class LynChevron extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Icon(
-        Directionality.of(context) == TextDirection.rtl
-            ? Icons.arrow_back_ios_new
-            : Icons.arrow_forward_ios,
+        Icons.arrow_forward_ios,
         size: size,
         color: color,
       );

@@ -660,8 +660,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final channelType = conversation?.channelType ?? '';
     final avatarUrl = conversation?.contactAvatar;
 
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-
     return AppBar(
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -672,9 +670,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       titleSpacing: 0,
       leadingWidth: 44,
       leading: IconButton(
-        // The chevron is a direction, so it mirrors with the script. `Icons.arrow_back_ios` does not
-        // flip itself, and left-pointing "back" in Arabic points forward.
-        icon: Icon(isRtl ? Icons.arrow_forward_ios : Icons.arrow_back_ios_new,
+        // No direction check: `Icons.arrow_back_ios_new` is `matchTextDirection: true`, so `Icon`
+        // flips it under RTL by itself. Swapping the glyph as well mirrored it twice and left the
+        // Arabic back button pointing left.
+        icon: Icon(Icons.arrow_back_ios_new,
             size: 20, color: LynSurface.textPrimary(isDark)),
         onPressed: () => Navigator.pop(context),
       ),
