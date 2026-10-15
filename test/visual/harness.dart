@@ -8,9 +8,14 @@
 //
 //   flutter test test/visual --update-goldens
 //
-// The two font files beside this one come out of `flutter build web`'s asset bundle. Without them a
-// golden renders every glyph as a filled rectangle, which would make the images useless for the one
-// thing they exist for.
+// The font files beside this one are gitignored, because they belong to the SDK rather than to this
+// product. Without them a golden renders every glyph as a filled rectangle, which would make the images
+// useless for the one thing they exist for, so fetch them before regenerating:
+//
+//   Roboto-Regular.ttf, NotoNaskhArabic-Regular.ttf
+//     $FLUTTER_ROOT/engine/src/flutter/txt/third_party/fonts/
+//   MaterialIcons-Regular.otf
+//     the asset bundle `flutter build web` writes
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -19,6 +24,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// A phone, in logical pixels: iPhone 14 / Pixel 7 class.
 const Size kPhone = Size(390, 844);
+
+/// The family the Arabic face is registered under, and the fallback chain every golden's theme carries.
+const String kArabicFamily = 'NotoNaskhArabic';
+const List<String> kArabicFallback = <String>[kArabicFamily];
 
 Future<void> loadRealFonts() async {
   Future<void> load(String family, String path) async {
@@ -30,6 +39,11 @@ Future<void> loadRealFonts() async {
   }
 
   await load('Roboto', 'test/visual/Roboto-Regular.ttf');
+  // Roboto carries no Arabic glyphs, so without a face that does, every Arabic golden is a wall of
+  // filled rectangles and the RTL evidence is worthless. Registering it into the Roboto family does
+  // NOT work -- within one family the engine selects by weight and slant, not by coverage -- so it is
+  // its own family, reached through `kArabicFallback` on the theme below.
+  await load(kArabicFamily, 'test/visual/NotoNaskhArabic-Regular.ttf');
   await load('MaterialIcons', 'test/visual/MaterialIcons-Regular.otf');
   // KNOWN LIMITATION, visible in the goldens: the two TextStyles declared outside `textTheme` --
   // appBarTheme.titleTextStyle and textButtonTheme.textStyle -- carry a weight but no family, so the
@@ -60,7 +74,12 @@ Future<void> shoot(
   await tester.pumpWidget(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: theme,
+      // Every rank in the theme gets the Arabic face appended as a fallback. `LynType` names no family,
+      // so its styles inherit this through the ambient DefaultTextStyle and one scale covers both scripts.
+      theme: theme.copyWith(
+        textTheme: theme.textTheme.apply(fontFamilyFallback: kArabicFallback),
+        primaryTextTheme: theme.primaryTextTheme.apply(fontFamilyFallback: kArabicFallback),
+      ),
       home: Directionality(textDirection: direction, child: child),
     ),
   );
