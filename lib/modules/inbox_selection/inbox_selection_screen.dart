@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hexcolor/hexcolor.dart';
 
 import '../../layout/cubit/cubit.dart';
 import '../../layout/cubit/states.dart';
@@ -8,10 +7,11 @@ import '../../models/chatwoot_models.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/components/components.dart';
 import '../../shared/components/custom_toast.dart';
-import '../chat/chat_screen.dart';
 import '../conversations_list/conversations_list_screen.dart';
-import '../login/login_screen.dart';
+import '../../shared/styles/lyn_channel.dart';
+import '../../shared/styles/lyn_controls.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 class InboxSelectionScreen extends StatefulWidget {
   const InboxSelectionScreen({super.key});
@@ -40,49 +40,6 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
     );
   }
 
-  void _showLogoutDialog(BuildContext context, AppCubit cubit) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: LynSurface.surface(cubit.isDark),
-        title: Text(
-          'تسجيل الخروج',
-          style: TextStyle(
-            color: LynSurface.textPrimary(cubit.isDark),
-          ),
-        ),
-        content: Text(
-          'هل أنت متأكد من تسجيل الخروج؟',
-          style: TextStyle(
-            color: LynSurface.textSecondary(cubit.isDark),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'إلغاء',
-              style: TextStyle(color: HexColor('#64748B')),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              cubit.logout();
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    (route) => false,
-              );
-            },
-            child: Text(
-              'تسجيل الخروج',
-              style: TextStyle(color: LynPalette.danger),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,16 +63,15 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
           child: Scaffold(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             appBar: AppBar(
-              backgroundColor: LynSurface.canvas(isDark),
+              backgroundColor: LynSurface.surface(isDark),
               elevation: 0,
+              scrolledUnderElevation: 0,
+              shape: Border(bottom: BorderSide(color: LynSurface.border(isDark))),
               centerTitle: true,
+              iconTheme: IconThemeData(color: LynSurface.textPrimary(isDark)),
               title: Text(
                 AppLocalizations.tr(context, 'Select Inbox'),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: LynSurface.textPrimary(isDark),
-                ),
+                style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark)),
               ),
             ),
             body: state is AppFetchInboxesLoadingState
@@ -138,27 +94,28 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 80,
-            color: LynSurface.borderStrong(isDark),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: LynPalette.indigo.withOpacity(isDark ? 0.16 : 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.inbox_rounded, size: 32, color: LynPalette.indigo),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: LynSpace.xl),
           Text(AppLocalizations.tr(context, 'No Inboxes'),
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: LynSurface.textSecondary(isDark),
+            style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark)),
+          ),
+          const SizedBox(height: LynSpace.sm),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: LynSpace.xxl),
+            child: Text(AppLocalizations.tr(context, 'Make sure you have access permissions'),
+              textAlign: TextAlign.center,
+              style: LynType.callout.copyWith(color: LynSurface.textSecondary(isDark)),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(AppLocalizations.tr(context, 'Make sure you have access permissions'),
-            style: TextStyle(
-              fontSize: 14,
-              color: LynSurface.textTertiary(isDark),
-            ),
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: LynSpace.xl),
           defaultButton(
             function: () {
               context.read<AppCubit>().fetchInboxes();
@@ -173,163 +130,78 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
   }
 
   Widget _buildInboxList(List<ChatwootInbox> inboxes, bool isDark) {
+    // Disabled inboxes are dropped BEFORE the builder. Returning a zero-height widget from inside it,
+    // as this did, still produced an item: the list reported a count it did not draw, and the
+    // separators and scroll extent counted rows nobody could see.
+    final visible = inboxes.where((inbox) => inbox.enabled != false).toList();
+
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: inboxes.length,
-      itemBuilder: (context, index) {
-        final inbox = inboxes[index];
-        return _buildInboxCard(inbox, isDark);
-      },
+      padding: const EdgeInsets.all(LynSpace.lg),
+      itemCount: visible.length,
+      itemBuilder: (context, index) => _buildInboxCard(visible[index], isDark),
     );
   }
 
   Widget _buildInboxCard(ChatwootInbox inbox, bool isDark) {
-    // ✅ عرض فقط inboxes المفعلة
-    if (inbox.enabled == false) {
-      return const SizedBox.shrink();
-    }
+    final accent = LynChannel.color(inbox.channelType);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      color: LynSurface.surface(isDark),
-      elevation: isDark ? 0 : 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: LynSurface.border(isDark),
-          width: 1,
-        ),
-      ),
-      child: InkWell(
-        onTap: () => _selectInbox(inbox),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: _getChannelColor(inbox.channelType).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: LynSpace.md),
+      child: Material(
+        color: LynSurface.surface(isDark),
+        borderRadius: BorderRadius.circular(LynSpace.lg),
+        child: InkWell(
+          onTap: () => _selectInbox(inbox),
+          borderRadius: BorderRadius.circular(LynSpace.lg),
+          child: Container(
+            padding: const EdgeInsets.all(LynSpace.lg),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(LynSpace.lg),
+              border: Border.all(color: LynSurface.border(isDark)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: accent.withOpacity(isDark ? 0.22 : 0.12),
+                    borderRadius: BorderRadius.circular(LynSpace.md),
+                  ),
+                  child: Icon(LynChannel.icon(inbox.channelType), size: 24, color: accent),
                 ),
-                child: Icon(
-                  _getChannelIcon(inbox.channelType),
-                  size: 28,
-                  color: _getChannelColor(inbox.channelType),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      inbox.name ?? 'Inbox ${inbox.id}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: LynSurface.textPrimary(isDark),
+                const SizedBox(width: LynSpace.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        inbox.name ?? 'Inbox ${inbox.id}',
+                        style: LynType.subtitle.copyWith(color: LynSurface.textPrimary(isDark)),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          _getChannelIcon(inbox.channelType),
-                          size: 14,
-                          color: LynSurface.textSecondary(isDark),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _getChannelDisplayName(context, inbox.channelType),
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: LynSurface.textSecondary(isDark),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      const SizedBox(height: 2),
+                      // The channel icon used to be repeated here at 14px beside its own name, under
+                      // the 28px version of itself. One is enough.
+                      Text(
+                        LynChannel.label(context, inbox.channelType),
+                        style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark)),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Icon(
-                Icons.arrow_back_ios_new,
-                color: LynSurface.textTertiary(isDark),
-                size: 16,
-              ),
-            ],
+                const SizedBox(width: LynSpace.sm),
+                // Was `Icons.arrow_back_ios_new`: a "go to this inbox" affordance pointing backwards.
+                LynChevron(color: LynSurface.borderStrong(isDark), size: 14),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  IconData _getChannelIcon(String? channelType) {
-    switch (channelType?.toLowerCase()) {
-      case 'web':
-      case 'website':
-        return Icons.language;
-      case 'facebook':
-        return Icons.facebook;
-      case 'twitter':
-        return Icons.alternate_email;
-      case 'whatsapp':
-        return Icons.message;
-      case 'email':
-        return Icons.email;
-      case 'telegram':
-        return Icons.send;
-      case 'line':
-        return Icons.chat;
-      case 'sms':
-        return Icons.sms;
-      case 'api':
-        return Icons.api;
-      default:
-        return Icons.inbox;
-    }
-  }
 
-  Color _getChannelColor(String? channelType) {
-    switch (channelType?.toLowerCase()) {
-      case 'web':
-      case 'website':
-        return HexColor('#3B82F6'); // Blue
-      case 'facebook':
-        return HexColor('#1877F2'); // Facebook Blue
-      case 'twitter':
-        return HexColor('#1DA1F2'); // Twitter Blue
-      case 'whatsapp':
-        return HexColor('#25D366'); // WhatsApp Green
-      case 'email':
-        return LynPalette.warning; // Amber
-      case 'telegram':
-        return HexColor('#0088CC'); // Telegram Blue
-      case 'line':
-        return HexColor('#00B900'); // LINE Green
-      case 'sms':
-        return HexColor('#8B5CF6'); // Purple
-      case 'api':
-        return LynPalette.indigo; // Indigo
-      default:
-        return HexColor('#64748B'); // Gray
-    }
-  }
 
-  String _getChannelDisplayName(BuildContext context, String? channelType) {
-    switch (channelType?.toLowerCase()) {
-      case 'web': case 'website': return AppLocalizations.tr(context, 'Website');
-      case 'facebook': return AppLocalizations.tr(context, 'Facebook');
-      case 'twitter': return AppLocalizations.tr(context, 'Twitter');
-      case 'whatsapp': return AppLocalizations.tr(context, 'WhatsApp');
-      case 'email': return AppLocalizations.tr(context, 'Email');
-      case 'telegram': return AppLocalizations.tr(context, 'Telegram');
-      case 'line': return AppLocalizations.tr(context, 'LINE');
-      case 'sms': return AppLocalizations.tr(context, 'SMS');
-      case 'api': return AppLocalizations.tr(context, 'API');
-      default: return channelType ?? AppLocalizations.tr(context, 'Unknown');
-    }
-  }
 }

@@ -27,6 +27,7 @@ import '../../layout/cubit/states.dart';
 import '../../models/chatwoot_models.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/components/components.dart';
+import '../../shared/styles/lyn_channel.dart';
 import '../../shared/styles/lyn_palette.dart';
 import '../../shared/styles/lyn_type.dart';
 
@@ -709,7 +710,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      _channelLabel(channelType),
+                      LynChannel.label(context, channelType),
                       style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark)),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -723,30 +724,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  /// `Channel::TwilioSms` is a class name, not a thing to show a person. This turns the wire value into
-  /// the channel's own name, and leaves anything unrecognised readable rather than raw.
-  String _channelLabel(String channelType) {
-    final key = channelType.replaceAll('Channel::', '').toLowerCase();
-    const names = <String, String>{
-      'whatsapp': 'WhatsApp',
-      'facebookpage': 'Facebook',
-      'instagram': 'Instagram',
-      'telegram': 'Telegram',
-      'twiliosms': 'SMS',
-      'sms': 'SMS',
-      'line': 'LINE',
-      'email': 'Email',
-      'webwidget': 'Live chat',
-      'api': 'API',
-    };
-    final name = names[key];
-    if (name != null) return name;
-    if (key.isEmpty) return '';
-    // CamelCase to spaced words, so an unmapped channel still reads as English.
-    return channelType
-        .replaceAll('Channel::', '')
-        .replaceAllMapped(RegExp(r'(?<=[a-z])(?=[A-Z])'), (_) => ' ');
-  }
 
   // ═══════════════════════════════════════════════════════════════
   // AVATAR WIDGET

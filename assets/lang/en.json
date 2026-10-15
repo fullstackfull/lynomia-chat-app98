@@ -209,5 +209,18 @@
   "conversation_status_resolved": "Resolved",
   "conversation_status_pending": "Pending",
   "conversation_status_snoozed": "Snoozed",
-  "no_conversations_hint": "New messages to this inbox will appear here."
+  "no_conversations_hint": "New messages to this inbox will appear here.",
+  "Instagram": "Instagram",
+  "Live chat": "Live chat",
+  "or_continue_with": "or continue with",
+  "apple_sign_in": "Sign in with Apple",
+  "Cannot open file": "Cannot open file",
+  "Delete failed": "Delete failed",
+  "Loading inboxes...": "Loading inboxes…",
+  "Message is required": "Message is required",
+  "Microphone permission required": "Microphone permission required",
+  "Name is required": "Name is required",
+  "Optional": "Optional",
+  "Please select an inbox": "Please select an inbox",
+  "Tap to open": "Tap to open"
 }

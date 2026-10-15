@@ -16,6 +16,9 @@
 //     $FLUTTER_ROOT/engine/src/flutter/txt/third_party/fonts/
 //   MaterialIcons-Regular.otf
 //     the asset bundle `flutter build web` writes
+//
+// ONE THING A GOLDEN HERE CANNOT SHOW, an artefact of the test engine rather than the app: no emoji
+// face is registered -- the colour one is 4.7MB -- so an emoji inside a string paints as a box.
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -161,6 +164,12 @@ Future<void> shoot(
       home: Directionality(textDirection: direction, child: child),
     ),
   );
+  await tester.pumpAndSettle(const Duration(milliseconds: 400));
+
+  // `Image.asset` decodes through a real codec, which the fake clock does not drive: without this the
+  // FIRST screen in a file paints its logos as blank space while every later one has them, because by
+  // then the image cache is warm. `runAsync` is where real work is allowed to finish.
+  await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 120)));
   await tester.pumpAndSettle(const Duration(milliseconds: 400));
 
   // A golden that paints nothing is worse than no golden: `--update-goldens` writes it and the run

@@ -209,5 +209,18 @@
   "conversation_status_resolved": "تم الحل",
   "conversation_status_pending": "قيد الانتظار",
   "conversation_status_snoozed": "مؤجلة",
-  "no_conversations_hint": "ستظهر الرسائل الجديدة الواردة إلى هذا الصندوق هنا."
+  "no_conversations_hint": "ستظهر الرسائل الجديدة الواردة إلى هذا الصندوق هنا.",
+  "Instagram": "إنستغرام",
+  "Live chat": "الدردشة المباشرة",
+  "or_continue_with": "أو تابع باستخدام",
+  "apple_sign_in": "تسجيل الدخول بـ Apple",
+  "Cannot open file": "تعذّر فتح الملف",
+  "Delete failed": "فشل الحذف",
+  "Loading inboxes...": "جارٍ تحميل صناديق الوارد…",
+  "Message is required": "الرسالة مطلوبة",
+  "Microphone permission required": "إذن الميكروفون مطلوب",
+  "Name is required": "الاسم مطلوب",
+  "Optional": "اختياري",
+  "Please select an inbox": "الرجاء اختيار صندوق وارد",
+  "Tap to open": "اضغط للفتح"
 }
