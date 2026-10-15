@@ -11,6 +11,7 @@ import '../../layout/payment_history/payment_history_states.dart';
 import '../../models/payment_history_model.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/network/payment_api_service.dart';
+import '../../shared/styles/lyn_controls.dart';
 import '../../shared/styles/lyn_palette.dart';
 import '../../shared/styles/lyn_type.dart';
 
@@ -288,7 +289,15 @@ class PaymentHistoryEmpty extends StatelessWidget {
               style: LynType.body.copyWith(color: LynSurface.textSecondary(isDark)),
             ),
             const SizedBox(height: LynSpace.xxl),
-            _PoweredByLynomia(isDark: isDark),
+            LynPoweredBy(
+              isDark: isDark,
+              onTap: () async {
+                final url = Uri.parse('https://lynomia.com');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
           ],
         ),
       ),
@@ -358,42 +367,6 @@ class PaymentHistoryFailure extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Left-to-right whatever the screen's direction: it is a brand name beside an English preposition,
-/// and mirroring it puts the brand first and the preposition after it.
-class _PoweredByLynomia extends StatelessWidget {
-  const _PoweredByLynomia({required this.isDark});
-
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        final url = Uri.parse('https://lynomia.com');
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url, mode: LaunchMode.externalApplication);
-        }
-      },
-      child: Row(
-        textDirection: TextDirection.ltr,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Powered by ',
-              style: LynType.caption.copyWith(color: LynSurface.textTertiary(isDark))),
-          Text(
-            'Lynomia',
-            style: LynType.caption.copyWith(
-              color: isDark ? LynPalette.indigoOnDark : LynPalette.indigoDeep,
-              decoration: TextDecoration.underline,
-            ),
-          ),
-        ],
       ),
     );
   }

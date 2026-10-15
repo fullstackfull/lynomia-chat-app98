@@ -66,3 +66,38 @@ class LynStatusPill extends StatelessWidget {
     );
   }
 }
+
+/// The Lynomia attribution, as a link.
+///
+/// Left-to-right whatever the screen's direction: it is a brand name after an English preposition,
+/// and mirroring the row puts the brand first and the preposition after it. It was written out twice,
+/// in the splash screen and in the payment history's empty state.
+class LynPoweredBy extends StatelessWidget {
+  const LynPoweredBy({super.key, required this.isDark, required this.onTap});
+
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        textDirection: TextDirection.ltr,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Powered by ',
+              style: LynType.caption.copyWith(color: LynSurface.textTertiary(isDark))),
+          Text(
+            'Lynomia',
+            style: LynType.caption.copyWith(
+              color: isDark ? LynPalette.indigoOnDark : LynPalette.indigoDeep,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
