@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../../layout/cubit/cubit.dart';
@@ -12,6 +11,7 @@ import '../../models/chatwoot_models.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/components/components.dart';
 import '../chat/chat_screen.dart';
+import '../../shared/styles/lyn_channel.dart';
 import '../../shared/styles/lyn_palette.dart';
 import '../../shared/styles/lyn_type.dart';
 
@@ -109,7 +109,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
               : (isWhatsAppInbox
               ? FloatingActionButton.extended(
             onPressed: () => _showNewWhatsAppConversationDialog(context),
-            backgroundColor: HexColor('#25D366'),
+            backgroundColor: LynChannel.color('whatsapp'),
             icon: const Icon(Icons.chat, color: Colors.white),
             label: Text(
               AppLocalizations.tr(context, 'New WhatsApp Chat'),
@@ -481,10 +481,10 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: HexColor('#25D366').withOpacity(0.1),
+                  color: LynChannel.color('whatsapp').withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.chat, color: HexColor('#25D366'), size: 24),
+                child: Icon(Icons.chat, color: LynChannel.color('whatsapp'), size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -520,8 +520,8 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                       dropdownColor: LynSurface.surface(isDark),
                       decoration: InputDecoration(
                         labelText: AppLocalizations.tr(context, 'Send From WhatsApp Number'),
-                        labelStyle: TextStyle(color: HexColor('#25D366')),
-                        prefixIcon: Icon(Icons.phone_android, color: HexColor('#25D366')),
+                        labelStyle: TextStyle(color: LynChannel.color('whatsapp')),
+                        prefixIcon: Icon(Icons.phone_android, color: LynChannel.color('whatsapp')),
                         filled: true,
                         fillColor: LynSurface.canvas(isDark),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -554,7 +554,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                     decoration: InputDecoration(
                       labelText: AppLocalizations.tr(context, 'WhatsApp Number (with country code)'),
                       hintText: '+1234567890',
-                      prefixIcon: Icon(Icons.send_to_mobile, color: HexColor('#25D366')),
+                      prefixIcon: Icon(Icons.send_to_mobile, color: LynChannel.color('whatsapp')),
                       filled: true,
                       fillColor: LynSurface.canvas(isDark),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -572,7 +572,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                     style: TextStyle(color: LynSurface.textPrimary(isDark)),
                     decoration: InputDecoration(
                       labelText: AppLocalizations.tr(context, 'Contact Name (Optional)'),
-                      prefixIcon: Icon(Icons.person, color: HexColor('#64748B')),
+                      prefixIcon: Icon(Icons.person, color: LynSurface.textSecondary(isDark)),
                       filled: true,
                       fillColor: LynSurface.canvas(isDark),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -635,7 +635,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
               icon: const Icon(Icons.send, size: 18),
               label: Text(AppLocalizations.tr(context, 'Select Template & Send')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: HexColor('#25D366'),
+                backgroundColor: LynChannel.color('whatsapp'),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),

@@ -769,8 +769,8 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? [LynPalette.indigo, const Color(0xFF8B5CF6)]
-              : [LynPalette.indigo, const Color(0xFF8B5CF6)],
+              ? [LynPalette.indigo, LynPalette.indigoDeep]
+              : [LynPalette.indigo, LynPalette.indigoDeep],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -1017,7 +1017,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
         textColor = Colors.white;
         break;
       case 'PUT':
-        bgColor = const Color(0xFF3B82F6);
+        bgColor = LynPalette.blue;
         textColor = Colors.white;
         break;
       case 'DELETE':
@@ -1025,7 +1025,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
         textColor = Colors.white;
         break;
       default:
-        bgColor = const Color(0xFF6B7280);
+        bgColor = LynPalette.muted;
         textColor = Colors.white;
     }
     
@@ -1071,7 +1071,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
             decoration: BoxDecoration(
               color: isCode
                   ? (LynSurface.canvasAlt(isDark))
-                  : (isDark ? const Color(0xFF334155).withOpacity(0.5) : const Color(0xFFF8FAFC)),
+                  : LynSurface.surfaceMuted(isDark),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: LynSurface.borderStrong(isDark),
@@ -1080,7 +1080,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
             child: Text(
               content,
               style: TextStyle(
-                color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF475569),
+                color: LynSurface.textPrimary(isDark),
                 fontSize: isCode ? 12 : 14,
                 fontFamily: isCode ? 'monospace' : null,
               ),
@@ -1096,7 +1096,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF334155).withOpacity(0.3) : const Color(0xFFF8FAFC),
+        color: LynSurface.surfaceMuted(isDark),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: LynSurface.borderStrong(isDark),
@@ -1110,7 +1110,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
               Text(
                 param.name,
                 style: LynType.callout.copyWith(
-                  color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
+                  color: isDark ? LynPalette.blueOnDark : LynPalette.royal,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'monospace',
                 ),
@@ -1162,7 +1162,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
             Text(
               '${isArabic ? 'مثال' : 'Example'}: ${param.example}',
               style: LynType.micro.copyWith(
-                color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
+                color: isDark ? LynPalette.blueOnDark : LynPalette.royal,
                 fontFamily: 'monospace',
                 fontWeight: FontWeight.w400,
               ),

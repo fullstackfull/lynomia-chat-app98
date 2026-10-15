@@ -320,17 +320,17 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF92400E) : const Color(0xFFFEF3C7),
+        color: LynPalette.warning.withOpacity(isDark ? 0.18 : 0.14),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? LynPalette.warning : const Color(0xFFFCD34D),
+          color: LynPalette.warning.withOpacity(0.5),
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.wifi_off_rounded,
-            color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
+            color: isDark ? LynPalette.warningSoft : LynPalette.warningInk,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -338,7 +338,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             child: Text(
               AppLocalizations.tr(context, 'offline_mode'),
               style: LynType.callout.copyWith(
-                color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
+                color: isDark ? LynPalette.warningSoft : LynPalette.warningInk,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -364,8 +364,8 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: isDark
-                    ? const Color(0xFF1E293B)
-                    : const Color(0xFFF1F5F9),
+                    ? LynPalette.inkRaised
+                    : LynPalette.mist,
                 shape: BoxShape.circle,
               ),
               child: Icon(

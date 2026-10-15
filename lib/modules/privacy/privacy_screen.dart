@@ -56,8 +56,8 @@ class PrivacyScreen extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: isDark
-                        ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                        : [const Color(0xFFF8FAFC), const Color(0xFFEEF2FF)],
+                        ? [LynPalette.inkRaised, LynPalette.ink]
+                        : [LynPalette.paperSoft, LynPalette.indigoWash],
                   ),
                 ),
                 child: Center(
@@ -171,8 +171,8 @@ class PrivacyScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? const Color(0xFF1E293B)
-                          : const Color(0xFFEEF2FF),
+                          ? LynPalette.inkRaised
+                          : LynPalette.indigoWash,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(

@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../layout/cubit/cubit.dart';
@@ -279,7 +278,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 // ✅ fallback لو ما لقى الصورة
                                 return Icon(
                                   Icons.g_mobiledata,
-                                  color: HexColor('#4285F4'),
+                                  color: const Color(0xFF4285F4),
                                   size: 28,
                                 );
                               },

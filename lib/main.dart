@@ -42,7 +42,7 @@ void main() async {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF0F172A),
+      systemNavigationBarColor: LynPalette.ink,
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );

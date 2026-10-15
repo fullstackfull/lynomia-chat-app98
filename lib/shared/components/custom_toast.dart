@@ -1,7 +1,6 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:hexcolor/hexcolor.dart';
 import '../../shared/styles/lyn_palette.dart';
 import '../../shared/styles/lyn_type.dart';
 
@@ -162,26 +161,26 @@ class _ToastWidgetState extends State<_ToastWidget>
   Color _getBackgroundColor() {
     switch (widget.state) {
       case ToastStates.success:
-        return HexColor('#22C55E').withOpacity(0.95);
+        return LynPalette.success.withOpacity(0.95);
       case ToastStates.error:
         return LynPalette.danger.withOpacity(0.95);
       case ToastStates.warning:
         return LynPalette.warning.withOpacity(0.95);
       case ToastStates.info:
-        return HexColor('#3B82F6').withOpacity(0.95);
+        return LynPalette.blue.withOpacity(0.95);
     }
   }
 
   Color _getBorderColor() {
     switch (widget.state) {
       case ToastStates.success:
-        return HexColor('#16A34A');
+        return LynPalette.success;
       case ToastStates.error:
-        return HexColor('#DC2626');
+        return LynPalette.danger;
       case ToastStates.warning:
-        return HexColor('#D97706');
+        return LynPalette.warning;
       case ToastStates.info:
-        return HexColor('#2563EB');
+        return LynPalette.blue;
     }
   }
 

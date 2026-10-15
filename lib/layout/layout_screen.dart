@@ -293,7 +293,7 @@ class LayoutScreen extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       LynPalette.indigo.withOpacity(0.15),
-                      const Color(0xFF8B5CF6).withOpacity(0.05),
+                      LynPalette.indigoDeep.withOpacity(0.05),
                     ],
                   ),
                 ),
@@ -306,7 +306,7 @@ class LayoutScreen extends StatelessWidget {
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [LynPalette.indigo, Color(0xFF8B5CF6)],
+                          colors: [LynPalette.indigo, LynPalette.indigoDeep],
                         ),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
@@ -346,15 +346,9 @@ class LayoutScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF334155).withOpacity(0.5)
-                            : const Color(0xFFF1F5F9),
+                        color: LynSurface.surfaceMuted(isDark),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isDark
-                              ? const Color(0xFF475569).withOpacity(0.3)
-                              : const Color(0xFFE2E8F0),
-                        ),
+                        border: Border.all(color: LynSurface.border(isDark)),
                       ),
                       child: Row(
                         children: [
@@ -568,7 +562,7 @@ class LayoutScreen extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+            color: LynSurface.border(isDark),
           ),
         ),
       ),

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:chat/layout/payment/payment_cubit.dart';
 import 'package:chat/layout/payment/payment_states.dart';
 import 'package:chat/shared/app_localizations.dart';
 import 'package:chat/shared/network/local/cache_helper.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../layout/cubit/cubit.dart';
 import '../../models/plan_models.dart';
@@ -262,7 +260,8 @@ class PaymentScreen extends StatelessWidget {
                     title: 'Google Play',
                     subtitle:AppLocalizations.tr(context, 'Payment via Google Play Billing'),
                     icon: Icons.play_circle_fill,
-                    color: HexColor('#4285F4'),
+                    // Google's own blue: a third party's mark, not a product colour.
+                    color: const Color(0xFF4285F4),
                     isSelected: context.watch<PaymentCubit>().selectedMethod == PaymentMethod.googlePlay,
                     onTap: () => context.read<PaymentCubit>().selectPaymentMethod(PaymentMethod.googlePlay),
                     isDark: isDark,
@@ -276,7 +275,8 @@ class PaymentScreen extends StatelessWidget {
                     title: 'Credit Card (Stripe)',
                     subtitle: AppLocalizations.tr(context, 'Credit card payment'),
                     icon: Icons.credit_card,
-                    color: HexColor('#635BFF'),
+                    // Stripe's own violet, for the same reason.
+                    color: const Color(0xFF635BFF),
                     isSelected: context.watch<PaymentCubit>().selectedMethod == PaymentMethod.stripe,
                     onTap: () => context.read<PaymentCubit>().selectPaymentMethod(PaymentMethod.stripe),
                     isDark: isDark,
@@ -568,9 +568,9 @@ class PaymentScreen extends StatelessWidget {
       case 'startup':
         return LynPalette.indigo;
       case 'growth':
-        return HexColor('#8B5CF6');
+        return LynPalette.indigo;
       case 'enterprise':
-        return HexColor('#EC4899');
+        return LynPalette.magenta;
       default:
         return LynPalette.indigo;
     }

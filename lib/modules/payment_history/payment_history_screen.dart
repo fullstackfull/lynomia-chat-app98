@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:dio/dio.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -139,7 +138,7 @@ class PaymentHistoryScreen extends StatelessWidget {
               child: Icon(
                 Icons.error_outline_rounded,
                 size: 64,
-                color: isDark ? HexColor('#F87171') : LynPalette.danger,
+                color: LynSurface.dangerText(isDark),
               ),
             ),
             const SizedBox(height: 20),
@@ -213,8 +212,8 @@ class PaymentHistoryScreen extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? HexColor('#0F172A').withOpacity(0.3)
-                : HexColor('#000000').withOpacity(0.05),
+                ? LynPalette.ink.withOpacity(0.3)
+                : LynPalette.ink.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -250,8 +249,8 @@ class PaymentHistoryScreen extends StatelessWidget {
                           payment.planName,
                           style: LynType.subtitle.copyWith(
                             color: isDark
-                                ? HexColor('#E2E8F0')
-                                : HexColor('#1E293B'),
+                                ? LynPalette.onDark
+                                : LynPalette.ink,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -260,8 +259,8 @@ class PaymentHistoryScreen extends StatelessWidget {
                           payment.formattedDate,
                           style: LynType.caption.copyWith(
                             color: isDark
-                                ? HexColor('#94A3B8')
-                                : HexColor('#64748B'),
+                                ? LynPalette.onDarkMuted
+                                : LynPalette.muted,
                             fontWeight: FontWeight.w400,
                           ),
                         ),

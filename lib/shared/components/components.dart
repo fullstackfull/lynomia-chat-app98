@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:hexcolor/hexcolor.dart';
 
 import 'custom_toast.dart';
 import '../../shared/styles/lyn_palette.dart';
@@ -119,8 +118,9 @@ Widget defaultFormField({
 }
 
 // ─── Divider ───────────────────────────────────
-Widget myDivider() => Divider(
-  color: HexColor('#334155'),
+/// Takes the brightness now: it was one fixed slate line, drawn the same on paper and on ink.
+Widget myDivider({bool isDark = true}) => Divider(
+  color: LynSurface.border(isDark),
   thickness: 1,
   height: 1,
 );
