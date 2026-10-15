@@ -18,7 +18,9 @@ Where a golden and a device disagree, the device is right.
 | `*-login-*` | **The production screen.** `LoginScreen` pumped whole, with its real Cubit and an empty SharedPreferences store. |
 | `*-conversations-*` | **The production row.** `ConversationItem` straight out of `lib/modules/conversations_list/`. |
 | `*-inboxes-*` | The inbox card, rebuilt from the same `LynChannel` and `LynSurface` calls the screen makes. Its own screen cannot be pumped — it fetches on `initState`. |
-| `*-chat-*` | The chat screen's app bar, bubbles and composer, rebuilt from the same tokens and the same geometry — the run-aware tail, the directional alignment. `chat_screen.dart` builds these inside private methods on a `State` that needs a Cubit, a socket and a live conversation. |
+| `*-composer-*` | **The production widget.** `ChatComposer` straight out of `lib/modules/chat/widgets/`, in all eight of its states. |
+| `*-drawer-*` | **The production widget.** `AppDrawer` straight out of `lib/layout/widgets/`, opened through a real `Scaffold`. |
+| `*-chat-*` | The chat screen's app bar and bubbles, rebuilt from the same tokens and the same geometry — the run-aware tail, the directional alignment. `chat_screen.dart` builds these inside private methods on a `State` that needs a Cubit, a socket and a live conversation. Its composer no longer belongs here -- see `*-composer-*` above, which is the real thing. |
 | `*-plans-*` | **The production widget.** `PlanPicker` out of `lib/modules/payment/`, pumped whole, under the screen's own app bar. |
 | `*-payment-*` | **The production widgets.** `PaymentForm` and `PaymentResultView`, pumped whole. |
 | `*-history-*` | **The production widgets.** `PaymentHistoryList`, `PaymentHistoryEmpty` and `PaymentHistoryFailure`, pumped whole. |

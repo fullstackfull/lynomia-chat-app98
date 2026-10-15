@@ -77,6 +77,9 @@ Widget _screen(bool isDark, {bool ar = false}) => Scaffold(
               isSelected: false,
               isDark: isDark,
               onTap: _noop,
+              // Pinned to the same instant the rows are built against, so the stamps show what a
+              // reader actually sees: a clock time on today's, "Yesterday", a weekday, then a date.
+              now: _now,
             ),
         ],
       ),

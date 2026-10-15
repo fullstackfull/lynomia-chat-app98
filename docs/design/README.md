@@ -195,6 +195,49 @@ app only inside commented-out code — no live path shows it. Both stores requir
 auto-renewing subscription. The wording is a commercial statement, and the app also bills through
 Stripe, so the copy is not a thing to restore blind.
 
+## Second pass: the two surfaces nobody could test
+
+The first pass worked on tokens, type and the screens' own layout. This one takes the two surfaces an
+agent actually touches -- the composer and the drawer -- out of the `State` classes that held them and
+makes them widgets a test can render.
+
+`lib/modules/chat/widgets/chat_composer.dart` came out of a 2,545-line `State` that needs a Cubit, a
+socket and a live conversation. `lib/layout/widgets/app_drawer.dart` came out of four private methods
+reaching into two Cubits, a Navigator and three dialogs. Both now take plain values and callbacks, so
+`test/visual/composer_test.dart` and `test/visual/drawer_test.dart` pump THE REAL WIDGETS -- not, as
+the bubble goldens next door honestly say of themselves, a reconstruction from the same tokens.
+
+### What the move fixed on the way
+
+| | before | after |
+|---|---|---|
+| Rebuilds while typing | the whole chat screen, per character | one button |
+| Composer buttons | 44px `GestureDetector`, no ripple, no name | 48dp, ink response, tooltip, `Semantics` |
+| Tapping the microphone | nothing at all, silently | says it is hold-to-record |
+| Recording timer | proportional figures, shoving the waveform | tabular |
+| Replies-closed state | the 24-hour paragraph, a second time | one line and the action |
+| "Conversations" in the drawer | left the drawer open behind it | closes it, like every other item |
+| Six destinations | one flat list | three named groups |
+| Locked destination | greyed, reading as broken | a padlock, keeping its ink |
+| Drawer brand mark | ~300px tall, two destinations below the fold | 88px, whole menu visible |
+| Logout | `Colors.red` at four opacities | the danger tokens |
+| "Powered by Lynomia" | rendered "Powered byLynomia" | a real gap, on all three screens |
+
+### The bug this nearly shipped
+
+`assets/lang/en.json` exists. Three new drawer keys went into `ar.json` only, and `translate` falls
+back to the key itself -- so an English reader would have seen the drawer labelled `section_workspace`,
+`section_account`, `section_app`. Both files now carry all 259 keys and neither has an entry the other
+lacks; that parity is worth re-checking whenever a string is added.
+
+### A golden that was showing the wrong branch
+
+`ConversationItem._formatTime` has always been contextual: a clock for today, "Yesterday", a weekday
+this week, a date beyond. The conversations golden showed a date on all four rows -- because the
+fixture's "eight minutes ago" was eight minutes before the moment the fixture was WRITTEN, which by
+generation time was seven months past. The row now takes an optional `now`, the test pins it, and the
+evidence shows what a reader sees.
+
 ## The evidence
 
 See `evidence/README.md`. Short version: there is no Android emulator and no KVM in the build

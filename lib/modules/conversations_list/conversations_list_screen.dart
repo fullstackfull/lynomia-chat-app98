@@ -696,12 +696,21 @@ class ConversationItem extends StatelessWidget {
   final VoidCallback onTap;
   final bool isDark;
 
+  /// The instant the timestamp is read against. Defaults to the real clock.
+  ///
+  /// A golden has to pin it. Without this seam the fixture's "eight minutes ago" was eight minutes
+  /// before the moment the fixture was WRITTEN, which by the time the images were generated was seven
+  /// months in the past -- so every row in the evidence took the "old message" branch and the clock,
+  /// the "Yesterday" and the weekday were never shown at all.
+  final DateTime? now;
+
   const ConversationItem({
     super.key,
     required this.conversation,
     required this.isSelected,
     required this.onTap,
     required this.isDark,
+    this.now,
   });
 
   @override
@@ -883,8 +892,8 @@ class ConversationItem extends StatelessWidget {
 
   String _formatTime(BuildContext context, DateTime dateTime) {
     final localDate = dateTime.toLocal();
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final reference = now ?? DateTime.now();
+    final today = DateTime(reference.year, reference.month, reference.day);
     final msgDate = DateTime(localDate.year, localDate.month, localDate.day);
     final diffDays = today.difference(msgDate).inDays;
 
