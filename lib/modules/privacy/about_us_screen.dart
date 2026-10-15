@@ -6,6 +6,7 @@ import '../../layout/cubit/states.dart';
 import '../language/cubit/cubit.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/styles/lyn_palette.dart';
+import 'policy_document.dart';
 import '../../shared/styles/lyn_type.dart';
 
 class PrivacyHubScreen extends StatefulWidget {
@@ -126,7 +127,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
                 ),
             ],
           ),
-          body: _buildBody(isDark, cardColor, textColor, subTextColor, isLoading, error, termsData,isOffline),
+          body: _buildBody(isDark, cardColor, subTextColor, isLoading, error, termsData, isOffline),
         );
       },
     );
@@ -139,12 +140,11 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
   Widget _buildBody(
       bool isDark,
       Color cardColor,
-      Color textColor,
       Color subTextColor,
       bool isLoading,
       String? error,
       Map<String, String>? termsData,
-      bool isOffline, // ✅ NEW
+      bool isOffline,
       ) {
     if (isLoading) return _buildLoadingState(isDark);
     if (error != null) return _buildErrorState(isDark, subTextColor, error);
@@ -169,34 +169,22 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             title: AppLocalizations.tr(context, 'privacy_policy'),
             content: termsData['privacy'] ?? '',
             icon: Icons.privacy_tip_outlined,
-            accentColor: LynPalette.success,
             isDark: isDark,
-            cardColor: cardColor,
-            textColor: textColor,
-            subTextColor: subTextColor,
-            isOffline: isOffline, // ✅ NEW
+            isOffline: isOffline,
           ),
           _buildContentTab(
             title: AppLocalizations.tr(context, 'terms_of_service'),
             content: termsData['terms'] ?? '',
             icon: Icons.gavel_outlined,
-            accentColor: LynPalette.indigo,
             isDark: isDark,
-            cardColor: cardColor,
-            textColor: textColor,
-            subTextColor: subTextColor,
-            isOffline: isOffline, // ✅ NEW
+            isOffline: isOffline,
           ),
           _buildContentTab(
             title: AppLocalizations.tr(context, 'about_us'),
             content: termsData['aboutus'] ?? '',
             icon: Icons.info_outline,
-            accentColor: LynPalette.warning,
             isDark: isDark,
-            cardColor: cardColor,
-            textColor: textColor,
-            subTextColor: subTextColor,
-            isOffline: isOffline, // ✅ NEW
+            isOffline: isOffline,
           ),
         ],
       ),
@@ -207,89 +195,23 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
     required String title,
     required String content,
     required IconData icon,
-    required Color accentColor,
     required bool isDark,
-    required Color cardColor,
-    required Color textColor,
-    required Color subTextColor,
-    bool isOffline = false, // ✅ NEW
+    bool isOffline = false,
   }) {
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
-      ),
-      padding: const EdgeInsets.all(20),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(LynSpace.lg),
       child: Column(
-          children: [
-            // ✅ NEW: Banner Offline
-            if (isOffline) _buildOfflineBanner(isDark),
-
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [BoxShadow(color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 8))],
-          ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(16)), child: Icon(icon, size: 28, color: accentColor)),
-              const SizedBox(width: 16),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: LynType.headline.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.bold,
-                )),
-                const SizedBox(height: 4),
-                Container(width: 40, height: 3, decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(2))),
-              ])),
-            ]),
-            const SizedBox(height: 24),
-            _buildRichContent(content, subTextColor, accentColor),
-          ]),
-        ),
-        const SizedBox(height: 24),
-        // Container(
-        //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        //   decoration: BoxDecoration(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEEF2FF), borderRadius: BorderRadius.circular(12)),
-        //   child: Row(mainAxisSize: MainAxisSize.min, children: [
-        //     Icon(Icons.update_outlined, size: 16, color: accentColor.withOpacity(0.7)),
-        //     const SizedBox(width: 8),
-        //     Text(AppLocalizations.tr(context, 'last_updated'), style: TextStyle(color: subTextColor, fontSize: 12, fontWeight: FontWeight.w500)),
-        //   ]),
-        // ),
-        // const SizedBox(height: 32),
-      ]),
+        children: [
+          if (isOffline) ...[
+            _buildOfflineBanner(isDark),
+            const SizedBox(height: LynSpace.lg),
+          ],
+          PolicyCard(title: title, icon: icon, text: content, isDark: isDark),
+          const SizedBox(height: LynSpace.xl),
+        ],
+      ),
     );
-  }
-
-  Widget _buildRichContent(String text, Color textColor, Color accentColor) {
-    final sections = text.split('\r\n\r\n');
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: sections.map((section) {
-      section = section.trim();
-      if (section.isEmpty) return const SizedBox.shrink();
-      final colonIndex = section.indexOf(':');
-      if (colonIndex > 0 && colonIndex < 50) {
-        final title = section.substring(0, colonIndex).trim();
-        final body = section.substring(colonIndex + 1).trim();
-        return Padding(padding: const EdgeInsets.only(bottom: 20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text(title, style: LynType.callout.copyWith(
-            color: accentColor,
-            fontWeight: FontWeight.bold,
-          ))),
-          const SizedBox(height: 10),
-          Text(body, style: LynType.body.copyWith(
-            color: textColor,
-            height: 1.8,
-          ), textAlign: TextAlign.start),
-        ]));
-      }
-      return Padding(padding: const EdgeInsets.only(bottom: 16), child: Text(section, style: LynType.body.copyWith(
-        color: textColor,
-        height: 1.8,
-      ), textAlign: TextAlign.start));
-    }).toList());
   }
 
   Widget _buildLoadingState(bool isDark) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

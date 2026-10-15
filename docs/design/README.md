@@ -105,6 +105,25 @@ Also: `way.toUpperCase()` printed the database value, so the screen said "GOOGLE
 processor was coloured success-green for Google Play and warning-amber for anything else — which reads
 as the state of the payment, on a list where every row is a settled payment and none is a warning.
 
+## The legal documents, which were not being split into sections
+
+The privacy policy, the terms and the about page come from the server as plain text with blank lines
+between sections and each section's heading written before a colon. The renderer split that text on
+`'\r\n\r\n'` — CRLF, and only CRLF. A server sending Unix line endings, which is the ordinary case,
+matched nothing: the whole policy painted as ONE unbroken paragraph with no headings at all. A blank
+line is a blank line here now, whichever way it is encoded.
+
+The heading test was also too eager — any colon within the first fifty characters made one, so a
+paragraph opening with a URL became the heading "https" over a body of "//lynomia.com/…". A heading
+is a single line now, and a colon followed by a slash is part of a URL.
+
+Both of those existed in two files, with the bug twice: `PrivacyScreen`, which **nothing reached** —
+266 lines with no caller anywhere in `lib/` — and `PrivacyHubScreen`, which the drawer opens. One
+`PolicyDocument` now; the dead one is gone.
+
+The three documents were also coloured success-green, indigo and warning-amber, so the "About us" tab
+was permanently painted in the colour this product uses to say something needs attention.
+
 ## A credential that was being written to the log
 
 `_verifyWithBackend` printed `purchase.verificationData.serverVerificationData` — the Google Play

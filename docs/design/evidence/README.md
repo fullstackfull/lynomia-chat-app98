@@ -22,6 +22,7 @@ Where a golden and a device disagree, the device is right.
 | `*-plans-*` | **The production widget.** `PlanPicker` out of `lib/modules/payment/`, pumped whole, under the screen's own app bar. |
 | `*-payment-*` | **The production widgets.** `PaymentForm` and `PaymentResultView`, pumped whole. |
 | `*-history-*` | **The production widgets.** `PaymentHistoryList`, `PaymentHistoryEmpty` and `PaymentHistoryFailure`, pumped whole. |
+| `*-policy-*` | **The production widget.** `PolicyCard`, pumped whole. The policy text in it is invented for the test and is not Lynomia's. |
 
 ## One limitation of the harness
 
@@ -73,6 +74,9 @@ before-chat-arabic-rtl.png     after-chat-arabic-rtl.png
                                after-history-arabic-rtl.png
                                after-history-empty-light.png
                                after-history-error-light.png
+                               after-policy-light.png
+                               after-policy-dark.png
+                               after-policy-arabic-rtl.png
 ```
 
 Two of these are there to show a specific thing rather than a screen. `after-payment-result-success-unnamed-light.png`
