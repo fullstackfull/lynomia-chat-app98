@@ -198,5 +198,12 @@
   "Please enter a valid phone number": "يرجى إدخال رقم هاتف صحيح",
   "Send From WhatsApp Number": "أرسل من رقم الواتس أب",
   "Select the sender WhatsApp number and recipient details": "اختر رقم الواتس أب المرسل وبيانات المستلم",
-  "api_documentation": "توثيق API"
+  "api_documentation": "توثيق API",
+  "Today": "اليوم",
+  "home_subtitle": "كل قناة يستخدمها عملاؤك، في صندوق وارد واحد.",
+  "home_conversations_open": "افتح صندوق وارد وابدأ الرد",
+  "home_conversations_locked": "اشترك لفتح صندوق الوارد",
+  "renews_on": "يتجدد في",
+  "manage_plan": "إدارة الخطة",
+  "see_plans": "عرض الخطط"
 }

@@ -1037,7 +1037,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     } else if (days == 1) {
       label = AppLocalizations.tr(context, 'Yesterday');
     } else {
-      label = intl.DateFormat(days < 365 ? 'MMMM d' : 'MMMM d, yyyy').format(at);
+      label = intl.DateFormat(
+        days < 365 ? 'MMMM d' : 'MMMM d, yyyy',
+        Localizations.localeOf(context).toString(),
+      ).format(at);
     }
 
     return Padding(
@@ -1072,7 +1075,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final createdAt = _parseDateTime(message['created_at']);
     // A bare clock time. The calendar date is carried once by the day separator above the run, so
     // repeating it inside every bubble only crowds the message it is supposed to annotate.
-    final timeText = createdAt != null ? intl.DateFormat.jm().format(createdAt.toLocal()) : '';
+    final timeText = createdAt != null
+        ? intl.DateFormat.jm(Localizations.localeOf(context).toString()).format(createdAt.toLocal())
+        : '';
     final messageId = message['id'];
     final isSelected = _selectedMessageIds.contains(messageId);
     final attachments = message['attachments'] as List<dynamic>?;

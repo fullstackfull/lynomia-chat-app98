@@ -104,6 +104,11 @@ class LynPalette {
   static const Color warningSoft = Color(0xFFFCD34D);
   static const Color warningInk = Color(0xFF92400E);
   static const Color success = Color(0xFF16A34A);
+
+  /// Success as TEXT. `success` itself measures 2.96:1 on its own 10% tint over paper and 3.81:1 on the
+  /// dark one, so neither can carry a word. These two measure 6.40:1 and 7.21:1 on the same fields.
+  static const Color successInk = Color(0xFF166534);
+  static const Color successSoft = Color(0xFF4ADE80);
 }
 
 /// The theme-aware surfaces, resolved from `LynPalette` for the brightness in play.
@@ -168,4 +173,11 @@ class LynSurface {
   /// Text and icons on `dangerSurface`.
   static Color dangerText(bool isDark) =>
       isDark ? const Color(0xFFFFB4C0) : const Color(0xFF8E1B2E);
+
+  /// The field behind a healthy or active state, and the text that sits on it.
+  static Color successSurface(bool isDark) =>
+      LynPalette.success.withOpacity(isDark ? 0.18 : 0.10);
+
+  static Color successText(bool isDark) =>
+      isDark ? LynPalette.successSoft : LynPalette.successInk;
 }

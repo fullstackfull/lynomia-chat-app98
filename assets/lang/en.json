@@ -122,7 +122,6 @@
   "feature_custom_channels": "Custom Channels",
   "feature_ai_features": "AI Features",
   "feature_integrations": "Integrations",
-
   "limit_agents": "{count} Agents",
   "limit_inboxes": "{count} Inboxes",
   "Included Features": "Included Features",
@@ -165,7 +164,7 @@
   "Choose the plan": "Choose the plan",
   "Subscriptions": "Subscriptions",
   "Pay ": "Pay ",
-  "New Conversation ": "New Conversation ",
+  "New Conversation": "New Conversation ",
   "Subscribe via Google Play": "Subscribe via Google Play ",
   "Automatic renewal": "Automatic renewal",
   "Failed to load plans.": "Failed to load plans.",
@@ -199,5 +198,12 @@
   "Please enter a valid phone number": "Please enter a valid phone number",
   "Send From WhatsApp Number": "Send From WhatsApp Number",
   "Select the sender WhatsApp number and recipient details": "Select the sender WhatsApp number and recipient details",
-  "api_documentation": "API Documentation"
+  "api_documentation": "API Documentation",
+  "Today": "Today",
+  "home_subtitle": "Every channel your customers use, in one inbox.",
+  "home_conversations_open": "Open an inbox and reply",
+  "home_conversations_locked": "Subscribe to open your inbox",
+  "renews_on": "Renews on",
+  "manage_plan": "Manage plan",
+  "see_plans": "See plans"
 }
