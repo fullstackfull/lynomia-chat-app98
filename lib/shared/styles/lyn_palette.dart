@@ -33,6 +33,9 @@ class LynPalette {
   /// Structure and depth in the dark: hairlines, dividers, inactive chrome.
   static const Color lineDark = Color(0xFF1C2E55);
 
+  /// A surface one step above `inkRaised`: menus, pressed rows, raised tiles.
+  static const Color inkElevated = Color(0xFF1E2A4D);
+
   /// The considered blue. Headings and links on paper.
   static const Color royal = Color(0xFF1D3FA8);
 
@@ -71,6 +74,9 @@ class LynPalette {
   /// The hairline between surfaces on paper.
   static const Color line = Color(0xFFE2E7F3);
 
+  /// A line on paper that has to be seen rather than merely felt.
+  static const Color lineStrong = Color(0xFFCBD2E4);
+
   // ── Neutral text ─────────────────────────────────────────────────────────
   /// Secondary text on paper. 5.4:1 on white -- passes AA for body copy.
   static const Color muted = Color(0xFF60646C);
@@ -82,13 +88,84 @@ class LynPalette {
   /// Secondary text ON a dark field.
   static const Color onDarkSoft = Color(0xFFC6CAD6);
 
+  /// The supporting line ON a dark field -- quieter than `onDarkSoft`, still
+  /// comfortably readable on `ink`.
+  static const Color onDarkMuted = Color(0xFF94A0B8);
+
   /// Primary text ON a dark field.
   static const Color onDark = Color(0xFFF1F3F9);
 
   // ── Status ───────────────────────────────────────────────────────────────
   static const Color danger = Color(0xFFEF4444);
+
+  /// Danger lifted for a dark field, where `danger` itself is too close to it.
+  static const Color dangerSoft = Color(0xFFFCA5A5);
   static const Color warning = Color(0xFFF59E0B);
   static const Color warningSoft = Color(0xFFFCD34D);
   static const Color warningInk = Color(0xFF92400E);
   static const Color success = Color(0xFF16A34A);
+}
+
+/// The theme-aware surfaces, resolved from `LynPalette` for the brightness in play.
+///
+/// WHY THIS EXISTS, AND WHY IT IS NOT A COLOUR MAP. The screens express every surface as a ternary on a
+/// local `isDark` -- `isDark ? HexColor('#0F172A') : HexColor('#F8FAFC')` -- 207 of them in the chat screen
+/// alone. The two sides are not the same colour in two shades: they are the SAME ROLE resolved for opposite
+/// fields, and the roles repeat. Twelve places ask for "secondary text", nine for "a hairline", six for "a
+/// muted fill".
+///
+/// So the migration is not a find-and-replace of hex values, which would be unsafe in both directions:
+/// `#94A3B8` is secondary text on the dark field and TERTIARY text on paper, and `#64748B` is the exact
+/// reverse. Mapping either literal to one token silently inverts half its call sites. Naming the ROLE and
+/// resolving it per brightness is the only transform that cannot do that, and it deletes the ternary at the
+/// call site as well as the literal.
+///
+/// Every getter is a pure function of `isDark`, so a call site reads `LynSurface.canvas(isDark)` and keeps
+/// the variable it already had in scope.
+class LynSurface {
+  const LynSurface._();
+
+  // ── Fields ───────────────────────────────────────────────────────────────
+  /// The scaffold behind everything.
+  static Color canvas(bool isDark) => isDark ? LynPalette.ink : LynPalette.paperSoft;
+
+  /// The scaffold on screens that sit a step tinted, such as the message list.
+  static Color canvasAlt(bool isDark) => isDark ? LynPalette.ink : LynPalette.mist;
+
+  /// A card, a sheet, an app bar: the surface that sits ON the canvas.
+  static Color surface(bool isDark) => isDark ? LynPalette.inkRaised : LynPalette.paper;
+
+  /// A surface one step above `surface`: menus, a raised tile, a pressed row.
+  static Color surfaceRaised(bool isDark) => isDark ? LynPalette.inkElevated : LynPalette.mist;
+
+  /// A quiet fill inside a surface: an input, a chip, an inactive segment.
+  static Color surfaceMuted(bool isDark) => isDark ? LynPalette.lineDark : LynPalette.mist;
+
+  // ── Lines ────────────────────────────────────────────────────────────────
+  /// The ordinary hairline between things.
+  static Color border(bool isDark) => isDark ? LynPalette.lineDark : LynPalette.line;
+
+  /// A line that has to be seen: a focused field, a selected tile, a divider
+  /// that carries structure rather than decoration.
+  static Color borderStrong(bool isDark) => isDark ? LynPalette.inkSoft : LynPalette.lineStrong;
+
+  // ── Type ─────────────────────────────────────────────────────────────────
+  /// Headings and body copy.
+  static Color textPrimary(bool isDark) => isDark ? LynPalette.onDark : LynPalette.ink;
+
+  /// The supporting line under a title: a timestamp, a channel name, a count.
+  static Color textSecondary(bool isDark) => isDark ? LynPalette.onDarkMuted : LynPalette.muted;
+
+  /// The quietest readable text: a placeholder, a disabled label, an icon that
+  /// is present but not being offered.
+  static Color textTertiary(bool isDark) => isDark ? LynPalette.muted : LynPalette.subtle;
+
+  // ── Status ───────────────────────────────────────────────────────────────
+  /// The field behind a destructive or failed state.
+  static Color dangerSurface(bool isDark) =>
+      isDark ? const Color(0xFF3B1620) : const Color(0xFFFDE8EC);
+
+  /// Text and icons on `dangerSurface`.
+  static Color dangerText(bool isDark) =>
+      isDark ? const Color(0xFFFFB4C0) : const Color(0xFF8E1B2E);
 }

@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:just_audio/just_audio.dart';
@@ -596,7 +595,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         final isDark = cubit.isDark;
 
         return Scaffold(
-          backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#F1F5F9'),
+          backgroundColor: LynSurface.canvasAlt(isDark),
           appBar: _buildAppBar(cubit, isDark),
           body: Column(
             children: [
@@ -673,10 +672,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     return AppBar(
       elevation: 0,
-      backgroundColor: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
+      backgroundColor: LynSurface.surface(isDark),
       leadingWidth: 40,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: isDark ? Colors.white : HexColor('#334155')),
+        icon: Icon(Icons.arrow_back_ios, color: LynSurface.textPrimary(isDark)),
         onPressed: () => Navigator.pop(context),
       ),
       title: InkWell(
@@ -692,12 +691,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 children: [
                   Text(
                     contactName,
-                    style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'), fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: LynSurface.textPrimary(isDark), fontSize: 16, fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     channelType.replaceAll('Channel::', ''),
-                    style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'), fontSize: 12),
+                    style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 12),
                   ),
                 ],
               ),
@@ -722,7 +721,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           color: hasAvatar ? null : LynPalette.indigo.withOpacity(0.2),
           shape: BoxShape.circle,
-          border: Border.all(color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'), width: 2),
+          border: Border.all(color: LynSurface.border(isDark), width: 2),
           image: hasAvatar
               ? DecorationImage(image: CachedNetworkImageProvider(avatarUrl), fit: BoxFit.cover)
               : null,
@@ -774,7 +773,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
           return Container(
             decoration: BoxDecoration(
-              color: isDark ? HexColor('#1E293B') : Colors.white,
+              color: LynSurface.surface(isDark),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
@@ -784,9 +783,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 const SizedBox(height: 24),
                 _buildLargeAvatar(avatar, name, isDark),
                 const SizedBox(height: 16),
-                Text(name, style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'), fontSize: 22, fontWeight: FontWeight.bold)),
+                Text(name, style: TextStyle(color: LynSurface.textPrimary(isDark), fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text(conversation.channelType?.replaceAll('Channel::', '') ?? '', style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'), fontSize: 14)),
+                Text(conversation.channelType?.replaceAll('Channel::', '') ?? '', style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 14)),
                 const SizedBox(height: 24),
                 _buildInfoTile(icon: Icons.email_outlined, label: AppLocalizations.tr(context, 'Email'), value: email.isNotEmpty ? email : AppLocalizations.tr(context, 'Not available'), isDark: isDark),
                 _buildInfoTile(icon: Icons.phone_outlined, label: AppLocalizations.tr(context, 'Phone'), value: phone.isNotEmpty ? phone : AppLocalizations.tr(context, 'Not available'), isDark: isDark),
@@ -803,7 +802,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           : Icon(Icons.edit, color: isDark ? Colors.white : LynPalette.indigo),
                       label: Text(AppLocalizations.tr(context, 'Edit Name'), style: TextStyle(color: isDark ? Colors.white : LynPalette.indigo, fontWeight: FontWeight.w600)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? HexColor('#334155') : HexColor('#F1F5F9'),
+                        backgroundColor: LynSurface.surfaceMuted(isDark),
                         foregroundColor: isDark ? Colors.white : LynPalette.indigo,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -826,7 +825,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       margin: const EdgeInsets.only(top: 12),
       width: 40,
       height: 4,
-      decoration: BoxDecoration(color: isDark ? HexColor('#475569') : HexColor('#CBD5E1'), borderRadius: BorderRadius.circular(2)),
+      decoration: BoxDecoration(color: LynSurface.borderStrong(isDark), borderRadius: BorderRadius.circular(2)),
     );
   }
 
@@ -839,7 +838,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           color: avatarUrl == null ? LynPalette.indigo.withOpacity(0.15) : null,
           shape: BoxShape.circle,
-          border: Border.all(color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'), width: 3),
+          border: Border.all(color: LynSurface.border(isDark), width: 3),
           image: avatarUrl != null ? DecorationImage(image: CachedNetworkImageProvider(avatarUrl), fit: BoxFit.cover) : null,
         ),
         child: avatarUrl == null
@@ -857,7 +856,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: isDark ? HexColor('#334155') : HexColor('#F1F5F9'), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: LynSurface.surfaceMuted(isDark), borderRadius: BorderRadius.circular(10)),
             child: Icon(icon, color: LynPalette.indigo, size: 20),
           ),
           const SizedBox(width: 16),
@@ -865,9 +864,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'), fontSize: 12)),
+                Text(label, style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 12)),
                 const SizedBox(height: 2),
-                Text(value, style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'), fontSize: 15, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
+                Text(value, style: TextStyle(color: LynSurface.textPrimary(isDark), fontSize: 15, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -881,24 +880,24 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: isDark ? HexColor('#1E293B') : Colors.white,
+        backgroundColor: LynSurface.surface(isDark),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(AppLocalizations.tr(context, 'Edit Contact Name'), textAlign: TextAlign.center, style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'), fontWeight: FontWeight.bold)),
+        title: Text(AppLocalizations.tr(context, 'Edit Contact Name'), textAlign: TextAlign.center, style: TextStyle(color: LynSurface.textPrimary(isDark), fontWeight: FontWeight.bold)),
         content: TextField(
           controller: controller,
           textAlign: TextAlign.right,
-          style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+          style: TextStyle(color: LynSurface.textPrimary(isDark)),
           decoration: InputDecoration(
             hintText: AppLocalizations.tr(context, 'Enter new name'),
-            hintStyle: TextStyle(color: isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
+            hintStyle: TextStyle(color: LynSurface.textTertiary(isDark)),
             filled: true,
-            fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+            fillColor: LynSurface.canvas(isDark),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: LynPalette.indigo, width: 2)),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.tr(context, 'Cancel'), style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')))),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.tr(context, 'Cancel'), style: TextStyle(color: LynSurface.textSecondary(isDark)))),
           ElevatedButton(
             onPressed: () {
               final newName = controller.text.trim();
@@ -994,7 +993,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       if (!isOutgoing && showSender)
                         Padding(
                           padding: const EdgeInsets.only(left: 12, bottom: 4),
-                          child: Text(senderName, style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'), fontSize: 12, fontWeight: FontWeight.w500)),
+                          child: Text(senderName, style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 12, fontWeight: FontWeight.w500)),
                         ),
                       if (hasAttachments) _buildAttachmentsList(attachments!, isDark, isOutgoing, messageId),
                       // ✅ عرض النص فقط إذا لم يكن placeholder للملف
@@ -1050,8 +1049,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: isFailed
-                ? (isDark ? HexColor('#451A1A') : HexColor('#FEE2E2'))
-                : (isOutgoing ? LynPalette.indigo : (isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'))),
+                ? (LynSurface.dangerSurface(isDark))
+                : (isOutgoing ? LynPalette.indigo : (LynSurface.surface(isDark))),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(18),
               topRight: const Radius.circular(18),
@@ -1060,7 +1059,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
             border: isSelected
                 ? Border.all(color: LynPalette.indigo, width: 2.5)
-                : (isFailed ? Border.all(color: HexColor('#FCA5A5'), width: 1) : null),
+                : (isFailed ? Border.all(color: LynPalette.dangerSoft, width: 1) : null),
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
           ),
           child: Column(
@@ -1071,8 +1070,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 content,
                 style: TextStyle(
                   color: isFailed
-                      ? (isDark ? HexColor('#FCA5A5') : HexColor('#991B1B'))
-                      : (isOutgoing ? Colors.white : (isDark ? Colors.white : HexColor('#1E293B'))),
+                      ? (LynSurface.dangerText(isDark))
+                      : (isOutgoing ? Colors.white : (LynSurface.textPrimary(isDark))),
                   fontSize: 15,
                   height: 1.4,
                 ),
@@ -1086,8 +1085,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     timeText,
                     style: TextStyle(
                       color: isFailed
-                          ? HexColor('#EF4444')
-                          : (isOutgoing ? Colors.white.withOpacity(0.7) : HexColor('#94A3B8')),
+                          ? LynPalette.danger
+                          : (isOutgoing ? Colors.white.withOpacity(0.7) : LynSurface.textSecondary(isDark)),
                       fontSize: 11,
                     ),
                   ),
@@ -1117,15 +1116,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   Text(
                     AppLocalizations.tr(context, 'Failed to send'),
                     style: TextStyle(
-                      color: HexColor('#EF4444'),
+                      color: LynPalette.danger,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(width: 4),
-                  Icon(Icons.error_outline, color: HexColor('#EF4444'), size: 14),
+                  Icon(Icons.error_outline, color: LynPalette.danger, size: 14),
                   const SizedBox(width: 4),
-                  Icon(Icons.refresh, color: HexColor('#EF4444'), size: 14),
+                  Icon(Icons.refresh, color: LynPalette.danger, size: 14),
                 ],
               ),
             ),
@@ -1177,7 +1176,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         child: Container(
           margin: const EdgeInsets.only(bottom: 4),
           constraints: const BoxConstraints(maxWidth: 250, maxHeight: 300),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: LynSurface.surfaceMuted(isDark)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: CachedNetworkImage(
@@ -1186,8 +1185,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               width: 250,
               height: 200,
               placeholder: (context, url) => Shimmer.fromColors(
-                baseColor: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
-                highlightColor: isDark ? HexColor('#475569') : HexColor('#F1F5F9'),
+                baseColor: LynSurface.border(isDark),
+                highlightColor: LynSurface.surfaceRaised(isDark),
                 child: Container(width: 250, height: 200, color: Colors.white),
               ),
               errorWidget: (context, url, error) => Container(
@@ -1197,11 +1196,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.broken_image, color: HexColor('#94A3B8'), size: 40),
+                    Icon(Icons.broken_image, color: LynSurface.textTertiary(isDark), size: 40),
                     const SizedBox(height: 8),
-                    Text(AppLocalizations.tr(context, 'Image failed to load'), style: TextStyle(color: HexColor('#94A3B8'), fontSize: 12)),
+                    Text(AppLocalizations.tr(context, 'Image failed to load'), style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 12)),
                     const SizedBox(height: 4),
-                    Text('URL: ${imageUrl.length > 30 ? imageUrl.substring(0, 30) + '...' : imageUrl}', style: TextStyle(color: HexColor('#64748B'), fontSize: 10)),
+                    Text('URL: ${imageUrl.length > 30 ? imageUrl.substring(0, 30) + '...' : imageUrl}', style: TextStyle(color: LynSurface.textTertiary(isDark), fontSize: 10)),
                   ],
                 ),
               ),
@@ -1227,7 +1226,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         constraints: const BoxConstraints(maxWidth: 280),
         decoration: BoxDecoration(
-          color: isOutgoing ? LynPalette.indigo.withOpacity(0.95) : (isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
+          color: isOutgoing ? LynPalette.indigo.withOpacity(0.95) : (LynSurface.surfaceMuted(isDark)),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -1305,7 +1304,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         ? '${_formatAudioDuration(_audioPosition)} / ${_formatAudioDuration(_audioDuration)}'
                         : AppLocalizations.tr(context, 'Voice message'),
                     style: TextStyle(
-                      color: isOutgoing ? Colors.white.withOpacity(0.8) : HexColor('#94A3B8'),
+                      color: isOutgoing ? Colors.white.withOpacity(0.8) : LynSurface.textSecondary(isDark),
                       fontSize: 11,
                     ),
                   ),
@@ -1327,7 +1326,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Container(
         margin: const EdgeInsets.only(bottom: 4),
         constraints: const BoxConstraints(maxWidth: 250, maxHeight: 200),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: LynSurface.surfaceMuted(isDark)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: Stack(
@@ -1339,15 +1338,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 width: 250,
                 height: 200,
                 placeholder: (context, url) => Shimmer.fromColors(
-                  baseColor: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
-                  highlightColor: isDark ? HexColor('#475569') : HexColor('#F1F5F9'),
+                  baseColor: LynSurface.border(isDark),
+                  highlightColor: LynSurface.surfaceRaised(isDark),
                   child: Container(width: 250, height: 200, color: Colors.white),
                 ),
                 errorWidget: (context, url, error) => Container(
                   width: 250,
                   height: 200,
-                  color: HexColor('#334155'),
-                  child: Icon(Icons.videocam, color: HexColor('#94A3B8'), size: 50),
+                  color: LynSurface.surfaceMuted(isDark),
+                  child: Icon(Icons.videocam, color: LynSurface.textTertiary(isDark), size: 50),
                 ),
               ),
               Container(
@@ -1376,7 +1375,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         padding: const EdgeInsets.all(12),
         constraints: const BoxConstraints(maxWidth: 260),
         decoration: BoxDecoration(
-          color: isOutgoing ? LynPalette.indigo.withOpacity(0.95) : (isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
+          color: isOutgoing ? LynPalette.indigo.withOpacity(0.95) : (LynSurface.surfaceMuted(isDark)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -1399,13 +1398,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(fileName, style: TextStyle(color: isOutgoing ? Colors.white : HexColor('#1E293B'), fontSize: 14, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(fileName, style: TextStyle(color: isOutgoing ? Colors.white : LynSurface.textPrimary(isDark), fontSize: 14, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
-                  Text(AppLocalizations.tr(context, 'Tap to open'), style: TextStyle(color: isOutgoing ? Colors.white.withOpacity(0.7) : HexColor('#94A3B8'), fontSize: 11)),
+                  Text(AppLocalizations.tr(context, 'Tap to open'), style: TextStyle(color: isOutgoing ? Colors.white.withOpacity(0.7) : LynSurface.textSecondary(isDark), fontSize: 11)),
                 ],
               ),
             ),
-            Icon(Icons.open_in_new, color: isOutgoing ? Colors.white.withOpacity(0.7) : HexColor('#94A3B8'), size: 20),
+            Icon(Icons.open_in_new, color: isOutgoing ? Colors.white.withOpacity(0.7) : LynSurface.textSecondary(isDark), size: 20),
           ],
         ),
       ),
@@ -1423,29 +1422,29 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: isDark ? HexColor('#1E293B') : Colors.white,
+      backgroundColor: LynSurface.surface(isDark),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 8),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: isDark ? HexColor('#475569') : HexColor('#CBD5E1'), borderRadius: BorderRadius.circular(2))),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: LynSurface.borderStrong(isDark), borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: Text(AppLocalizations.tr(context, 'Delete Message'), style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'))),
+              title: Text(AppLocalizations.tr(context, 'Delete Message'), style: TextStyle(color: LynSurface.textPrimary(isDark))),
               onTap: () { Navigator.pop(context); _deleteSingleMessage(messageId, isDark); },
             ),
             ListTile(
               leading: Icon(Icons.check_circle_outline, color: LynPalette.indigo),
-              title: Text(AppLocalizations.tr(context, 'Select Messages'), style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'))),
+              title: Text(AppLocalizations.tr(context, 'Select Messages'), style: TextStyle(color: LynSurface.textPrimary(isDark))),
               onTap: () { Navigator.pop(context); _toggleMessageSelection(messageId); },
             ),
             if (content.isNotEmpty)
               ListTile(
                 leading: Icon(Icons.copy, color: LynPalette.indigo),
-                title: Text(AppLocalizations.tr(context, 'Copy Text'), style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'))),
+                title: Text(AppLocalizations.tr(context, 'Copy Text'), style: TextStyle(color: LynSurface.textPrimary(isDark))),
                 onTap: () {
                   Navigator.pop(context);
                   Clipboard.setData(ClipboardData(text: content));
@@ -1468,7 +1467,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
+        color: LynSurface.surface(isDark),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, -2))],
       ),
       child: SafeArea(
@@ -1548,20 +1547,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? HexColor('#451A1A') : HexColor('#FEE2E2'),
+        color: LynSurface.dangerSurface(isDark),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HexColor('#FCA5A5'), width: 1),
+        border: Border.all(color: LynPalette.dangerSoft, width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.error_outline, color: HexColor('#EF4444'), size: 20),
+          Icon(Icons.error_outline, color: LynPalette.danger, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               AppLocalizations.tr(context, 'You can only reply to this conversation using a template message due to 24 hour message window restriction'),
               style: TextStyle(
-                color: isDark ? HexColor('#FCA5A5') : HexColor('#991B1B'),
+                color: LynSurface.dangerText(isDark),
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 height: 1.4,
@@ -1588,13 +1587,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isDark ? HexColor('#0F172A') : HexColor('#F1F5F9'),
+                color: LynSurface.canvasAlt(isDark),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Text(
                 AppLocalizations.tr(context, 'You can only reply using a template message due to 24-hour message window restriction'),
                 style: TextStyle(
-                  color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
+                  color: LynSurface.textTertiary(isDark),
                   fontSize: 12,
                 ),
                 maxLines: 2,
@@ -1629,7 +1628,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
         // ✅ زر المرفقات
         PopupMenuButton<String>(
-          icon: Icon(Icons.attach_file, color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+          icon: Icon(Icons.attach_file, color: LynSurface.textSecondary(isDark)),
           onSelected: (value) {
             switch (value) {
               case 'camera': _pickImage(ImageSource.camera); break;
@@ -1647,14 +1646,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         // ✅ حقل النص
         Expanded(
           child: Container(
-            decoration: BoxDecoration(color: isDark ? HexColor('#0F172A') : HexColor('#F1F5F9'), borderRadius: BorderRadius.circular(24)),
+            decoration: BoxDecoration(color: LynSurface.canvasAlt(isDark), borderRadius: BorderRadius.circular(24)),
             child: TextField(
               controller: _messageController,
               textAlign: TextAlign.right,
-              style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+              style: TextStyle(color: LynSurface.textPrimary(isDark)),
               decoration: InputDecoration(
                 hintText: AppLocalizations.tr(context, 'Type your message...'),
-                hintStyle: TextStyle(color: isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
+                hintStyle: TextStyle(color: LynSurface.textTertiary(isDark)),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
@@ -1700,7 +1699,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         margin: const EdgeInsets.only(left: 16, bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
+          color: LynSurface.surface(isDark),
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(18),
             topRight: Radius.circular(18),
@@ -1749,11 +1748,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_bubble_outline, size: 64, color: isDark ? HexColor('#334155') : HexColor('#CBD5E1')),
+          Icon(Icons.chat_bubble_outline, size: 64, color: LynSurface.borderStrong(isDark)),
           const SizedBox(height: 16),
-          Text(AppLocalizations.tr(context, 'No messages yet'), style: TextStyle(color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'), fontSize: 16)),
+          Text(AppLocalizations.tr(context, 'No messages yet'), style: TextStyle(color: LynSurface.textTertiary(isDark), fontSize: 16)),
           const SizedBox(height: 8),
-          Text(AppLocalizations.tr(context, 'Start the conversation by sending a message'), style: TextStyle(color: isDark ? HexColor('#475569') : HexColor('#CBD5E1'), fontSize: 14)),
+          Text(AppLocalizations.tr(context, 'Start the conversation by sending a message'), style: TextStyle(color: LynSurface.borderStrong(isDark), fontSize: 14)),
         ],
       ),
     );
@@ -1905,20 +1904,20 @@ class _DeleteDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: isDark ? HexColor('#1E293B') : Colors.white,
+      backgroundColor: LynSurface.surface(isDark),
       title: Text(
         isMultiple
             ? AppLocalizations.tr(context, 'Delete {count} messages').replaceFirst('{count}', count.toString())
             : AppLocalizations.tr(context, 'Delete Message'),
         textAlign: TextAlign.right,
-        style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+        style: TextStyle(color: LynSurface.textPrimary(isDark)),
       ),
       content: Text(
         isMultiple
             ? AppLocalizations.tr(context, 'Are you sure you want to delete the selected messages?')
             : AppLocalizations.tr(context, 'Are you sure you want to delete this message?'),
         textAlign: TextAlign.right,
-        style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+        style: TextStyle(color: LynSurface.textSecondary(isDark)),
       ),
       actions: [
         TextButton(
@@ -2016,7 +2015,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
         right: 20,
       ),
       decoration: BoxDecoration(
-        color: widget.isDark ? HexColor('#1E293B') : Colors.white,
+        color: LynSurface.surface(widget.isDark),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: BlocConsumer<AppCubit, AppStates>(
@@ -2048,7 +2047,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: widget.isDark ? HexColor('#475569') : HexColor('#CBD5E1'),
+                    color: LynSurface.borderStrong(widget.isDark),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -2065,7 +2064,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                         Text(
                           AppLocalizations.tr(context, 'Whatsapp Templates'),
                           style: TextStyle(
-                            color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                            color: LynSurface.textPrimary(widget.isDark),
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -2076,7 +2075,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                               ? AppLocalizations.tr(context, 'Select the whatsapp template you want to send')
                               : AppLocalizations.tr(context, 'Configure template: {name}').replaceFirst('{name}', _selectedTemplate!.name),
                           style: TextStyle(
-                            color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                            color: LynSurface.textSecondary(widget.isDark),
                             fontSize: 13,
                           ),
                         ),
@@ -2084,7 +2083,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                    icon: Icon(Icons.close, color: LynSurface.textSecondary(widget.isDark)),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -2119,19 +2118,19 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                    color: LynSurface.canvas(widget.isDark),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                      color: LynSurface.border(widget.isDark),
                     ),
                   ),
                   child: TextField(
                     onChanged: (val) => setState(() => _searchQuery = val),
-                    style: TextStyle(color: widget.isDark ? Colors.white : HexColor('#1E293B')),
+                    style: TextStyle(color: LynSurface.textPrimary(widget.isDark)),
                     decoration: InputDecoration(
                       hintText: AppLocalizations.tr(context, 'Search Templates'),
-                      hintStyle: TextStyle(color: widget.isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
-                      prefixIcon: Icon(Icons.search, color: widget.isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
+                      hintStyle: TextStyle(color: LynSurface.textTertiary(widget.isDark)),
+                      prefixIcon: Icon(Icons.search, color: LynSurface.textTertiary(widget.isDark)),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
@@ -2141,10 +2140,10 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               const SizedBox(width: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                  color: LynSurface.canvas(widget.isDark),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                    color: LynSurface.border(widget.isDark),
                   ),
                 ),
                 child: IconButton(
@@ -2164,7 +2163,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                     ? Center(
                         child: Text(
                           AppLocalizations.tr(context, 'No templates found'),
-                          style: TextStyle(color: widget.isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
+                          style: TextStyle(color: LynSurface.textTertiary(widget.isDark)),
                         ),
                       )
                     : ListView.separated(
@@ -2188,10 +2187,10 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+          color: LynSurface.canvas(widget.isDark),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+            color: LynSurface.border(widget.isDark),
           ),
         ),
         child: Column(
@@ -2204,7 +2203,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                   child: Text(
                     template.name,
                     style: TextStyle(
-                      color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                      color: LynSurface.textPrimary(widget.isDark),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -2213,13 +2212,13 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                    color: LynSurface.border(widget.isDark),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     'Language: ${template.language ?? 'en'}',
                     style: TextStyle(
-                      color: widget.isDark ? HexColor('#CBD5E1') : HexColor('#475569'),
+                      color: LynSurface.textPrimary(widget.isDark),
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -2232,7 +2231,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               Text(
                 AppLocalizations.tr(context, 'Header'),
                 style: TextStyle(
-                  color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                  color: LynSurface.textSecondary(widget.isDark),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -2240,7 +2239,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               Text(
                 template.headerText!,
                 style: TextStyle(
-                  color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                  color: LynSurface.textPrimary(widget.isDark),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -2251,7 +2250,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               Text(
                 AppLocalizations.tr(context, 'Body'),
                 style: TextStyle(
-                  color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                  color: LynSurface.textSecondary(widget.isDark),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -2259,7 +2258,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               Text(
                 template.bodyText!,
                 style: TextStyle(
-                  color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                  color: LynSurface.textPrimary(widget.isDark),
                   fontSize: 14,
                 ),
               ),
@@ -2269,7 +2268,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               Text(
                 AppLocalizations.tr(context, 'Category'),
                 style: TextStyle(
-                  color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
+                  color: LynSurface.textSecondary(widget.isDark),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -2278,7 +2277,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               Text(
                 template.category!,
                 style: TextStyle(
-                  color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                  color: LynSurface.textPrimary(widget.isDark),
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -2308,7 +2307,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                     Text(
                       'Template Parameters',
                       style: TextStyle(
-                        color: widget.isDark ? Colors.white : HexColor('#1E293B'),
+                        color: LynSurface.textPrimary(widget.isDark),
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -2319,15 +2318,15 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                         padding: const EdgeInsets.only(bottom: 12),
                         child: TextField(
                           controller: _paramControllers[varName],
-                          style: TextStyle(color: widget.isDark ? Colors.white : HexColor('#1E293B')),
+                          style: TextStyle(color: LynSurface.textPrimary(widget.isDark)),
                           decoration: InputDecoration(
                             labelText: 'Variable {{ $varName }}',
                             labelStyle: TextStyle(color: LynPalette.indigo),
                             filled: true,
-                            fillColor: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                            fillColor: LynSurface.canvas(widget.isDark),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
+                              borderSide: BorderSide(color: LynSurface.border(widget.isDark)),
                             ),
                           ),
                         ),
@@ -2350,7 +2349,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                   ),
                   child: Text(
                     AppLocalizations.tr(context, 'Go Back'),
-                    style: TextStyle(color: widget.isDark ? Colors.white : HexColor('#1E293B')),
+                    style: TextStyle(color: LynSurface.textPrimary(widget.isDark)),
                   ),
                 ),
               ),
