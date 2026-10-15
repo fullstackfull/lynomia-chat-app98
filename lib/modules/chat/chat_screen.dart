@@ -28,6 +28,7 @@ import '../../models/chatwoot_models.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/components/components.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // ChatScreen - Professional WhatsApp-like Experience v2.0
@@ -638,7 +639,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
       title: Text(
         AppLocalizations.tr(context, '{count} selected').replaceFirst('{count}', _selectedMessageIds.length.toString()),
-        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+        style: LynType.headline.copyWith(color: Colors.white),
       ),
       actions: [
         IconButton(
@@ -670,41 +671,81 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final channelType = conversation?.channelType ?? '';
     final avatarUrl = conversation?.contactAvatar;
 
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
     return AppBar(
       elevation: 0,
+      scrolledUnderElevation: 0,
       backgroundColor: LynSurface.surface(isDark),
-      leadingWidth: 40,
+      // A hairline, not a shadow. The bar and the canvas are two close tones, so they need a line to
+      // part them; a shadow at this contrast only smudges the boundary.
+      shape: Border(bottom: BorderSide(color: LynSurface.border(isDark))),
+      titleSpacing: 0,
+      leadingWidth: 44,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: LynSurface.textPrimary(isDark)),
+        // The chevron is a direction, so it mirrors with the script. `Icons.arrow_back_ios` does not
+        // flip itself, and left-pointing "back" in Arabic points forward.
+        icon: Icon(isRtl ? Icons.arrow_forward_ios : Icons.arrow_back_ios_new,
+            size: 20, color: LynSurface.textPrimary(isDark)),
         onPressed: () => Navigator.pop(context),
       ),
       title: InkWell(
         onTap: () => _showContactDetailsBottomSheet(cubit, isDark),
-        borderRadius: BorderRadius.circular(8),
-        child: Row(
-          children: [
-            _buildAvatar(avatarUrl, contactName, isDark, size: 40),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    contactName,
-                    style: TextStyle(color: LynSurface.textPrimary(isDark), fontSize: 16, fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    channelType.replaceAll('Channel::', ''),
-                    style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 12),
-                  ),
-                ],
+        borderRadius: BorderRadius.circular(LynSpace.md),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(end: LynSpace.sm, top: LynSpace.sm, bottom: LynSpace.sm),
+          child: Row(
+            children: [
+              _buildAvatar(avatarUrl, contactName, isDark, size: 38),
+              const SizedBox(width: LynSpace.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      contactName,
+                      style: LynType.subtitle.copyWith(color: LynSurface.textPrimary(isDark)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      _channelLabel(channelType),
+                      style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  /// `Channel::TwilioSms` is a class name, not a thing to show a person. This turns the wire value into
+  /// the channel's own name, and leaves anything unrecognised readable rather than raw.
+  String _channelLabel(String channelType) {
+    final key = channelType.replaceAll('Channel::', '').toLowerCase();
+    const names = <String, String>{
+      'whatsapp': 'WhatsApp',
+      'facebookpage': 'Facebook',
+      'instagram': 'Instagram',
+      'telegram': 'Telegram',
+      'twiliosms': 'SMS',
+      'sms': 'SMS',
+      'line': 'LINE',
+      'email': 'Email',
+      'webwidget': 'Live chat',
+      'api': 'API',
+    };
+    final name = names[key];
+    if (name != null) return name;
+    if (key.isEmpty) return '';
+    // CamelCase to spaced words, so an unmapped channel still reads as English.
+    return channelType
+        .replaceAll('Channel::', '')
+        .replaceAllMapped(RegExp(r'(?<=[a-z])(?=[A-Z])'), (_) => ' ');
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -719,9 +760,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: hasAvatar ? null : LynPalette.indigo.withOpacity(0.2),
+          color: hasAvatar ? null : LynPalette.indigo.withOpacity(0.14),
           shape: BoxShape.circle,
-          border: Border.all(color: LynSurface.border(isDark), width: 2),
+          border: Border.all(color: LynSurface.border(isDark)),
           image: hasAvatar
               ? DecorationImage(image: CachedNetworkImageProvider(avatarUrl), fit: BoxFit.cover)
               : null,
@@ -730,7 +771,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ? Center(
           child: Text(
             contactName.isNotEmpty ? contactName[0].toUpperCase() : '?',
-            style: TextStyle(color: LynPalette.indigo, fontWeight: FontWeight.bold, fontSize: size * 0.45),
+            style: LynType.subtitle.copyWith(color: LynPalette.indigo, fontSize: size * 0.42, height: 1),
           ),
         )
             : null,
@@ -921,7 +962,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     return ListView.builder(
       controller: _scrollController,
       reverse: true, // ✅ مثل واتساب: مرساة من الأسفل + الحفاظ على الموضع عند تحميل القديم تلقائياً
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: LynSpace.sm),
       itemCount: messages.length + (_isLoadingMore ? 1 : 0),
       cacheExtent: 500,
       addAutomaticKeepAlives: false,
@@ -929,22 +970,89 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       itemBuilder: (context, index) {
         // ✅ في القائمة المعكوسة: آخر index = أعلى الشاشة (مؤشر التحميل)
         if (_isLoadingMore && index == messages.length) {
-          return Center(child: Padding(padding: const EdgeInsets.all(16), child: CircularProgressIndicator(color: LynPalette.indigo, strokeWidth: 2)));
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(LynSpace.lg),
+              child: CircularProgressIndicator(color: LynPalette.indigo, strokeWidth: 2),
+            ),
+          );
         }
 
         // ✅ عكس المؤشر: index 0 في القائمة المعكوسة = أحدث رسالة
         final actualIndex = messages.length - 1 - index;
         final message = messages[actualIndex];
         final isOutgoing = _isOutgoing(message);
-        final showSender = actualIndex == 0 || _getSenderName(messages[actualIndex]) != _getSenderName(messages[actualIndex - 1]);
 
-        return _buildMessageBubble(
+        // A RUN is consecutive messages from the same side on the same day. Only the run's last bubble
+        // gets the pointed tail and only its first carries the sender's name, so a burst of four replies
+        // reads as one utterance rather than four stacked cards.
+        final previous = actualIndex > 0 ? messages[actualIndex - 1] : null;
+        final next = actualIndex < messages.length - 1 ? messages[actualIndex + 1] : null;
+        final day = _dayOf(message);
+        final startsDay = previous == null || _dayOf(previous) != day;
+        final startsRun = startsDay || _isOutgoing(previous) != isOutgoing;
+        final endsRun = next == null || _isOutgoing(next) != isOutgoing || _dayOf(next) != day;
+
+        final bubble = _buildMessageBubble(
           message: message,
           isOutgoing: isOutgoing,
-          showSender: showSender,
+          showSender: startsRun && _getSenderName(message) != (previous == null ? null : _getSenderName(previous)),
+          startsRun: startsRun,
+          endsRun: endsRun,
           isDark: isDark,
         );
+
+        if (!startsDay) return bubble;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [_buildDaySeparator(message, isDark), bubble],
+        );
       },
+    );
+  }
+
+  /// The calendar day a message belongs to, as a sortable `yyyy-mm-dd`, or an empty string when the
+  /// message carries no parseable timestamp — in which case it never starts a day and never breaks a run.
+  String _dayOf(Map<String, dynamic> message) {
+    final at = _parseDateTime(message['created_at']);
+    if (at == null) return '';
+    final local = at.toLocal();
+    return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+  }
+
+  /// A date, once, above the first message of each day. It is what lets every bubble below it show a bare
+  /// clock time instead of repeating "Mar 12," on all eighty of them.
+  Widget _buildDaySeparator(Map<String, dynamic> message, bool isDark) {
+    final at = _parseDateTime(message['created_at'])?.toLocal();
+    if (at == null) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final that = DateTime(at.year, at.month, at.day);
+    final days = today.difference(that).inDays;
+
+    final String label;
+    if (days == 0) {
+      label = AppLocalizations.tr(context, 'Today');
+    } else if (days == 1) {
+      label = AppLocalizations.tr(context, 'Yesterday');
+    } else {
+      label = intl.DateFormat(days < 365 ? 'MMMM d' : 'MMMM d, yyyy').format(at);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: LynSpace.lg),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: LynSpace.md, vertical: LynSpace.xs + 2),
+          decoration: BoxDecoration(
+            color: LynSurface.surface(isDark),
+            border: Border.all(color: LynSurface.border(isDark)),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(label, style: LynType.micro.copyWith(color: LynSurface.textSecondary(isDark))),
+        ),
+      ),
     );
   }
 
@@ -955,12 +1063,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     required Map<String, dynamic> message,
     required bool isOutgoing,
     required bool showSender,
+    required bool startsRun,
+    required bool endsRun,
     required bool isDark,
   }) {
     final content = message['content']?.toString() ?? '';
     final senderName = _getSenderName(message);
     final createdAt = _parseDateTime(message['created_at']);
-    final timeText = createdAt != null ? intl.DateFormat('MMM d, h:mm a').format(createdAt) : '';
+    // A bare clock time. The calendar date is carried once by the day separator above the run, so
+    // repeating it inside every bubble only crowds the message it is supposed to annotate.
+    final timeText = createdAt != null ? intl.DateFormat.jm().format(createdAt.toLocal()) : '';
     final messageId = message['id'];
     final isSelected = _selectedMessageIds.contains(messageId);
     final attachments = message['attachments'] as List<dynamic>?;
@@ -977,9 +1089,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ? (isDark ? LynPalette.indigo.withOpacity(0.15) : LynPalette.indigo.withOpacity(0.08))
             : Colors.transparent,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          // Tight inside a run, open between runs: the gap is what groups the bubbles, so it has to be
+          // visibly different from the one that separates them.
+          padding: EdgeInsets.only(
+            left: LynSpace.lg,
+            right: LynSpace.lg,
+            top: startsRun ? LynSpace.sm + 2 : 2,
+            bottom: endsRun ? 2 : 0,
+          ),
           child: Align(
-            alignment: isOutgoing ? Alignment.centerRight : Alignment.centerLeft,
+            // DIRECTIONAL, not left/right. In Arabic the agent's own replies belong on the start edge
+            // and the customer's on the end edge, exactly mirrored; `Alignment.centerRight` would pin
+            // them to the same physical side in both scripts and read as backwards to half this market.
+            alignment: isOutgoing ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -992,8 +1114,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     children: [
                       if (!isOutgoing && showSender)
                         Padding(
-                          padding: const EdgeInsets.only(left: 12, bottom: 4),
-                          child: Text(senderName, style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 12, fontWeight: FontWeight.w500)),
+                          padding: const EdgeInsetsDirectional.only(start: LynSpace.md, bottom: LynSpace.xs),
+                          child: Text(senderName,
+                              style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark))),
                         ),
                       if (hasAttachments) _buildAttachmentsList(attachments!, isDark, isOutgoing, messageId),
                       // ✅ عرض النص فقط إذا لم يكن placeholder للملف
@@ -1002,7 +1125,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           content != '📎 ملف' &&
                           content != '🎵 تسجيل صوتي' &&
                           !hasAttachments)
-                        _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected),
+                        _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected,
+                            endsRun: endsRun),
                       // ✅ إذا كان هناك مرفقات + نص عادي، نعرض النص
                       if (content.isNotEmpty &&
                           content != '📷 صورة' &&
@@ -1010,8 +1134,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           content != '🎵 تسجيل صوتي' &&
                           hasAttachments)
                         Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected),
+                          padding: const EdgeInsets.only(top: LynSpace.xs),
+                          child: _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected,
+                              endsRun: endsRun),
                         ),
                     ],
                   ),
@@ -1027,7 +1152,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Widget _buildSelectionCheck() {
     return Padding(
-      padding: const EdgeInsets.only(right: 12, top: 8),
+      padding: const EdgeInsetsDirectional.only(end: LynSpace.md, top: LynSpace.sm),
       child: Container(
         width: 24,
         height: 24,
@@ -1037,30 +1162,53 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildTextBubble(Map<String, dynamic> message, String content, String timeText, bool isOutgoing, bool isDark, bool isSelected) {
+  Widget _buildTextBubble(
+    Map<String, dynamic> message,
+    String content,
+    String timeText,
+    bool isOutgoing,
+    bool isDark,
+    bool isSelected, {
+    bool endsRun = true,
+  }) {
     final status = message['status']?.toString().toLowerCase();
     final isFailed = status == 'failed' || message['is_failed'] == true;
+
+    // The tail -- the one corner that is cut back to 4 -- marks the side a message came from, so it
+    // belongs on the LAST bubble of a run and nowhere else. The other three corners stay at 18.
+    // Directional, so the tail follows the start/end edge rather than a fixed physical one.
+    const tail = Radius.circular(4);
+    const round = Radius.circular(18);
+    final radius = BorderRadiusDirectional.only(
+      topStart: round,
+      topEnd: round,
+      bottomStart: isOutgoing || !endsRun ? round : tail,
+      bottomEnd: isOutgoing && endsRun ? tail : round,
+    );
 
     return Column(
       crossAxisAlignment: isOutgoing ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.sm + 2),
           decoration: BoxDecoration(
             color: isFailed
                 ? (LynSurface.dangerSurface(isDark))
                 : (isOutgoing ? LynPalette.indigo : (LynSurface.surface(isDark))),
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(18),
-              topRight: const Radius.circular(18),
-              bottomLeft: Radius.circular(isOutgoing ? 18 : 4),
-              bottomRight: Radius.circular(isOutgoing ? 4 : 18),
-            ),
+            borderRadius: radius,
+            // An incoming bubble is separated from the canvas by a hairline, not by a drop shadow. The
+            // shadow this replaces was a flat 5% black under every bubble: on the dark canvas it was
+            // invisible, and on the light one it put the same grey halo under eighty elements, which
+            // reads as texture rather than as depth. The outgoing bubble is solid indigo and needs
+            // neither.
             border: isSelected
-                ? Border.all(color: LynPalette.indigo, width: 2.5)
-                : (isFailed ? Border.all(color: LynPalette.dangerSoft, width: 1) : null),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
+                ? Border.all(color: LynPalette.indigo, width: 2)
+                : isFailed
+                    ? Border.all(color: LynPalette.dangerSoft, width: 1)
+                    : isOutgoing
+                        ? null
+                        : Border.all(color: LynSurface.border(isDark)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -1068,31 +1216,32 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             children: [
               Text(
                 content,
-                style: TextStyle(
+                style: LynType.body.copyWith(
                   color: isFailed
                       ? (LynSurface.dangerText(isDark))
                       : (isOutgoing ? Colors.white : (LynSurface.textPrimary(isDark))),
-                  fontSize: 15,
-                  height: 1.4,
                 ),
-                textAlign: TextAlign.right,
+                // START, not right. A hard `TextAlign.right` set every English message ragged-left
+                // inside a left-aligned bubble; `start` resolves to the correct edge in both scripts.
+                textAlign: TextAlign.start,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: LynSpace.xs),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     timeText,
-                    style: TextStyle(
+                    style: LynType.micro.copyWith(
+                      fontWeight: FontWeight.w500,
                       color: isFailed
                           ? LynPalette.danger
-                          : (isOutgoing ? Colors.white.withOpacity(0.7) : LynSurface.textSecondary(isDark)),
-                      fontSize: 11,
+                          : (isOutgoing ? Colors.white.withOpacity(0.92) : LynSurface.textSecondary(isDark)),
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  if (isOutgoing && !isFailed)
-                    Icon(Icons.done_all, size: 14, color: Colors.white.withOpacity(0.7)),
+                  if (isOutgoing && !isFailed) ...[
+                    const SizedBox(width: LynSpace.xs),
+                    Icon(Icons.done_all, size: 14, color: Colors.white.withOpacity(0.92)),
+                  ],
                 ],
               ),
             ],
@@ -1100,7 +1249,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ),
         if (isFailed)
           Padding(
-            padding: const EdgeInsets.only(top: 4, right: 4),
+            padding: const EdgeInsetsDirectional.only(top: LynSpace.xs, end: LynSpace.xs),
             child: InkWell(
               onTap: () {
                 final cubit = context.read<AppCubit>();
@@ -1115,13 +1264,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 children: [
                   Text(
                     AppLocalizations.tr(context, 'Failed to send'),
-                    style: TextStyle(
-                      color: LynPalette.danger,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: LynType.caption.copyWith(color: LynPalette.danger, fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: LynSpace.xs),
                   Icon(Icons.error_outline, color: LynPalette.danger, size: 14),
                   const SizedBox(width: 4),
                   Icon(Icons.refresh, color: LynPalette.danger, size: 14),
@@ -1465,10 +1610,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   // ═══════════════════════════════════════════════════════════════
   Widget _buildInputField(bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: LynSpace.sm, vertical: LynSpace.sm),
       decoration: BoxDecoration(
         color: LynSurface.surface(isDark),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, -2))],
+        border: Border(top: BorderSide(color: LynSurface.border(isDark))),
       ),
       child: SafeArea(
         child: _isRecording ? _buildRecordingUI(isDark) : _buildNormalInput(isDark),
@@ -1544,27 +1689,22 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _build24HourWindowBanner(bool isDark) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: LynSpace.md, vertical: LynSpace.md),
+      margin: const EdgeInsets.fromLTRB(LynSpace.md, LynSpace.md, LynSpace.md, 0),
       decoration: BoxDecoration(
         color: LynSurface.dangerSurface(isDark),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: LynPalette.dangerSoft, width: 1),
+        borderRadius: BorderRadius.circular(LynSpace.md),
+        border: Border.all(color: LynPalette.dangerSoft),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.error_outline, color: LynPalette.danger, size: 20),
-          const SizedBox(width: 10),
+          Icon(Icons.schedule_rounded, color: LynPalette.danger, size: 18),
+          const SizedBox(width: LynSpace.sm + 2),
           Expanded(
             child: Text(
               AppLocalizations.tr(context, 'You can only reply to this conversation using a template message due to 24 hour message window restriction'),
-              style: TextStyle(
-                color: LynSurface.dangerText(isDark),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                height: 1.4,
-              ),
+              style: LynType.caption.copyWith(color: LynSurface.dangerText(isDark), height: 1.5),
             ),
           ),
         ],
@@ -1592,10 +1732,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ),
               child: Text(
                 AppLocalizations.tr(context, 'You can only reply using a template message due to 24-hour message window restriction'),
-                style: TextStyle(
-                  color: LynSurface.textTertiary(isDark),
-                  fontSize: 12,
-                ),
+                style: LynType.caption.copyWith(color: LynSurface.textTertiary(isDark)),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1605,12 +1742,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ElevatedButton.icon(
             onPressed: () => _showWhatsAppTemplatesModal(context, cubit, isDark),
             icon: const Icon(Icons.description, size: 18),
-            label: Text(AppLocalizations.tr(context, 'Send Template')),
+            label: Text(AppLocalizations.tr(context, 'Send Template'), style: LynType.callout),
             style: ElevatedButton.styleFrom(
               backgroundColor: LynPalette.indigo,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+              padding: const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.md),
             ),
           ),
         ],
@@ -1646,16 +1784,28 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         // ✅ حقل النص
         Expanded(
           child: Container(
-            decoration: BoxDecoration(color: LynSurface.canvasAlt(isDark), borderRadius: BorderRadius.circular(24)),
+            decoration: BoxDecoration(
+              color: LynSurface.surfaceMuted(isDark),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: LynSurface.border(isDark)),
+            ),
             child: TextField(
               controller: _messageController,
-              textAlign: TextAlign.right,
-              style: TextStyle(color: LynSurface.textPrimary(isDark)),
+              // No forced `TextAlign.right`: the field follows the keyboard's own script, so an agent
+              // typing English gets English alignment and one typing Arabic gets Arabic.
+              textAlign: TextAlign.start,
+              style: LynType.body.copyWith(color: LynSurface.textPrimary(isDark)),
+              minLines: 1,
+              maxLines: 5,
+              textInputAction: TextInputAction.send,
+              keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
               decoration: InputDecoration(
                 hintText: AppLocalizations.tr(context, 'Type your message...'),
-                hintStyle: TextStyle(color: LynSurface.textTertiary(isDark)),
+                hintStyle: LynType.body.copyWith(color: LynSurface.textSecondary(isDark)),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                isDense: true,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.md),
               ),
               onSubmitted: (_) => _sendMessage(),
             ),
@@ -1694,17 +1844,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   // ═══════════════════════════════════════════════════════════════
   Widget _buildTypingIndicator(bool isDark) {
     return Align(
-      alignment: Alignment.centerLeft,
+      alignment: AlignmentDirectional.centerStart,
       child: Container(
-        margin: const EdgeInsets.only(left: 16, bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsetsDirectional.only(start: LynSpace.lg, bottom: LynSpace.sm),
+        padding: const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.md),
         decoration: BoxDecoration(
           color: LynSurface.surface(isDark),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18),
-            topRight: Radius.circular(18),
-            bottomRight: Radius.circular(18),
-            bottomLeft: Radius.circular(4),
+          border: Border.all(color: LynSurface.border(isDark)),
+          // Same tail as an incoming bubble, on the same edge, because that is what it is standing in for.
+          borderRadius: const BorderRadiusDirectional.only(
+            topStart: Radius.circular(18),
+            topEnd: Radius.circular(18),
+            bottomEnd: Radius.circular(18),
+            bottomStart: Radius.circular(4),
           ),
         ),
         child: Row(
@@ -1748,11 +1900,27 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_bubble_outline, size: 64, color: LynSurface.borderStrong(isDark)),
-          const SizedBox(height: 16),
-          Text(AppLocalizations.tr(context, 'No messages yet'), style: TextStyle(color: LynSurface.textTertiary(isDark), fontSize: 16)),
-          const SizedBox(height: 8),
-          Text(AppLocalizations.tr(context, 'Start the conversation by sending a message'), style: TextStyle(color: LynSurface.borderStrong(isDark), fontSize: 14)),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: LynPalette.indigo.withOpacity(isDark ? 0.16 : 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.chat_bubble_outline_rounded, size: 32, color: LynPalette.indigo),
+          ),
+          const SizedBox(height: LynSpace.xl),
+          Text(AppLocalizations.tr(context, 'No messages yet'),
+              style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark))),
+          const SizedBox(height: LynSpace.sm),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: LynSpace.xxl),
+            child: Text(
+              AppLocalizations.tr(context, 'Start the conversation by sending a message'),
+              textAlign: TextAlign.center,
+              style: LynType.callout.copyWith(color: LynSurface.textSecondary(isDark)),
+            ),
+          ),
         ],
       ),
     );
