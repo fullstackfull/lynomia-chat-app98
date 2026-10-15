@@ -132,10 +132,12 @@ ThemeData darkTheme = ThemeData(
     labelStyle: const TextStyle(color: LynPalette.onDark, fontSize: 12),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide.none),
   ),
+  // On the ink canvas a drop shadow has nothing to fall on: it reads as a dark halo round the button
+  // rather than as lift, so the indigo stands on its own contrast instead.
   floatingActionButtonTheme: const FloatingActionButtonThemeData(
     backgroundColor: LynPalette.indigo,
     foregroundColor: Colors.white,
-    elevation: 4,
+    elevation: 0,
   ),
   useMaterial3: true,
 );
@@ -274,7 +276,9 @@ ThemeData lightTheme = ThemeData(
   floatingActionButtonTheme: const FloatingActionButtonThemeData(
     backgroundColor: LynPalette.indigo,
     foregroundColor: Colors.white,
-    elevation: 4,
+    // Elevation 4 put a hard rim round the one floating control in a design that otherwise parts its
+    // surfaces with hairlines. Two steps still say the button sits above the list.
+    elevation: 2,
   ),
   canvasColor: LynPalette.mist,
   useMaterial3: true,

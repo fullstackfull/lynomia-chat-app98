@@ -205,5 +205,9 @@
   "home_conversations_locked": "Subscribe to open your inbox",
   "renews_on": "Renews on",
   "manage_plan": "Manage plan",
-  "see_plans": "See plans"
+  "see_plans": "See plans",
+  "conversation_status_resolved": "Resolved",
+  "conversation_status_pending": "Pending",
+  "conversation_status_snoozed": "Snoozed",
+  "no_conversations_hint": "New messages to this inbox will appear here."
 }

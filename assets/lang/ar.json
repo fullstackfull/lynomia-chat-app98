@@ -205,5 +205,9 @@
   "home_conversations_locked": "اشترك لفتح صندوق الوارد",
   "renews_on": "يتجدد في",
   "manage_plan": "إدارة الخطة",
-  "see_plans": "عرض الخطط"
+  "see_plans": "عرض الخطط",
+  "conversation_status_resolved": "تم الحل",
+  "conversation_status_pending": "قيد الانتظار",
+  "conversation_status_snoozed": "مؤجلة",
+  "no_conversations_hint": "ستظهر الرسائل الجديدة الواردة إلى هذا الصندوق هنا."
 }
