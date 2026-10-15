@@ -59,8 +59,17 @@ class LynPalette {
   /// on paper it is 3.3:1 and fails as body text.
   static const Color blue = Color(0xFF0090FF);
 
+  /// The blue lifted for a dark field, where `blue` itself measures 4.88:1 but reads heavy beside the
+  /// indigo; and the magenta lifted the same way, where `magenta` is 3.29:1 and cannot carry a word.
+  static const Color blueOnDark = Color(0xFF5CC2FF);
+  static const Color magentaOnDark = Color(0xFFF472B6);
+
   /// The single bold note. One per screen.
   static const Color magenta = Color(0xFFD6246E);
+
+  /// The magenta deepened for paper, where `magenta` is 4.84:1 on white but only 4.04:1 on its own
+  /// 12% tint, which is where it is most often asked to carry a label.
+  static const Color magentaDeep = Color(0xFFB81A5C);
 
   // ── Surfaces ─────────────────────────────────────────────────────────────
   static const Color paper = Color(0xFFFFFFFF);

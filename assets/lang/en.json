@@ -222,5 +222,8 @@
   "Name is required": "Name is required",
   "Optional": "Optional",
   "Please select an inbox": "Please select an inbox",
-  "Tap to open": "Tap to open"
+  "Tap to open": "Tap to open",
+  "No internet connection": "No internet connection",
+  "Most popular": "Most popular",
+  "per_month": "/month"
 }

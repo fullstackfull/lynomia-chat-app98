@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 // ─── Toast States ─────────────────────────────
 enum ToastStates { success, error, warning, info }
@@ -134,10 +135,8 @@ class _ToastWidgetState extends State<_ToastWidget>
                 Expanded(
                   child: Text(
                     widget.message,
-                    style: TextStyle(
+                    style: LynType.callout.copyWith(
                       color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
                       height: 1.4,
                     ),
                   ),

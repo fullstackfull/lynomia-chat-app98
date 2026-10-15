@@ -11,6 +11,7 @@ import '../../models/payment_history_model.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/network/payment_api_service.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 class PaymentHistoryScreen extends StatelessWidget {
   const PaymentHistoryScreen({super.key});
@@ -34,9 +35,8 @@ class PaymentHistoryScreen extends StatelessWidget {
           ),
           title: Text(
             AppLocalizations.tr(context, 'Payment History'),
-            style: TextStyle(
+            style: LynType.headline.copyWith(
               color: LynSurface.textPrimary(isDark),
-              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -78,9 +78,8 @@ class PaymentHistoryScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             AppLocalizations.tr(context, 'No payment history'),
-            style: TextStyle(
+            style: LynType.headline.copyWith(
               color: LynSurface.textSecondary(isDark),
-              fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -99,9 +98,9 @@ class PaymentHistoryScreen extends StatelessWidget {
               children: [
                 Text(
                   'Powered by ',
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: LynType.caption.copyWith(
                     color: LynSurface.textTertiary(isDark),
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
                 SizedBox(
@@ -109,8 +108,7 @@ class PaymentHistoryScreen extends StatelessWidget {
                 ),
                 Text(
                   'Lynomia',
-                  style: TextStyle(
-                    fontSize: 12,
+                  style: LynType.caption.copyWith(
                     fontWeight: FontWeight.bold,
                     color: LynPalette.indigo,
                     decoration: TextDecoration.underline,
@@ -147,9 +145,8 @@ class PaymentHistoryScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               AppLocalizations.tr(context, 'Error loading payment history'),
-              style: TextStyle(
+              style: LynType.headline.copyWith(
                 color: LynSurface.textPrimary(isDark),
-                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -159,10 +156,10 @@ class PaymentHistoryScreen extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 320),
               child: Text(
                 error,
-                style: TextStyle(
+                style: LynType.callout.copyWith(
                   color: LynSurface.textSecondary(isDark),
-                  fontSize: 14,
                   height: 1.4,
+                  fontWeight: FontWeight.w400,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -251,22 +248,21 @@ class PaymentHistoryScreen extends StatelessWidget {
                       children: [
                         Text(
                           payment.planName,
-                          style: TextStyle(
+                          style: LynType.subtitle.copyWith(
                             color: isDark
                                 ? HexColor('#E2E8F0')
                                 : HexColor('#1E293B'),
-                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           payment.formattedDate,
-                          style: TextStyle(
+                          style: LynType.caption.copyWith(
                             color: isDark
                                 ? HexColor('#94A3B8')
                                 : HexColor('#64748B'),
-                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ],
@@ -282,9 +278,8 @@ class PaymentHistoryScreen extends StatelessWidget {
                   ),
                   child: Text(
                     payment.formattedPrice,
-                    style: TextStyle(
+                    style: LynType.subtitle.copyWith(
                       color: _getPaymentColor(payment.way),
-                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -341,18 +336,16 @@ class PaymentHistoryScreen extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
+                  style: LynType.micro.copyWith(
                     color: LynSurface.textTertiary(isDark),
-                    fontSize: 11,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: TextStyle(
+                  style: LynType.callout.copyWith(
                     color: LynSurface.textPrimary(isDark),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
                   ),
                   // overflow: TextOverflow.ellipsis,
                 ),

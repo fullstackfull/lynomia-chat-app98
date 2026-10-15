@@ -801,9 +801,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 const SizedBox(height: 24),
                 _buildLargeAvatar(avatar, name, isDark),
                 const SizedBox(height: 16),
-                Text(name, style: TextStyle(color: LynSurface.textPrimary(isDark), fontSize: 22, fontWeight: FontWeight.bold)),
+                Text(name, style: LynType.title.copyWith(
+                  color: LynSurface.textPrimary(isDark),
+                )),
                 const SizedBox(height: 4),
-                Text(conversation.channelType?.replaceAll('Channel::', '') ?? '', style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 14)),
+                Text(conversation.channelType?.replaceAll('Channel::', '') ?? '', style: LynType.callout.copyWith(
+                  color: LynSurface.textSecondary(isDark),
+                  fontWeight: FontWeight.w400,
+                )),
                 const SizedBox(height: 24),
                 _buildInfoTile(icon: Icons.email_outlined, label: AppLocalizations.tr(context, 'Email'), value: email.isNotEmpty ? email : AppLocalizations.tr(context, 'Not available'), isDark: isDark),
                 _buildInfoTile(icon: Icons.phone_outlined, label: AppLocalizations.tr(context, 'Phone'), value: phone.isNotEmpty ? phone : AppLocalizations.tr(context, 'Not available'), isDark: isDark),
@@ -860,7 +865,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           image: avatarUrl != null ? DecorationImage(image: CachedNetworkImageProvider(avatarUrl), fit: BoxFit.cover) : null,
         ),
         child: avatarUrl == null
-            ? Center(child: Text(contactName.isNotEmpty ? contactName[0].toUpperCase() : '?', style: TextStyle(color: LynPalette.indigo, fontWeight: FontWeight.bold, fontSize: 40)))
+            ? Center(child: Text(contactName.isNotEmpty ? contactName[0].toUpperCase() : '?', style: LynType.display.copyWith(
+              color: LynPalette.indigo,
+            )))
             : null,
       ),
     );
@@ -882,9 +889,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 12)),
+                Text(label, style: LynType.caption.copyWith(
+                  color: LynSurface.textSecondary(isDark),
+                  fontWeight: FontWeight.w400,
+                )),
                 const SizedBox(height: 2),
-                Text(value, style: TextStyle(color: LynSurface.textPrimary(isDark), fontSize: 15, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
+                Text(value, style: LynType.body.copyWith(
+                  color: LynSurface.textPrimary(isDark),
+                  fontWeight: FontWeight.w500,
+                ), overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -1325,9 +1338,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   children: [
                     Icon(Icons.broken_image, color: LynSurface.textTertiary(isDark), size: 40),
                     const SizedBox(height: 8),
-                    Text(AppLocalizations.tr(context, 'Image failed to load'), style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 12)),
+                    Text(AppLocalizations.tr(context, 'Image failed to load'), style: LynType.caption.copyWith(
+                      color: LynSurface.textSecondary(isDark),
+                      fontWeight: FontWeight.w400,
+                    )),
                     const SizedBox(height: 4),
-                    Text('URL: ${imageUrl.length > 30 ? imageUrl.substring(0, 30) + '...' : imageUrl}', style: TextStyle(color: LynSurface.textTertiary(isDark), fontSize: 10)),
+                    Text('URL: ${imageUrl.length > 30 ? imageUrl.substring(0, 30) + '...' : imageUrl}', style: LynType.micro.copyWith(
+                      color: LynSurface.textTertiary(isDark),
+                      fontWeight: FontWeight.w400,
+                    )),
                   ],
                 ),
               ),
@@ -1430,9 +1449,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     isCurrentAudio && !isLoading
                         ? '${_formatAudioDuration(_audioPosition)} / ${_formatAudioDuration(_audioDuration)}'
                         : AppLocalizations.tr(context, 'Voice message'),
-                    style: TextStyle(
+                    style: LynType.micro.copyWith(
                       color: isOutgoing ? Colors.white.withOpacity(0.8) : LynSurface.textSecondary(isDark),
-                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ],
@@ -1516,7 +1535,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
-                child: Text(extension, style: TextStyle(color: isOutgoing ? Colors.white : LynPalette.indigo, fontSize: 12, fontWeight: FontWeight.bold)),
+                child: Text(extension, style: LynType.caption.copyWith(
+                  color: isOutgoing ? Colors.white : LynPalette.indigo,
+                  fontWeight: FontWeight.bold,
+                )),
               ),
             ),
             const SizedBox(width: 12),
@@ -1525,9 +1547,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(fileName, style: TextStyle(color: isOutgoing ? Colors.white : LynSurface.textPrimary(isDark), fontSize: 14, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(fileName, style: LynType.callout.copyWith(
+                    color: isOutgoing ? Colors.white : LynSurface.textPrimary(isDark),
+                  ), maxLines: 2, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
-                  Text(AppLocalizations.tr(context, 'Tap to open'), style: TextStyle(color: isOutgoing ? Colors.white.withOpacity(0.7) : LynSurface.textSecondary(isDark), fontSize: 11)),
+                  Text(AppLocalizations.tr(context, 'Tap to open'), style: LynType.micro.copyWith(
+                    color: isOutgoing ? Colors.white.withOpacity(0.7) : LynSurface.textSecondary(isDark),
+                    fontWeight: FontWeight.w400,
+                  )),
                 ],
               ),
             ),
@@ -1649,7 +1676,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           // ✅ المدة
           Text(
             _formatDuration(_recordingSeconds),
-            style: TextStyle(color: LynPalette.indigo, fontSize: 16, fontWeight: FontWeight.bold),
+            style: LynType.subtitle.copyWith(
+              color: LynPalette.indigo,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(width: 12),
 
@@ -2213,9 +2243,8 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                       children: [
                         Text(
                           AppLocalizations.tr(context, 'Whatsapp Templates'),
-                          style: TextStyle(
+                          style: LynType.headline.copyWith(
                             color: LynSurface.textPrimary(widget.isDark),
-                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -2224,9 +2253,9 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                           _selectedTemplate == null
                               ? AppLocalizations.tr(context, 'Select the whatsapp template you want to send')
                               : AppLocalizations.tr(context, 'Configure template: {name}').replaceFirst('{name}', _selectedTemplate!.name),
-                          style: TextStyle(
+                          style: LynType.callout.copyWith(
                             color: LynSurface.textSecondary(widget.isDark),
-                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ],
@@ -2352,9 +2381,8 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                 Expanded(
                   child: Text(
                     template.name,
-                    style: TextStyle(
+                    style: LynType.subtitle.copyWith(
                       color: LynSurface.textPrimary(widget.isDark),
-                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -2367,10 +2395,8 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                   ),
                   child: Text(
                     'Language: ${template.language ?? 'en'}',
-                    style: TextStyle(
+                    style: LynType.caption.copyWith(
                       color: LynSurface.textPrimary(widget.isDark),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -2380,18 +2406,15 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               const SizedBox(height: 8),
               Text(
                 AppLocalizations.tr(context, 'Header'),
-                style: TextStyle(
+                style: LynType.caption.copyWith(
                   color: LynSurface.textSecondary(widget.isDark),
-                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 template.headerText!,
-                style: TextStyle(
+                style: LynType.callout.copyWith(
                   color: LynSurface.textPrimary(widget.isDark),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -2399,17 +2422,16 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               const SizedBox(height: 8),
               Text(
                 AppLocalizations.tr(context, 'Body'),
-                style: TextStyle(
+                style: LynType.caption.copyWith(
                   color: LynSurface.textSecondary(widget.isDark),
-                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 template.bodyText!,
-                style: TextStyle(
+                style: LynType.callout.copyWith(
                   color: LynSurface.textPrimary(widget.isDark),
-                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
@@ -2417,18 +2439,16 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               const SizedBox(height: 12),
               Text(
                 AppLocalizations.tr(context, 'Category'),
-                style: TextStyle(
+                style: LynType.caption.copyWith(
                   color: LynSurface.textSecondary(widget.isDark),
-                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 template.category!,
-                style: TextStyle(
+                style: LynType.callout.copyWith(
                   color: LynSurface.textPrimary(widget.isDark),
-                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -2456,9 +2476,8 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                     const SizedBox(height: 16),
                     Text(
                       'Template Parameters',
-                      style: TextStyle(
+                      style: LynType.body.copyWith(
                         color: LynSurface.textPrimary(widget.isDark),
-                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

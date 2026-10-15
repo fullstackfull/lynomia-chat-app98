@@ -4,6 +4,7 @@ import '../../layout/cubit/cubit.dart';
 import '../../modules/language/cubit/cubit.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 class ApiDocumentationScreen extends StatefulWidget {
   const ApiDocumentationScreen({super.key});
@@ -40,10 +41,7 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
         ),
         title: Text(
           AppLocalizations.tr(context, 'api_documentation'),
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
+          style: LynType.headline,
         ),
         centerTitle: true,
       ),
@@ -804,10 +802,8 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
               Expanded(
                 child: Text(
                   'Lynomia API',
-                  style: const TextStyle(
+                  style: LynType.title.copyWith(
                     color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -831,10 +827,10 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
                 Expanded(
                   child: Text(
                     'https://chat.lynomia.com',
-                    style: const TextStyle(
+                    style: LynType.callout.copyWith(
                       color: Colors.white70,
-                      fontSize: 14,
                       fontFamily: 'monospace',
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),
@@ -862,9 +858,8 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
           const SizedBox(width: 12),
           Text(
             title,
-            style: TextStyle(
+            style: LynType.headline.copyWith(
               color: LynSurface.textPrimary(isDark),
-              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -916,18 +911,17 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
                     children: [
                       Text(
                         title,
-                        style: TextStyle(
+                        style: LynType.subtitle.copyWith(
                           color: LynSurface.textPrimary(isDark),
-                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         description,
-                        style: TextStyle(
+                        style: LynType.callout.copyWith(
                           color: LynSurface.textSecondary(isDark),
-                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
@@ -1043,9 +1037,8 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
       ),
       child: Text(
         method.toUpperCase(),
-        style: const TextStyle(
+        style: LynType.caption.copyWith(
           color: Colors.white,
-          fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -1066,9 +1059,8 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
       children: [
         Text(
           title,
-          style: TextStyle(
+          style: LynType.caption.copyWith(
             color: LynSurface.textSecondary(isDark),
-            fontSize: 12,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -1117,9 +1109,8 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
             children: [
               Text(
                 param.name,
-                style: TextStyle(
+                style: LynType.callout.copyWith(
                   color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'monospace',
                 ),
@@ -1133,9 +1124,8 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
                 ),
                 child: Text(
                   param.type,
-                  style: TextStyle(
+                  style: LynType.micro.copyWith(
                     color: LynSurface.textSecondary(isDark),
-                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1150,9 +1140,8 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
                   ),
                   child: Text(
                     isArabic ? 'مطلوب' : 'required',
-                    style: const TextStyle(
+                    style: LynType.micro.copyWith(
                       color: Colors.red,
-                      fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -1163,19 +1152,19 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
           const SizedBox(height: 4),
           Text(
             param.description,
-            style: TextStyle(
+            style: LynType.caption.copyWith(
               color: LynSurface.textSecondary(isDark),
-              fontSize: 12,
+              fontWeight: FontWeight.w400,
             ),
           ),
           if (param.example != null) ...[
             const SizedBox(height: 4),
             Text(
               '${isArabic ? 'مثال' : 'Example'}: ${param.example}',
-              style: TextStyle(
+              style: LynType.micro.copyWith(
                 color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-                fontSize: 11,
                 fontFamily: 'monospace',
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],

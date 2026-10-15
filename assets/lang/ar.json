@@ -222,5 +222,8 @@
   "Name is required": "الاسم مطلوب",
   "Optional": "اختياري",
   "Please select an inbox": "الرجاء اختيار صندوق وارد",
-  "Tap to open": "اضغط للفتح"
+  "Tap to open": "اضغط للفتح",
+  "No internet connection": "لا يتوفر اتصال بالإنترنت",
+  "Most popular": "الأكثر شيوعاً",
+  "per_month": "/شهر"
 }

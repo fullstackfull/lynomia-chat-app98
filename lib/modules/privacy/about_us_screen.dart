@@ -6,6 +6,7 @@ import '../../layout/cubit/states.dart';
 import '../language/cubit/cubit.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 class PrivacyHubScreen extends StatefulWidget {
   const PrivacyHubScreen({super.key});
@@ -91,7 +92,9 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             ),
             title: Text(
               AppLocalizations.tr(context, 'legal_info'),
-              style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 18),
+              style: LynType.headline.copyWith(
+                color: textColor,
+              ),
             ),
             centerTitle: true,
             bottom: isLoading || error != null || termsData == null
@@ -104,8 +107,10 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
               indicatorWeight: 3,
               labelColor: LynPalette.indigo,
               unselectedLabelColor: subTextColor,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+              labelStyle: LynType.callout.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              unselectedLabelStyle: LynType.callout,
               tabs: [
                 _buildTab(icon: Icons.privacy_tip_outlined, label: AppLocalizations.tr(context, 'privacy_policy')),
                 _buildTab(icon: Icons.gavel_outlined, label: AppLocalizations.tr(context, 'terms_of_service')),
@@ -232,7 +237,10 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
               Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(16)), child: Icon(icon, size: 28, color: accentColor)),
               const SizedBox(width: 16),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(title, style: LynType.headline.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.bold,
+                )),
                 const SizedBox(height: 4),
                 Container(width: 40, height: 3, decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(2))),
               ])),
@@ -266,12 +274,21 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
         final title = section.substring(0, colonIndex).trim();
         final body = section.substring(colonIndex + 1).trim();
         return Padding(padding: const EdgeInsets.only(bottom: 20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text(title, style: TextStyle(color: accentColor, fontSize: 14, fontWeight: FontWeight.bold))),
+          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text(title, style: LynType.callout.copyWith(
+            color: accentColor,
+            fontWeight: FontWeight.bold,
+          ))),
           const SizedBox(height: 10),
-          Text(body, style: TextStyle(color: textColor, fontSize: 15, height: 1.8, fontWeight: FontWeight.w400), textAlign: TextAlign.start),
+          Text(body, style: LynType.body.copyWith(
+            color: textColor,
+            height: 1.8,
+          ), textAlign: TextAlign.start),
         ]));
       }
-      return Padding(padding: const EdgeInsets.only(bottom: 16), child: Text(section, style: TextStyle(color: textColor, fontSize: 15, height: 1.8, fontWeight: FontWeight.w400), textAlign: TextAlign.start));
+      return Padding(padding: const EdgeInsets.only(bottom: 16), child: Text(section, style: LynType.body.copyWith(
+        color: textColor,
+        height: 1.8,
+      ), textAlign: TextAlign.start));
     }).toList());
   }
 
@@ -279,7 +296,10 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
     Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: LynSurface.surface(isDark), borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)]), child: Column(children: [
       SizedBox(width: 48, height: 48, child: CircularProgressIndicator(strokeWidth: 3, valueColor: const AlwaysStoppedAnimation<Color>(LynPalette.indigo), backgroundColor: LynSurface.border(isDark))),
       const SizedBox(height: 20),
-      Text(AppLocalizations.tr(context, 'loading'), style: TextStyle(color: LynSurface.textSecondary(isDark), fontSize: 16, fontWeight: FontWeight.w500)),
+      Text(AppLocalizations.tr(context, 'loading'), style: LynType.subtitle.copyWith(
+        color: LynSurface.textSecondary(isDark),
+        fontWeight: FontWeight.w500,
+      )),
     ])),
   ]));
 
@@ -287,7 +307,10 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
   Widget _buildEmptyState(bool isDark, Color subTextColor) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
     Icon(Icons.description_outlined, size: 64, color: subTextColor.withOpacity(0.5)),
     const SizedBox(height: 16),
-    Text(AppLocalizations.tr(context, 'no_data'), style: TextStyle(color: subTextColor, fontSize: 16)),
+    Text(AppLocalizations.tr(context, 'no_data'), style: LynType.subtitle.copyWith(
+      color: subTextColor,
+      fontWeight: FontWeight.w400,
+    )),
   ]));
 
   // ✅ NEW: Banner للـ Offline Mode
@@ -314,9 +337,8 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
           Expanded(
             child: Text(
               AppLocalizations.tr(context, 'offline_mode'),
-              style: TextStyle(
+              style: LynType.callout.copyWith(
                 color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
-                fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -359,9 +381,8 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             // ✅ عنوان الخطأ
             Text(
               errorMessage,
-              style: TextStyle(
+              style: LynType.headline.copyWith(
                 color: LynSurface.textPrimary(isDark),
-                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -371,10 +392,10 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             // ✅ وصف إضافي
             Text(
               AppLocalizations.tr(context, 'check_connection'),
-              style: TextStyle(
+              style: LynType.callout.copyWith(
                 color: subTextColor,
-                fontSize: 14,
                 height: 1.5,
+                fontWeight: FontWeight.w400,
               ),
               textAlign: TextAlign.center,
             ),

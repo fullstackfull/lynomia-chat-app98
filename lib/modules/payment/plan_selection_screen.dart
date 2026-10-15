@@ -1,408 +1,5 @@
-
-//
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:hexcolor/hexcolor.dart';
-// import 'package:chat/layout/payment/payment_cubit.dart';
-// import 'package:chat/layout/payment/payment_states.dart';
-// import 'package:chat/shared/network/payment_api_service.dart';
-// import 'package:dio/dio.dart';
-//
-// import '../../layout/cubit/cubit.dart';
-// import '../../models/plan_models.dart';
-// import '../../shared/app_localizations.dart';
-// import 'payment_screen.dart';
-//
-// class PlanSelectionScreen extends StatelessWidget {
-//   const PlanSelectionScreen({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final isDark = AppCubit.get(context).isDark;
-//
-//     return BlocProvider(
-//       create: (context) => PaymentCubit(PaymentApiService(Dio()))..loadPlans(),
-//       child: Scaffold(
-//         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-//         appBar: AppBar(
-//           backgroundColor: LynSurface.canvas(isDark),
-//           elevation: 0,
-//           leading: IconButton(
-//             icon: Icon(Icons.arrow_back, color: LynSurface.textPrimary(isDark)),
-//             onPressed: () => Navigator.pop(context),
-//           ),
-//           title: Text(
-//             'اختر الخطة',
-//             style: TextStyle(
-//               color: LynSurface.textPrimary(isDark),
-//               fontSize: 20,
-//               fontWeight: FontWeight.w600,
-//             ),
-//           ),
-//         ),
-//         body: BlocConsumer<PaymentCubit, PaymentState>(
-//           listener: (context, state) {
-//             if (state is PlansError) {
-//               ScaffoldMessenger.of(context).showSnackBar(
-//                 SnackBar(
-//                   content: Text('لا يتوفر اتصال بالانترنت'),
-//                   backgroundColor: LynPalette.danger,
-//                   behavior: SnackBarBehavior.floating,
-//                 ),
-//               );
-//             }
-//           },
-//           builder: (context, state) {
-//             if (state is PlansLoading || state is PaymentInitial) {
-//               return const Center(child: CircularProgressIndicator());
-//             }
-//
-//             if (state is PlansError) {
-//               return Center(
-//                 child: Column(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: [
-//                     Icon(Icons.error_outline, size: 64, color: LynPalette.danger),
-//                     const SizedBox(height: 16),
-//                     Text(
-//                       'فشل تحميل الخطط',
-//                       style: TextStyle(
-//                         color: LynSurface.textPrimary(isDark),
-//                         fontSize: 20,
-//                         fontWeight: FontWeight.bold,
-//                       ),
-//                     ),
-//                     const SizedBox(height: 8),
-//                     ElevatedButton(
-//                       onPressed: () => context.read<PaymentCubit>().loadPlans(),
-//                       child: const Text('إعادة المحاولة'),
-//                     ),
-//                   ],
-//                 ),
-//               );
-//             }
-//
-//             if (state is PlansLoaded) {
-//               return _buildPlansList(context, state.plans, isDark);
-//             }
-//
-//             return const Center(child: CircularProgressIndicator());
-//           },
-//         ),
-//       ),
-//     );
-//   }
-//
-//   // ─── ترجمة المميزات ديناميكياً ─────────────────
-//   String _translateFeature(BuildContext context, String featureKey) {
-//     // نحاول الترجمة، وإذا لم نجدها نعرضها كما هي
-//     final translated = AppLocalizations.tr(context, 'feature_$featureKey');
-//
-//     // إذا لم تُترجم (تساوي نفس المفتاح)، نعرض المفتاح منسق
-//     if (translated == 'feature_$featureKey') {
-//       // ننسق المفتاح: ai_features → Ai Features
-//       return _formatFeatureKey(featureKey);
-//     }
-//
-//     return translated;
-//   }
-//
-//   // ─── تنسيق المفتاح إذا لم تُترجم ────────────────
-//   String _formatFeatureKey(String key) {
-//     return key
-//         .split('_')
-//         .map((word) => word.isNotEmpty
-//         ? '${word[0].toUpperCase()}${word.substring(1)}'
-//         : '')
-//         .join(' ');
-//   }
-//
-//   // ─── ترجمة الحدود ──────────────────────────────
-//   String _translateAgents(BuildContext context, int count) {
-//     return AppLocalizations.tr(context, 'limit_agents')
-//         .replaceFirst('{count}', count.toString());
-//   }
-//
-//   String _translateInboxes(BuildContext context, int count) {
-//     return AppLocalizations.tr(context, 'limit_inboxes')
-//         .replaceFirst('{count}', count.toString());
-//   }
-//
-//   Widget _buildPlansList(BuildContext context, List<PlanModel> plans, bool isDark) {
-//     return SafeArea(
-//       child: SingleChildScrollView(
-//         padding: const EdgeInsets.all(20),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             // Header
-//             Center(
-//               child: Column(
-//                 children: [
-//                   Text(
-//                     'خطط الاشتراك',
-//                     style: TextStyle(
-//                       color: LynSurface.textPrimary(isDark),
-//                       fontSize: 28,
-//                       fontWeight: FontWeight.w700,
-//                     ),
-//                   ),
-//                   const SizedBox(height: 12),
-//                   Text(
-//                     'اختر الخطة المناسبة لاحتياجاتك',
-//                     style: TextStyle(
-//                       color: LynSurface.textSecondary(isDark),
-//                       fontSize: 16,
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//             const SizedBox(height: 40),
-//
-//             // Plans from API
-//             ...plans.map((plan) => _buildPlanCard(context, plan, isDark)),
-//             const SizedBox(height: 40),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildPlanCard(BuildContext context, PlanModel plan, bool isDark) {
-//     // تحديد اللون حسب الخطة
-//     final Color color = _getPlanColor(plan.id);
-//     final bool isRecommended = plan.id == 'growth'; // Growth هي الأكثر شيوعاً
-//
-//     return Container(
-//       margin: const EdgeInsets.only(bottom: 20),
-//       decoration: BoxDecoration(
-//         color: LynSurface.surface(isDark),
-//         borderRadius: BorderRadius.circular(20),
-//         border: Border.all(
-//           color: isRecommended ? color : (LynSurface.border(isDark)),
-//           width: isRecommended ? 2 : 1,
-//         ),
-//         boxShadow: isDark ? null : [
-//           BoxShadow(
-//             color: Colors.black.withOpacity(0.05),
-//             blurRadius: 10,
-//             offset: const Offset(0, 4),
-//           ),
-//         ],
-//       ),
-//       child: Stack(
-//         children: [
-//           if (isRecommended)
-//             Positioned(
-//               top: 0,
-//               right: 0,
-//               child: Container(
-//                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-//                 decoration: BoxDecoration(
-//                   color: color,
-//                   borderRadius: const BorderRadius.only(
-//                     topRight: Radius.circular(18),
-//                     bottomLeft: Radius.circular(12),
-//                   ),
-//                 ),
-//                 child: const Text(
-//                   'الأكثر شيوعاً',
-//                   style: TextStyle(
-//                     color: Colors.white,
-//                     fontSize: 12,
-//                     fontWeight: FontWeight.w600,
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           Padding(
-//             padding: const EdgeInsets.all(24),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 // Title
-//                 Text(
-//                   plan.name,
-//                   style: TextStyle(
-//                     color: LynSurface.textPrimary(isDark),
-//                     fontSize: 24,
-//                     fontWeight: FontWeight.w700,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 12),
-//
-//                 // Price
-//                 Row(
-//                   crossAxisAlignment: CrossAxisAlignment.end,
-//                   children: [
-//                     Text(
-//                       plan.formattedPrice,
-//                       style: TextStyle(
-//                         color: color,
-//                         fontSize: 36,
-//                         fontWeight: FontWeight.w800,
-//                       ),
-//                     ),
-//                     const SizedBox(width: 4),
-//                     Padding(
-//                       padding: const EdgeInsets.only(bottom: 6),
-//                       child: Text(
-//                         '/شهر',
-//                         style: TextStyle(
-//                           color: LynSurface.textSecondary(isDark),
-//                           fontSize: 16,
-//                         ),
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//                 const SizedBox(height: 16),
-//
-//                 // Limits
-//                 Row(
-//                   children: [
-//                     _buildLimitChip(
-//                       icon: Icons.people,
-//                       label: _translateAgents(context, plan.agents),  // ← ترجمة ديناميكية
-//                       color: color,
-//                       isDark: isDark,
-//                     ),
-//                     const SizedBox(width: 12),
-//                     _buildLimitChip(
-//                       icon: Icons.inbox,
-//                       label: _translateInboxes(context, plan.inboxes),  // ← ترجمة ديناميكية
-//                       color: color,
-//                       isDark: isDark,
-//                     ),
-//                   ],
-//                 ),
-//                 const SizedBox(height: 20),
-//
-//                 // Divider
-//                 Divider(
-//                   color: LynSurface.border(isDark),
-//                 ),
-//                 const SizedBox(height: 16),
-//
-//                 // Features
-//                 ...plan.features.map(
-//                       (feature) => Padding(
-//                     padding: const EdgeInsets.only(bottom: 12),
-//                     child: Row(
-//                       children: [
-//                         Icon(Icons.check_circle, color: color, size: 20),
-//                         const SizedBox(width: 12),
-//                         Expanded(
-//                           child: Text(
-//                             _translateFeature(context, feature),  // ← ترجمة ديناميكية!
-//                             style: TextStyle(
-//                               color: LynSurface.textPrimary(isDark),
-//                               fontSize: 16,
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-//                 const SizedBox(height: 24),
-//
-//                 // Button
-//                 SizedBox(
-//                   width: double.infinity,
-//                   height: 56,
-//                   child: ElevatedButton(
-//                     onPressed: () {
-//                       // حفظ الخطة المختارة
-//                       context.read<PaymentCubit>().selectPlan(plan);
-//
-//                       // الانتقال لشاشة الدفع
-//                       // ✅ الصحيح - تمرير الـ Cubit
-//                       final paymentCubit = context.read<PaymentCubit>();
-//
-//                       Navigator.push(
-//                         context,
-//                         MaterialPageRoute(
-//                           builder: (context) => BlocProvider.value(
-//                             value: paymentCubit,
-//                             child: PaymentScreen(plan: plan),
-//                           ),
-//                         ),
-//                       );
-//                     },
-//                     style: ElevatedButton.styleFrom(
-//                       backgroundColor: color,
-//                       shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(12),
-//                       ),
-//                       elevation: 0,
-//                     ),
-//                     child: const Text(
-//                       'اشترك الآن',
-//                       style: TextStyle(
-//                         color: Colors.white,
-//                         fontSize: 16,
-//                         fontWeight: FontWeight.w600,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _buildLimitChip({
-//     required IconData icon,
-//     required String label,
-//     required Color color,
-//     required bool isDark,
-//   }) {
-//     return Container(
-//       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-//       decoration: BoxDecoration(
-//         color: color.withOpacity(0.1),
-//         borderRadius: BorderRadius.circular(8),
-//       ),
-//       child: Row(
-//         mainAxisSize: MainAxisSize.min,
-//         children: [
-//           Icon(icon, color: color, size: 16),
-//           const SizedBox(width: 4),
-//           Text(
-//             label,
-//             style: TextStyle(
-//               color: color,
-//               fontSize: 12,
-//               fontWeight: FontWeight.w600,
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Color _getPlanColor(String planId) {
-//     switch (planId) {
-//       case 'startup':
-//         return LynPalette.indigo; // بنفسجي
-//       case 'growth':
-//         return HexColor('#8B5CF6'); // بنفسجي فاتح
-//       case 'enterprise':
-//         return HexColor('#EC4899'); // وردي
-//       default:
-//         return LynPalette.indigo;
-//     }
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:chat/layout/payment/payment_cubit.dart';
 import 'package:chat/layout/payment/payment_states.dart';
 import 'package:chat/shared/network/payment_api_service.dart';
@@ -414,6 +11,7 @@ import '../../models/plan_models.dart';
 import '../../shared/app_localizations.dart';
 import 'payment_screen.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 class PlanSelectionScreen extends StatelessWidget {
   const PlanSelectionScreen({super.key});
@@ -427,18 +25,13 @@ class PlanSelectionScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: LynSurface.canvas(isDark),
+          backgroundColor: LynSurface.surface(isDark),
           elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: LynSurface.textPrimary(isDark)),
-            onPressed: () => Navigator.pop(context),
-          ),
+          scrolledUnderElevation: 0,
+          shape: Border(bottom: BorderSide(color: LynSurface.border(isDark))),
+          iconTheme: IconThemeData(color: LynSurface.textPrimary(isDark)),
           title: Text(AppLocalizations.tr(context, 'Choose the plan'),
-            style: TextStyle(
-              color: LynSurface.textPrimary(isDark),
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark)),
           ),
           // actions: [
           //   // ✅ زر إدارة الاشتراكات
@@ -464,7 +57,7 @@ class PlanSelectionScreen extends StatelessWidget {
             if (state is PlansError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('لا يتوفر اتصال بالانترنت'),
+                  content: Text(AppLocalizations.tr(context, 'No internet connection')),
                   backgroundColor: LynPalette.danger,
                   behavior: SnackBarBehavior.floating,
                 ),
@@ -481,19 +74,34 @@ class PlanSelectionScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64, color: LynPalette.danger),
-                    const SizedBox(height: 16),
-                    Text(AppLocalizations.tr(context, 'Failed to load plans.'),
-                      style: TextStyle(
-                        color: LynSurface.textPrimary(isDark),
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: LynSurface.dangerSurface(isDark),
+                        shape: BoxShape.circle,
                       ),
+                      child: Icon(Icons.wifi_off_rounded,
+                          size: 32, color: LynSurface.dangerText(isDark)),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: LynSpace.xl),
+                    Text(AppLocalizations.tr(context, 'Failed to load plans.'),
+                      style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark)),
+                    ),
+                    const SizedBox(height: LynSpace.xl),
                     ElevatedButton(
                       onPressed: () => context.read<PaymentCubit>().loadPlans(),
-                      child: const Text('إعادة المحاولة'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: LynPalette.indigo,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: LynSpace.xl, vertical: LynSpace.md),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(LynSpace.md)),
+                      ),
+                      // Was the hardcoded Arabic 'إعادة المحاولة', printed as-is to English users.
+                      child: Text(AppLocalizations.tr(context, 'Retry'), style: LynType.callout),
                     ),
                   ],
                 ),
@@ -511,16 +119,6 @@ class PlanSelectionScreen extends StatelessWidget {
     );
   }
 
-  // ✅ فتح إدارة الاشتراكات
-  Future<void> _openSubscriptionManagement() async {
-    final url = Uri.parse(
-        'https://play.google.com/store/account/subscriptions'
-    );
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
-  }
 
   // ─── ترجمة المميزات ديناميكياً ─────────────────
   String _translateFeature(BuildContext context, String featureKey) {
@@ -555,32 +153,27 @@ class PlanSelectionScreen extends StatelessWidget {
   Widget _buildPlansList(BuildContext context, List<PlanModel> plans, bool isDark) {
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(
+            LynSpace.xl, LynSpace.xl, LynSpace.xl, LynSpace.xxl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Center(
               child: Column(
                 children: [
                   Text(AppLocalizations.tr(context, 'Subscription Plans'),
-                    style: TextStyle(
-                      color: LynSurface.textPrimary(isDark),
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    textAlign: TextAlign.center,
+                    style: LynType.title.copyWith(color: LynSurface.textPrimary(isDark)),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: LynSpace.sm),
                   Text(AppLocalizations.tr(context, 'Choose the plan that suits your needs.'),
-                    style: TextStyle(
-                      color: LynSurface.textSecondary(isDark),
-                      fontSize: 16,
-                    ),
+                    textAlign: TextAlign.center,
+                    style: LynType.callout.copyWith(color: LynSurface.textSecondary(isDark)),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: LynSpace.xl),
 
             // ✅ معلومات التجديد التلقائي
             // Container(
@@ -637,66 +230,57 @@ class PlanSelectionScreen extends StatelessWidget {
   }
 
   Widget _buildPlanCard(BuildContext context, PlanModel plan, bool isDark) {
-    final Color color = _getPlanColor(plan.id);
+    final accent = _planAccent(plan.id, isDark);
+    final color = accent.fill;
+    final ink = accent.ink;
     final bool isRecommended = plan.id == 'growth';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: LynSpace.lg),
       decoration: BoxDecoration(
         color: LynSurface.surface(isDark),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(LynSpace.lg),
         border: Border.all(
           color: isRecommended ? color : (LynSurface.border(isDark)),
           width: isRecommended ? 2 : 1,
         ),
-        boxShadow: isDark ? null : [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Stack(
         children: [
           if (isRecommended)
-            Positioned(
+            PositionedDirectional(
               top: 0,
-              right: 0,
+              end: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: LynSpace.md, vertical: LynSpace.xs + 2),
                 decoration: BoxDecoration(
                   color: color,
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(18),
-                    bottomLeft: Radius.circular(12),
+                  // Directional, so the flag stays on the card's end corner in both scripts rather
+                  // than sliding over the plan's name in Arabic.
+                  borderRadius: const BorderRadiusDirectional.only(
+                    topEnd: Radius.circular(14),
+                    bottomStart: Radius.circular(LynSpace.md),
                   ),
                 ),
-                child: const Text(
-                  'الأكثر شيوعاً',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                // Was the hardcoded Arabic 'الأكثر شيوعاً' on the English screen too.
+                child: Text(
+                  AppLocalizations.tr(context, 'Most popular'),
+                  style: LynType.micro.copyWith(color: Colors.white),
                 ),
               ),
             ),
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(LynSpace.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Title
                 Text(
                   plan.name,
-                  style: TextStyle(
-                    color: LynSurface.textPrimary(isDark),
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: LynType.title.copyWith(color: LynSurface.textPrimary(isDark)),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: LynSpace.sm),
 
                 // Price
                 Row(
@@ -704,21 +288,15 @@ class PlanSelectionScreen extends StatelessWidget {
                   children: [
                     Text(
                       plan.formattedPrice,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 36,
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: LynType.display.copyWith(color: ink),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: LynSpace.xs),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.only(bottom: LynSpace.xs + 2),
                       child: Text(
-                        '/شهر',
-                        style: TextStyle(
-                          color: LynSurface.textSecondary(isDark),
-                          fontSize: 16,
-                        ),
+                        // Was the hardcoded Arabic '/شهر' beside every price, in both languages.
+                        AppLocalizations.tr(context, 'per_month'),
+                        style: LynType.callout.copyWith(color: LynSurface.textSecondary(isDark)),
                       ),
                     ),
                   ],
@@ -761,52 +339,52 @@ class PlanSelectionScreen extends StatelessWidget {
                       icon: Icons.people,
                       label: _translateAgents(context, plan.agents),
                       color: color,
+                      ink: ink,
                       isDark: isDark,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: LynSpace.sm),
                     _buildLimitChip(
                       icon: Icons.inbox,
                       label: _translateInboxes(context, plan.inboxes),
                       color: color,
+                      ink: ink,
                       isDark: isDark,
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-
-                // Divider
-                Divider(
-                  color: LynSurface.border(isDark),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: LynSpace.lg),
+                Divider(color: LynSurface.border(isDark), height: 1),
+                const SizedBox(height: LynSpace.lg),
 
                 // Features
                 ...plan.features.map(
                       (feature) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: LynSpace.md),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.check_circle, color: color, size: 20),
-                        const SizedBox(width: 12),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Icon(Icons.check_rounded, color: ink, size: 18),
+                        ),
+                        const SizedBox(width: LynSpace.md),
                         Expanded(
                           child: Text(
                             _translateFeature(context, feature),
-                            style: TextStyle(
-                              color: LynSurface.textPrimary(isDark),
-                              fontSize: 16,
-                            ),
+                            style: LynType.callout
+                                .copyWith(color: LynSurface.textPrimary(isDark)),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: LynSpace.lg),
 
                 // Button
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 52,
                   child: ElevatedButton(
                     onPressed: () {
                       context.read<PaymentCubit>().selectPlan(plan);
@@ -825,17 +403,14 @@ class PlanSelectionScreen extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: color,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(LynSpace.md),
                       ),
                       elevation: 0,
                     ),
-                    child:  Text(AppLocalizations.tr(context, 'Subscribe now'),
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Text(AppLocalizations.tr(context, 'Subscribe now'),
+                      style: LynType.subtitle.copyWith(color: Colors.white),
                     ),
                   ),
                 ),
@@ -851,42 +426,55 @@ class PlanSelectionScreen extends StatelessWidget {
     required IconData icon,
     required String label,
     required Color color,
+    required Color ink,
     required bool isDark,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+          horizontal: LynSpace.md, vertical: LynSpace.xs + 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withOpacity(isDark ? 0.22 : 0.12),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Icon(icon, color: ink, size: 14),
+          const SizedBox(width: LynSpace.xs + 2),
+          Text(label, style: LynType.micro.copyWith(color: ink)),
         ],
       ),
     );
   }
 
-  Color _getPlanColor(String planId) {
+  /// A plan's accent, as a PAIR: the hue that identifies the plan, and the tone its words are set in.
+  ///
+  /// One value cannot do both jobs. The brand indigo measures 5.00:1 on paper and 3.18:1 on the dark
+  /// card, so a single colour is readable in one theme and fails in the other — and the price, the
+  /// limit chips and the feature ticks were all painted in the fill colour straight. The fill is used
+  /// for the card's border, the recommendation flag and the button, where it sits under white; `ink`
+  /// is used wherever the accent has to carry text, and measures 7.9 / 6.8 and up on both fields.
+  ///
+  /// The three hues were a violet and a pink picked outside the palette. These are the product's own
+  /// blue, indigo and magenta, which is also the order they read in: trial, standard, top.
+  ({Color fill, Color ink}) _planAccent(String planId, bool isDark) {
     switch (planId) {
       case 'startup':
-        return LynPalette.indigo;
-      case 'growth':
-        return HexColor('#8B5CF6');
+        return (
+          fill: LynPalette.blue,
+          ink: isDark ? LynPalette.blueOnDark : LynPalette.royal,
+        );
       case 'enterprise':
-        return HexColor('#EC4899');
+        return (
+          fill: LynPalette.magenta,
+          ink: isDark ? LynPalette.magentaOnDark : LynPalette.magentaDeep,
+        );
+      case 'growth':
       default:
-        return LynPalette.indigo;
+        return (
+          fill: LynPalette.indigo,
+          ink: isDark ? LynPalette.indigoOnDark : LynPalette.indigoDeep,
+        );
     }
   }
 }

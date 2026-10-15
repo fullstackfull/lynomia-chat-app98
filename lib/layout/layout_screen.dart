@@ -327,10 +327,8 @@ class LayoutScreen extends StatelessWidget {
                     Text(
                       AppLocalizations.tr(context, 'not_subscribed'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: LynType.title.copyWith(
                         color: LynSurface.textPrimary(isDark),
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
                         height: 1.3,
                       ),
                     ),
@@ -377,11 +375,9 @@ class LayoutScreen extends StatelessWidget {
                             child: Text(
                               AppLocalizations.tr(context, 'subscribe_prompt'),
                               textAlign: TextAlign.start,
-                              style: TextStyle(
+                              style: LynType.callout.copyWith(
                                 color: LynSurface.textSecondary(isDark),
-                                fontSize: 14,
                                 height: 1.6,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -409,10 +405,7 @@ class LayoutScreen extends StatelessWidget {
                         icon: const Icon(Icons.arrow_forward_rounded, size: 20),
                         label: Text(
                           AppLocalizations.tr(context, 'subscribe_now'),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: LynType.subtitle,
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: LynPalette.indigo,
@@ -433,9 +426,8 @@ class LayoutScreen extends StatelessWidget {
                         onPressed: () => Navigator.of(dialogContext).pop(),
                         child: Text(
                           AppLocalizations.tr(context, 'cancel'),
-                          style: TextStyle(
+                          style: LynType.body.copyWith(
                             color: LynSurface.textSecondary(isDark),
-                            fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -595,16 +587,15 @@ class LayoutScreen extends StatelessWidget {
               children: [
                 Text(
                   'Powered by ',
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: LynType.micro.copyWith(
                     color: LynSurface.textTertiary(isDark),
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
                 SizedBox(width: 2),
                 Text(
                   'Lynomia',
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: LynType.micro.copyWith(
                     fontWeight: FontWeight.bold,
                     color: LynPalette.indigo,
                     decoration: TextDecoration.underline,
@@ -642,9 +633,8 @@ class LayoutScreen extends StatelessWidget {
                     const SizedBox(width: 16),
                     Text(
                       AppLocalizations.tr(context, 'logout_button'),
-                      style: TextStyle(
+                      style: LynType.body.copyWith(
                         color: Colors.red,
-                        fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -816,16 +806,16 @@ class LayoutScreen extends StatelessWidget {
             children: [
               Text(
                 flag,
-                style: const TextStyle(fontSize: 24),
+                style: LynType.title.copyWith(
+                  fontWeight: FontWeight.w400,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   label,
-                  style: TextStyle(
+                  style: LynType.subtitle.copyWith(
                     color: LynSurface.textPrimary(isDark),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../shared/app_localizations.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 class PrivacyScreen extends StatelessWidget {
   final String title;
@@ -43,10 +44,9 @@ class PrivacyScreen extends StatelessWidget {
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 title,
-                style: TextStyle(
+                style: LynType.headline.copyWith(
                   color: textColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: 18,
                 ),
               ),
               centerTitle: true,
@@ -153,9 +153,8 @@ class PrivacyScreen extends StatelessWidget {
                               const SizedBox(width: 12),
                               Text(
                                 title,
-                                style: TextStyle(
+                                style: LynType.headline.copyWith(
                                   color: textColor,
-                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -187,10 +186,8 @@ class PrivacyScreen extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           AppLocalizations.tr(context, 'last_updated'),
-                          style: TextStyle(
+                          style: LynType.caption.copyWith(
                             color: subTextColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -233,9 +230,8 @@ class PrivacyScreen extends StatelessWidget {
                   ),
                   child: Text(
                     title,
-                    style: TextStyle(
+                    style: LynType.callout.copyWith(
                       color: accentColor,
-                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -243,11 +239,9 @@ class PrivacyScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   body,
-                  style: TextStyle(
+                  style: LynType.body.copyWith(
                     color: textColor,
-                    fontSize: 15,
                     height: 1.8,
-                    fontWeight: FontWeight.w400,
                   ),
                   textAlign: TextAlign.start,
                 ),
@@ -260,11 +254,9 @@ class PrivacyScreen extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 16),
           child: Text(
             section,
-            style: TextStyle(
+            style: LynType.body.copyWith(
               color: textColor,
-              fontSize: 15,
               height: 1.8,
-              fontWeight: FontWeight.w400,
             ),
             textAlign: TextAlign.start,
           ),

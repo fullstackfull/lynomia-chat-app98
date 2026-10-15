@@ -221,8 +221,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                 
                       Text(
                         AppLocalizations.tr(context, 'New Conversation'),
-                        style: TextStyle(
-                          fontSize: 20,
+                        style: LynType.headline.copyWith(
                           fontWeight: FontWeight.bold,
                           color: LynSurface.textPrimary(isDark),
                         ),
@@ -230,9 +229,9 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                       const SizedBox(height: 4),
                       Text(
                         AppLocalizations.tr(context, 'Start a new conversation via email'),
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: LynType.callout.copyWith(
                           color: LynSurface.textSecondary(isDark),
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -422,10 +421,8 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                                 isLoading
                                     ? AppLocalizations.tr(context, 'Sending...')
                                     : AppLocalizations.tr(context, 'Send Message'),
-                                style: const TextStyle(
+                                style: LynType.subtitle.copyWith(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
@@ -493,9 +490,8 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
               Expanded(
                 child: Text(
                   AppLocalizations.tr(context, 'New WhatsApp Chat'),
-                  style: TextStyle(
+                  style: LynType.headline.copyWith(
                     color: LynSurface.textPrimary(isDark),
-                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -511,9 +507,9 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                 children: [
                   Text(
                     AppLocalizations.tr(context, 'Select the sender WhatsApp number and recipient details'),
-                    style: TextStyle(
+                    style: LynType.callout.copyWith(
                       color: LynSurface.textSecondary(isDark),
-                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -597,9 +593,9 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                         Expanded(
                           child: Text(
                             AppLocalizations.tr(context, 'Starting a new WhatsApp chat requires sending a WhatsApp template message first.'),
-                            style: TextStyle(
+                            style: LynType.micro.copyWith(
                               color: LynSurface.dangerText(isDark),
-                              fontSize: 11,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                         ),

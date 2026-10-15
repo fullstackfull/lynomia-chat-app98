@@ -14,6 +14,7 @@ import '../../shared/network/local/cache_helper.dart';
 import '../chat/chat_screen.dart';
 import '../login/login_screen.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 
 class SplashScreen extends StatefulWidget {
@@ -119,9 +120,7 @@ class _SplashScreenState extends State<SplashScreen>
                     // 📝 العنوان
                     Text(
                       'Lynomia Chat',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
+                      style: LynType.display.copyWith(
                         color: LynSurface.textPrimary(isDark),
                         letterSpacing: 1.5,
                       ),
@@ -130,9 +129,9 @@ class _SplashScreenState extends State<SplashScreen>
 
                     Text(
                       AppLocalizations.tr(context, 'Instant support team communication'),
-                      style: TextStyle(
-                        fontSize: 16,
+                      style: LynType.subtitle.copyWith(
                         color: LynSurface.textSecondary(isDark),
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                     const SizedBox(height: 48),
@@ -158,16 +157,15 @@ class _SplashScreenState extends State<SplashScreen>
                         children: [
                           Text(
                             'Powered by ',
-                            style: TextStyle(
-                              fontSize: 12,
+                            style: LynType.caption.copyWith(
                               color: LynSurface.textTertiary(isDark),
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
                           SizedBox(width: 2,),
                           Text(
                             'Lynomia',
-                            style: TextStyle(
-                              fontSize: 12,
+                            style: LynType.caption.copyWith(
                               fontWeight: FontWeight.bold,
                               color: LynPalette.indigo,
                               decoration: TextDecoration.underline,
