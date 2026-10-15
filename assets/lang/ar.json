@@ -248,5 +248,11 @@
   "history_unexpected": "حدث خطأ أثناء تحميل السجل. يرجى المحاولة مرة أخرى.",
   "Copy": "نسخ",
   "required": "مطلوب",
-  "Example": "مثال"
+  "Example": "مثال",
+  "Send message": "إرسال الرسالة",
+  "Hold to record": "اضغط مطولاً للتسجيل",
+  "Attach a file": "إرفاق ملف",
+  "Discard recording": "حذف التسجيل",
+  "Hold the microphone to record a voice message.": "اضغط مطولاً على الميكروفون لتسجيل رسالة صوتية.",
+  "Replies are closed. Send a template to reopen this conversation.": "الردود مغلقة. أرسل قالباً لإعادة فتح هذه المحادثة."
 }

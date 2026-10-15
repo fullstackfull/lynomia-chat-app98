@@ -30,6 +30,7 @@ import '../../shared/components/components.dart';
 import '../../shared/styles/lyn_channel.dart';
 import '../../shared/styles/lyn_palette.dart';
 import '../../shared/styles/lyn_type.dart';
+import 'widgets/chat_composer.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // ChatScreen - Professional WhatsApp-like Experience v2.0
@@ -75,7 +76,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   // ─── Animation Controllers ─────────────────────────────────
   late AnimationController _recordAnimationController;
-  late Animation<double> _recordAnimation;
 
   @override
   void initState() {
@@ -84,8 +84,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _initAudioPlayer();
     _initRecordAnimation();
 
-    // ✅ مراقبة تغيير النص لتحديث UI
-    _messageController.addListener(() => setState(() {}));
+    // No listener on `_messageController`. It used to be `addListener(() => setState(() {}))`, which
+    // rebuilt this entire screen -- the message list, every bubble, the app bar -- on every character
+    // typed, to swap one button between a microphone and a send arrow. `ChatComposer` listens to the
+    // controller around that button alone.
   }
 
   void _initAudioPlayer() {
@@ -110,10 +112,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
-
-    _recordAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
-      CurvedAnimation(parent: _recordAnimationController, curve: Curves.easeInOut),
-    );
   }
 
   @override
@@ -358,12 +356,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         );
       }
     }
-  }
-
-  String _formatDuration(int seconds) {
-    final mins = (seconds ~/ 60).toString().padLeft(2, '0');
-    final secs = (seconds % 60).toString().padLeft(2, '0');
-    return '$mins:$secs';
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -1617,85 +1609,49 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   // ═══════════════════════════════════════════════════════════════
   // INPUT FIELD (with Voice Recording)
   // ═══════════════════════════════════════════════════════════════
+  /// The composer, which now lives in `widgets/chat_composer.dart`.
+  ///
+  /// Everything it needs is passed in: this screen owns the recording state and the pickers, and the
+  /// composer owns how they look and how they are reached.
   Widget _buildInputField(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: LynSpace.sm, vertical: LynSpace.sm),
-      decoration: BoxDecoration(
-        color: LynSurface.surface(isDark),
-        border: Border(top: BorderSide(color: LynSurface.border(isDark))),
-      ),
-      child: SafeArea(
-        child: _isRecording ? _buildRecordingUI(isDark) : _buildNormalInput(isDark),
-      ),
+    final cubit = AppCubit.get(context);
+    final channelType = cubit.selectedConversation?.channelType?.toLowerCase() ??
+        cubit.selectedInbox?.channelType?.toLowerCase() ??
+        '';
+
+    return ChatComposer(
+      controller: _messageController,
+      isDark: isDark,
+      isWhatsAppChannel: channelType.contains('whatsapp'),
+      isRestrictedToTemplates: cubit.is24HourWindowRestricted(cubit.selectedConversation),
+      isRecording: _isRecording,
+      recordingSeconds: _recordingSeconds,
+      recordAnimation: _recordAnimationController,
+      onSend: _sendMessage,
+      onStartRecording: _startRecording,
+      onStopRecording: _stopRecording,
+      onCancelRecording: _discardRecording,
+      onPickCamera: () => _pickImage(ImageSource.camera),
+      onPickGallery: () => _pickImage(ImageSource.gallery),
+      onPickFile: _pickFile,
+      onOpenTemplates: () => _showWhatsAppTemplatesModal(context, cubit, isDark),
     );
   }
 
-  Widget _buildRecordingUI(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          // ✅ زر الإلغاء
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () async {
-              try {
-                await _audioRecorder.stop();
-              } catch (e) {
-                print('❌ Error stopping recorder: $e');
-              }
-              _recordingTimer?.cancel();
-              setState(() {
-                _isRecording = false;
-                _recordingSeconds = 0;
-              });
-            },
-          ),
-
-          // ✅ موجة صوتية متحركة
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(20, (index) {
-                return AnimatedBuilder(
-                  animation: _recordAnimationController,
-                  builder: (context, child) {
-                    final height = 4 + (math.sin((_recordAnimationController.value * math.pi * 2) + index * 0.5) * 20).abs();
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      width: 3,
-                      height: height,
-                      decoration: BoxDecoration(color: LynPalette.indigo, borderRadius: BorderRadius.circular(2)),
-                    );
-                  },
-                );
-              }),
-            ),
-          ),
-
-          // ✅ المدة
-          Text(
-            _formatDuration(_recordingSeconds),
-            style: LynType.subtitle.copyWith(
-              color: LynPalette.indigo,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // ✅ زر الإرسال
-          GestureDetector(
-            onTap: _stopRecording,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(color: LynPalette.indigo, shape: BoxShape.circle),
-              child: const Icon(Icons.send, color: Colors.white, size: 22),
-            ),
-          ),
-        ],
-      ),
-    );
+  /// Throw the recording away. The send path is `_stopRecording`; this one stops the recorder and keeps
+  /// nothing, which is what the bin in the recording bar has always meant.
+  Future<void> _discardRecording() async {
+    try {
+      await _audioRecorder.stop();
+    } catch (e) {
+      print('❌ Error stopping recorder: $e');
+    }
+    _recordingTimer?.cancel();
+    if (!mounted) return;
+    setState(() {
+      _isRecording = false;
+      _recordingSeconds = 0;
+    });
   }
 
   Widget _build24HourWindowBanner(bool isDark) {
@@ -1721,133 +1677,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildNormalInput(bool isDark) {
-    final cubit = AppCubit.get(context);
-    final is24hRestricted = cubit.is24HourWindowRestricted(cubit.selectedConversation);
-    final channelType = cubit.selectedConversation?.channelType?.toLowerCase() ??
-        cubit.selectedInbox?.channelType?.toLowerCase() ??
-        '';
-    final isWhatsAppChannel = channelType.contains('whatsapp');
-
-    if (is24hRestricted) {
-      return Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: LynSurface.canvasAlt(isDark),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Text(
-                AppLocalizations.tr(context, 'You can only reply using a template message due to 24-hour message window restriction'),
-                style: LynType.caption.copyWith(color: LynSurface.textTertiary(isDark)),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton.icon(
-            onPressed: () => _showWhatsAppTemplatesModal(context, cubit, isDark),
-            icon: const Icon(Icons.description, size: 18),
-            label: Text(AppLocalizations.tr(context, 'Send Template'), style: LynType.callout),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: LynPalette.indigo,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-              padding: const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.md),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return Row(
-      children: [
-        if (isWhatsAppChannel)
-          IconButton(
-            icon: Icon(Icons.description_outlined, color: LynPalette.indigo),
-            tooltip: AppLocalizations.tr(context, 'Whatsapp Templates'),
-            onPressed: () => _showWhatsAppTemplatesModal(context, cubit, isDark),
-          ),
-
-        // ✅ زر المرفقات
-        PopupMenuButton<String>(
-          icon: Icon(Icons.attach_file, color: LynSurface.textSecondary(isDark)),
-          onSelected: (value) {
-            switch (value) {
-              case 'camera': _pickImage(ImageSource.camera); break;
-              case 'gallery': _pickImage(ImageSource.gallery); break;
-              case 'file': _pickFile(); break;
-            }
-          },
-          itemBuilder: (context) => [
-            PopupMenuItem(value: 'camera', child: Row(children: [Icon(Icons.camera_alt, color: LynPalette.indigo), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'Camera'))])),
-            PopupMenuItem(value: 'gallery', child: Row(children: [Icon(Icons.photo_library, color: LynPalette.indigo), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'Gallery'))])),
-            PopupMenuItem(value: 'file', child: Row(children: [Icon(Icons.insert_drive_file, color: LynPalette.indigo), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'File'))])),
-          ],
-        ),
-
-        // ✅ حقل النص
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              color: LynSurface.surfaceMuted(isDark),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: LynSurface.border(isDark)),
-            ),
-            child: TextField(
-              controller: _messageController,
-              // No forced `TextAlign.right`: the field follows the keyboard's own script, so an agent
-              // typing English gets English alignment and one typing Arabic gets Arabic.
-              textAlign: TextAlign.start,
-              style: LynType.body.copyWith(color: LynSurface.textPrimary(isDark)),
-              minLines: 1,
-              maxLines: 5,
-              textInputAction: TextInputAction.send,
-              keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
-              decoration: InputDecoration(
-                hintText: AppLocalizations.tr(context, 'Type your message...'),
-                hintStyle: LynType.body.copyWith(color: LynSurface.textSecondary(isDark)),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.md),
-              ),
-              onSubmitted: (_) => _sendMessage(),
-            ),
-          ),
-        ),
-
-        const SizedBox(width: 8),
-
-        // ✅ زر التسجيل الصوتي أو الإرسال
-        _messageController.text.isEmpty
-            ? GestureDetector(
-          onLongPressStart: (_) => _startRecording(),
-          onLongPressEnd: (_) => _stopRecording(),
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(color: LynPalette.indigo, shape: BoxShape.circle),
-            child: const Icon(Icons.mic, color: Colors.white, size: 22),
-          ),
-        )
-            : GestureDetector(
-          onTap: _sendMessage,
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(color: LynPalette.indigo, shape: BoxShape.circle),
-            child: const Icon(Icons.send, color: Colors.white, size: 22),
-          ),
-        ),
-      ],
     );
   }
 
