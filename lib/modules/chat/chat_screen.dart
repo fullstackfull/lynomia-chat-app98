@@ -118,11 +118,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     });
   }
 
+  // Created here, driven by the recording state below. It used to `..repeat(reverse: true)` from
+  // `initState`, so the ticker ran for the whole life of the chat screen -- a frame callback a second
+  // forever -- while its only listener, the composer's waveform, exists only while recording.
   void _initRecordAnimation() {
     _recordAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
+    );
   }
 
   @override
@@ -307,6 +310,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         _isRecording = true;
         _recordingSeconds = 0;
       });
+      _recordAnimationController.repeat(reverse: true);
 
       _recordingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted) setState(() => _recordingSeconds++);
@@ -332,6 +336,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       print('🎙️ Recording stopped. Path: $path');
 
       setState(() => _isRecording = false);
+      _recordAnimationController.stop();
+      _recordAnimationController.value = 0;
 
       if (path != null) {
         final file = File(path);
@@ -1496,6 +1502,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       print('❌ Error stopping recorder: $e');
     }
     _recordingTimer?.cancel();
+    _recordAnimationController.stop();
+    _recordAnimationController.value = 0;
     if (!mounted) return;
     setState(() {
       _isRecording = false;
@@ -1713,19 +1721,20 @@ class _DeleteDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      // Neither the title nor the body carries a physical `TextAlign.right` any more: both are
+      // localized strings, and an AlertDialog already aligns to the ambient direction, so the only
+      // thing the override did was set the English copy ragged-left.
       backgroundColor: LynSurface.surface(isDark),
       title: Text(
         isMultiple
             ? AppLocalizations.tr(context, 'Delete {count} messages').replaceFirst('{count}', count.toString())
             : AppLocalizations.tr(context, 'Delete Message'),
-        textAlign: TextAlign.right,
         style: TextStyle(color: LynSurface.textPrimary(isDark)),
       ),
       content: Text(
         isMultiple
             ? AppLocalizations.tr(context, 'Are you sure you want to delete the selected messages?')
             : AppLocalizations.tr(context, 'Are you sure you want to delete this message?'),
-        textAlign: TextAlign.right,
         style: TextStyle(color: LynSurface.textSecondary(isDark)),
       ),
       actions: [
@@ -1735,7 +1744,13 @@ class _DeleteDialog extends StatelessWidget {
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
-          child: Text(AppLocalizations.tr(context, 'Delete'), style: const TextStyle(color: Colors.red)),
+          // `Colors.red` (#F44336) on this dialog's surface measures 4.32:1 on the dark theme and
+          // 3.68:1 on the light one -- both under the 4.5:1 that text needs, for the one control in
+          // the dialog that destroys something. `dangerText` is the theme-aware pair.
+          child: Text(
+            AppLocalizations.tr(context, 'Delete'),
+            style: TextStyle(color: LynSurface.dangerText(isDark)),
+          ),
         ),
       ],
     );
@@ -2023,7 +2038,8 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Language: ${template.language ?? 'en'}',
+                    AppLocalizations.tr(context, 'template_language')
+                        .replaceFirst('{language}', template.language ?? 'en'),
                     style: LynType.caption.copyWith(
                       color: LynSurface.textPrimary(widget.isDark),
                     ),
@@ -2104,7 +2120,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                   if (variables.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Text(
-                      'Template Parameters',
+                      AppLocalizations.tr(context, 'template_parameters'),
                       style: LynType.body.copyWith(
                         color: LynSurface.textPrimary(widget.isDark),
                         fontWeight: FontWeight.bold,
@@ -2118,7 +2134,8 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                           controller: _paramControllers[varName],
                           style: TextStyle(color: LynSurface.textPrimary(widget.isDark)),
                           decoration: InputDecoration(
-                            labelText: 'Variable {{ $varName }}',
+                            labelText: AppLocalizations.tr(context, 'template_variable')
+                                .replaceFirst('{name}', varName),
                             labelStyle: TextStyle(color: LynPalette.indigo),
                             filled: true,
                             fillColor: LynSurface.canvas(widget.isDark),

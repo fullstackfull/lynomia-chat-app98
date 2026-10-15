@@ -386,9 +386,10 @@ class LayoutScreen extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
+        // Localized text in a dialog that already follows the ambient direction; the physical
+        // override only mis-aligned the English copy.
         title: Text(
           AppLocalizations.tr(context, 'logout_confirm_title'),
-          textAlign: TextAlign.right,
           style: TextStyle(
             color: LynSurface.textPrimary(isDark),
             fontWeight: FontWeight.bold,
@@ -396,7 +397,6 @@ class LayoutScreen extends StatelessWidget {
         ),
         content: Text(
           AppLocalizations.tr(context, 'logout_confirm_message'),
-          textAlign: TextAlign.right,
           style: TextStyle(
             color: LynSurface.textSecondary(isDark),
           ),

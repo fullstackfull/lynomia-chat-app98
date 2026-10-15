@@ -74,11 +74,18 @@ class AppLogoutState extends AppStates {}
 // ─── Login States ───────────────────────────────
 class AppLoginLoadingState extends AppStates {}
 class AppLoginSuccessState extends AppStates {}
+/// A login failure, as a localization KEY rather than a sentence.
+///
+/// It used to carry `error.toString()`, which the login screen showed verbatim. So an
+/// English-locale user whose sign-in failed got an Arabic sentence, and the ones that came from the
+/// catch block arrived with Dart's own `Exception: ` prefix glued to the front. A key translates at
+/// the point of display, which is the only place that knows the user's locale -- the same shape
+/// `AppPaymentHistoryErrorState` already relies on.
 class AppLoginErrorState extends AppStates {
-  final String error;
-  const AppLoginErrorState({required this.error});
+  final String messageKey;
+  const AppLoginErrorState({required this.messageKey});
   @override
-  List<Object?> get props => [error];
+  List<Object?> get props => [messageKey];
 }
 
 // ─── Fetch Inboxes States ─────────────────────

@@ -479,7 +479,8 @@ class AppCubit extends Cubit<AppStates> {
 
     } catch (error) {
       print('❌ Login/Auth Error: $error');
-      emit(AppLoginErrorState(error: error.toString()));
+      // The cause stays in the log; the user gets a sentence in their own language.
+      emit(const AppLoginErrorState(messageKey: 'login_failed'));
     }
   }
 
@@ -497,7 +498,7 @@ class AppCubit extends Cubit<AppStates> {
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {
-        emit(AppLoginErrorState(error: 'تم إلغاء تسجيل الدخول'));
+        emit(const AppLoginErrorState(messageKey: 'login_cancelled'));
         return;
       }
 
@@ -505,7 +506,7 @@ class AppCubit extends Cubit<AppStates> {
       final String? idToken = googleAuth.idToken;
 
       if (idToken == null || idToken.isEmpty) {
-        emit(AppLoginErrorState(error: 'فشل الحصول على رمز Google'));
+        emit(const AppLoginErrorState(messageKey: 'login_google_token_failed'));
         return;
       }
 
@@ -529,7 +530,7 @@ class AppCubit extends Cubit<AppStates> {
       emit(AppAuthCompleteState());
     } catch (error) {
       print('❌ Google Login Error: $error');
-      emit(AppLoginErrorState(error: error.toString()));
+      emit(const AppLoginErrorState(messageKey: 'login_failed'));
     }
   }
   Future<void> checkSubscription({required String email, bool fromCache = false}) async {
@@ -1646,9 +1647,7 @@ class AppCubit extends Cubit<AppStates> {
       // ✅ التحقق من توفر Apple Sign-In
       final isAvailable = await SignInWithApple.isAvailable();
       if (!isAvailable) {
-        emit(AppLoginErrorState(
-            error: 'تسجيل الدخول بـ Apple غير متاح على هذا الجهاز'
-        ));
+        emit(const AppLoginErrorState(messageKey: 'login_apple_unavailable'));
         return;
       }
 
@@ -1679,7 +1678,7 @@ class AppCubit extends Cubit<AppStates> {
 
       // ✅ 2. التحقق من البيانات
       if (credential.userIdentifier == null) {
-        emit(AppLoginErrorState(error: 'فشل الحصول على معرف المستخدم'));
+        emit(const AppLoginErrorState(messageKey: 'login_user_id_missing'));
         return;
       }
 
@@ -1712,16 +1711,19 @@ class AppCubit extends Cubit<AppStates> {
     } catch (error) {
       print('❌ Apple Login Error: $error');
 
-      String errorMessage = error.toString();
-      if (errorMessage.contains('canceled') || errorMessage.contains('AuthorizationErrorCode.canceled')) {
-        errorMessage = 'تم إلغاء تسجيل الدخول';
-      } else if (errorMessage.contains('not_available') || errorMessage.contains('notAvailable')) {
-        errorMessage = 'تسجيل الدخول بـ Apple غير متاح على هذا الجهاز';
-      } else if (errorMessage.contains('configure')) {
-        errorMessage = 'يجب إعداد Apple Developer أولاً';
+      final raw = error.toString();
+      final String messageKey;
+      if (raw.contains('canceled') || raw.contains('AuthorizationErrorCode.canceled')) {
+        messageKey = 'login_cancelled';
+      } else if (raw.contains('not_available') || raw.contains('notAvailable')) {
+        messageKey = 'login_apple_unavailable';
+      } else if (raw.contains('configure')) {
+        messageKey = 'login_apple_setup_required';
+      } else {
+        messageKey = 'login_failed';
       }
 
-      emit(AppLoginErrorState(error: errorMessage));
+      emit(AppLoginErrorState(messageKey: messageKey));
     }
   }
 

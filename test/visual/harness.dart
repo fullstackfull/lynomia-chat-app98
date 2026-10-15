@@ -116,6 +116,27 @@ const List<LocalizationsDelegate<dynamic>> _testDelegates = <LocalizationsDelega
   GlobalWidgetsLocalizations.delegate,
 ];
 
+/// A `MaterialApp` with the same localizations the app installs, for a test that asserts BEHAVIOUR
+/// rather than taking a picture and so does not go through [shoot].
+///
+/// It is not optional plumbing: a widget that calls `AppLocalizations.tr` throws on a null check
+/// without the delegate in scope, and `main.dart` puts it above every screen, so a test that leaves
+/// it out is testing a tree the app never builds.
+Future<Widget> testApp(
+  WidgetTester tester, {
+  required Widget home,
+  Locale locale = const Locale('en'),
+}) async {
+  await _preloadStrings(tester);
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    locale: locale,
+    localizationsDelegates: _testDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: home,
+  );
+}
+
 /// Gives every text slot in [theme] a family the test engine actually has.
 ///
 /// `textTheme` only needs the Arabic fallback appended. The two styles declared OUTSIDE it --

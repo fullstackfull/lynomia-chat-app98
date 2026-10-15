@@ -265,5 +265,15 @@
   "Saving image": "Saving image…",
   "Image saved": "Image saved",
   "Could not save image": "Could not save image",
-  "Sent": "Sent"
+  "Sent": "Sent",
+  "login_failed": "Sign-in did not complete. Please check your details and try again.",
+  "login_cancelled": "Sign-in was cancelled.",
+  "login_google_token_failed": "Google did not return a sign-in token. Please try again.",
+  "login_apple_unavailable": "Sign in with Apple is not available on this device.",
+  "login_apple_setup_required": "Sign in with Apple is not set up for this app yet.",
+  "login_user_id_missing": "The sign-in did not return a user id. Please try again.",
+  "template_language": "Language: {language}",
+  "template_parameters": "Template parameters",
+  "template_variable": "Variable {name}",
+  "dismiss": "Dismiss"
 }

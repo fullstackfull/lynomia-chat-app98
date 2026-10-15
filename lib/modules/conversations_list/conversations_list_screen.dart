@@ -291,9 +291,12 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                       const SizedBox(height: 16),
                 
                       // ✅ الاسم
+                      // No `TextAlign.right`: a physical alignment put every English name, address
+                      // and message ragged-left in an LTR layout. Left unset the field follows the
+                      // ambient direction and the keyboard's own script, which is what the chat
+                      // composer already does (chat_composer.dart:177).
                       TextFormField(
                         controller: nameController,
-                        textAlign: TextAlign.right,
                         style: TextStyle(color: LynSurface.textPrimary(isDark)),
                         decoration: InputDecoration(
                           labelText: AppLocalizations.tr(context, 'Contact Name'),
@@ -315,7 +318,6 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                       // ✅ البريد الإلكتروني
                       TextFormField(
                         controller: emailController,
-                        textAlign: TextAlign.right,
                         keyboardType: TextInputType.emailAddress,
                         style: TextStyle(color: LynSurface.textPrimary(isDark)),
                         decoration: InputDecoration(
@@ -364,7 +366,6 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                       // ✅ الرسالة الأولى
                       TextFormField(
                         controller: messageController,
-                        textAlign: TextAlign.right,
                         maxLines: 4,
                         style: TextStyle(color: LynSurface.textPrimary(isDark)),
                         decoration: InputDecoration(

@@ -265,5 +265,15 @@
   "Saving image": "جارٍ حفظ الصورة…",
   "Image saved": "تم حفظ الصورة",
   "Could not save image": "تعذّر حفظ الصورة",
-  "Sent": "تم الإرسال"
+  "Sent": "تم الإرسال",
+  "login_failed": "لم تكتمل عملية تسجيل الدخول. تأكد من بياناتك وحاول مرة أخرى.",
+  "login_cancelled": "تم إلغاء تسجيل الدخول.",
+  "login_google_token_failed": "لم يُرجع Google رمز تسجيل الدخول. حاول مرة أخرى.",
+  "login_apple_unavailable": "تسجيل الدخول بـ Apple غير متاح على هذا الجهاز.",
+  "login_apple_setup_required": "لم يتم إعداد تسجيل الدخول بـ Apple لهذا التطبيق بعد.",
+  "login_user_id_missing": "لم يُرجع تسجيل الدخول معرّف المستخدم. حاول مرة أخرى.",
+  "template_language": "اللغة: {language}",
+  "template_parameters": "متغيّرات القالب",
+  "template_variable": "المتغيّر {name}",
+  "dismiss": "إغلاق"
 }

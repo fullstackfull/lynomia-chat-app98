@@ -1808,8 +1808,12 @@ throw Exception('فشل إرسال الرسالة: $e');
       print('📎 File: ${file.path} | Ext: $ext | MIME: $mimeType | ChatwootType: $chatwootFileType');
 
       // ✅ إنشاء FormData مع النوع الصحيح
+      // A captionless voice note used to be sent with '🎵 تسجيل صوتي' as its BODY -- an Arabic
+      // string on every send whatever the sender's locale, and a non-empty body makes the dashboard
+      // render a text bubble instead of its audio player. An attachment-only message is the normal
+      // shape here; every other file type already sends ''.
       final formData = FormData.fromMap({
-        'content': content ?? (chatwootFileType == 'audio' ? '🎵 تسجيل صوتي' : ''),
+        'content': content ?? '',
         'message_type': messageType,
         'private': isPrivate.toString(),
       });

@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (state is AppLoginErrorState) {
           CustomToast.show(
             context: context,
-            message: state.error,
+            message: AppLocalizations.tr(context, state.messageKey),
             state: ToastStates.error,
           );
         }
