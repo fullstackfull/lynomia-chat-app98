@@ -11,7 +11,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:chat/layout/home_view.dart';
 import 'package:chat/models/chatwoot_models.dart';
-import 'package:chat/shared/app_localizations.dart';
 import 'package:chat/shared/styles/lyn_palette.dart';
 import 'package:chat/shared/styles/themes.dart';
 
