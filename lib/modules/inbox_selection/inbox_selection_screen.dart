@@ -11,6 +11,7 @@ import '../conversations_list/conversations_list_screen.dart';
 import '../../shared/styles/lyn_channel.dart';
 import '../../shared/styles/lyn_controls.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_skeleton.dart';
 import '../../shared/styles/lyn_type.dart';
 
 class InboxSelectionScreen extends StatefulWidget {
@@ -58,28 +59,30 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
         final isDark = cubit.isDark;
         final inboxes = cubit.inboxes;
 
-        return RefreshIndicator(
-          onRefresh: ()=> context.read<AppCubit>().fetchInboxes(),
-          child: Scaffold(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            appBar: AppBar(
-              backgroundColor: LynSurface.surface(isDark),
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              shape: Border(bottom: BorderSide(color: LynSurface.border(isDark))),
-              centerTitle: true,
-              iconTheme: IconThemeData(color: LynSurface.textPrimary(isDark)),
-              title: Text(
-                AppLocalizations.tr(context, 'Select Inbox'),
-                style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark)),
-              ),
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          appBar: AppBar(
+            backgroundColor: LynSurface.surface(isDark),
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            shape: Border(bottom: BorderSide(color: LynSurface.border(isDark))),
+            centerTitle: true,
+            iconTheme: IconThemeData(color: LynSurface.textPrimary(isDark)),
+            title: Text(
+              AppLocalizations.tr(context, 'Select Inbox'),
+              style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark)),
             ),
-            body: state is AppFetchInboxesLoadingState
-                ? Center(
-                    child: CircularProgressIndicator(
-                      color: LynPalette.indigo,
-                    ),
-                  )
+          ),
+          // The RefreshIndicator used to wrap the SCAFFOLD, which put its own box at the top of the
+          // screen rather than at the top of the list. Measured: the spinner landed at y 40-89 with
+          // the app bar's bottom edge at 56, so sixteen of its forty-nine pixels painted over the
+          // title. Inside the body it sits at 96-145, clear of the bar -- which is also where the
+          // conversations list already puts its own.
+          body: RefreshIndicator(
+            onRefresh: () => context.read<AppCubit>().fetchInboxes(),
+            color: LynPalette.indigo,
+            child: state is AppFetchInboxesLoadingState
+                ? InboxListSkeleton(isDark: isDark)
                 : inboxes.isEmpty
                     ? _buildEmptyState(isDark)
                     : _buildInboxList(inboxes, isDark),
@@ -138,11 +141,34 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
     return ListView.builder(
       padding: const EdgeInsets.all(LynSpace.lg),
       itemCount: visible.length,
-      itemBuilder: (context, index) => _buildInboxCard(visible[index], isDark),
+      itemBuilder: (context, index) => InboxCard(
+        inbox: visible[index],
+        isDark: isDark,
+        onTap: () => _selectInbox(visible[index]),
+      ),
     );
   }
+}
 
-  Widget _buildInboxCard(ChatwootInbox inbox, bool isDark) {
+/// One inbox, as a card.
+///
+/// A widget rather than a method on the screen's state, for the same reason `ConversationItem` is one:
+/// a golden can then pump the card the application actually ships instead of a reconstruction of it,
+/// and the placeholder below can be held to the card's measured height rather than to a guess at it.
+class InboxCard extends StatelessWidget {
+  const InboxCard({
+    super.key,
+    required this.inbox,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final ChatwootInbox inbox;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     final accent = LynChannel.color(inbox.channelType);
 
     return Padding(
@@ -151,7 +177,7 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
         color: LynSurface.surface(isDark),
         borderRadius: BorderRadius.circular(LynSpace.lg),
         child: InkWell(
-          onTap: () => _selectInbox(inbox),
+          onTap: onTap,
           borderRadius: BorderRadius.circular(LynSpace.lg),
           child: Container(
             padding: const EdgeInsets.all(LynSpace.lg),
@@ -201,7 +227,76 @@ class _InboxSelectionScreenState extends State<InboxSelectionScreen> {
       ),
     );
   }
+}
 
+/// The inbox list before the inboxes arrive.
+///
+/// The card's own geometry: the same 16px gutter and card padding, the same 48px channel tile at the
+/// same 12px radius, the same two lines, the same hairline border. The channel colour is deliberately
+/// absent -- it is the one thing on the card that cannot be guessed before the response says which
+/// channel each inbox is, and a placeholder that invents a colour would be showing something untrue.
+class InboxListSkeleton extends StatelessWidget {
+  const InboxListSkeleton({super.key, required this.isDark, this.cards});
 
+  final bool isDark;
 
+  /// Null means as many as the viewport holds. See `ConversationListSkeleton.rows`.
+  final int? cards;
+
+  /// Name width, then channel-label width, as a fraction of the text column.
+  static const List<List<double>> _widths = <List<double>>[
+    <double>[0.58, 0.30],
+    <double>[0.42, 0.38],
+    <double>[0.66, 0.26],
+    <double>[0.50, 0.34],
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return LynSkeletonGroup(
+      isDark: isDark,
+      label: AppLocalizations.tr(context, 'Loading inboxes...'),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(LynSpace.lg),
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: cards,
+        itemBuilder: (context, index) => _card(_widths[index % _widths.length]),
+      ),
+    );
+  }
+
+  Widget _card(List<double> widths) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: LynSpace.md),
+      child: Container(
+        padding: const EdgeInsets.all(LynSpace.lg),
+        decoration: BoxDecoration(
+          color: LynSurface.surface(isDark),
+          borderRadius: BorderRadius.circular(LynSpace.lg),
+          border: Border.all(color: LynSurface.border(isDark)),
+        ),
+        child: Row(
+          children: [
+            LynSkeletonBlock(isDark: isDark, width: 48, height: 48, radius: LynSpace.md),
+            const SizedBox(width: LynSpace.lg),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, box) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    LynSkeletonBlock.line(
+                        isDark: isDark, width: box.maxWidth * widths[0], height: 14),
+                    const SizedBox(height: kSkeletonLineGap + 2),
+                    LynSkeletonBlock.line(
+                        isDark: isDark, width: box.maxWidth * widths[1], height: 10),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

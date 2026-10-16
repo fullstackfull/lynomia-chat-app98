@@ -130,6 +130,7 @@
   "legal_info": "Legal Information",
   "last_updated": "Last Updated",
   "loading": "Loading...",
+  "loading_conversations": "Loading conversations…",
   "error_loading": "An error occurred",
   "retry": "Retry",
   "no_data": "No data available",

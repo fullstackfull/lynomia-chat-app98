@@ -13,6 +13,7 @@ import '../../shared/components/components.dart';
 import '../chat/chat_screen.dart';
 import '../../shared/styles/lyn_channel.dart';
 import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_skeleton.dart';
 import '../../shared/styles/lyn_type.dart';
 
 class ConversationsScreen extends StatefulWidget {
@@ -69,7 +70,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
             ),
           ),
           body: state is AppFetchConversationsLoadingState && conversations.isEmpty
-              ? _buildLoadingState()
+              ? ConversationListSkeleton(isDark: isDark)
               : conversations.isEmpty
               ? _buildEmptyState(isDark)
               : RefreshIndicator(
@@ -647,14 +648,6 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
     );
   }
 
-  Widget _buildLoadingState() {
-    return Center(
-      child: CircularProgressIndicator(
-        color: LynPalette.indigo,
-      ),
-    );
-  }
-
   Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
@@ -905,5 +898,92 @@ class ConversationItem extends StatelessWidget {
     if (diffDays == 1) return AppLocalizations.tr(context, 'Yesterday');
     if (diffDays > 0 && diffDays < 7) return intl.DateFormat.EEEE(locale).format(localDate);
     return intl.DateFormat.yMd(locale).format(localDate);
+  }
+}
+
+/// The conversations list before the conversations arrive.
+///
+/// It is this row's geometry, not a generic grey stack: the same 16/12 padding, the same 48px avatar,
+/// the same two lines on the same baselines, the same hairline underneath. So the real rows replace it
+/// in place rather than the layout jumping once the request lands.
+///
+/// The line widths vary down the list because real names and real messages do. A column of identical
+/// bars reads as a loading graphic; a ragged one reads as a list of conversations that has not loaded
+/// yet, which is what it is.
+class ConversationListSkeleton extends StatelessWidget {
+  const ConversationListSkeleton({super.key, required this.isDark, this.rows});
+
+  final bool isDark;
+
+  /// How many placeholder rows to draw. Null -- the default, and what the screen passes -- means as
+  /// many as the viewport holds, and one more, so the list runs off the bottom edge instead of
+  /// stopping halfway down and reading as seven conversations that finished loading. A fixed count
+  /// cannot do that: the same seven rows leave a blank third of a tall phone and overflow a short one.
+  final int? rows;
+
+  /// Name width, then message width, as a fraction of the space the text column gets.
+  static const List<List<double>> _widths = <List<double>>[
+    <double>[0.46, 0.84],
+    <double>[0.34, 0.62],
+    <double>[0.52, 0.91],
+    <double>[0.40, 0.73],
+    <double>[0.30, 0.55],
+    <double>[0.48, 0.86],
+    <double>[0.38, 0.68],
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return LynSkeletonGroup(
+      isDark: isDark,
+      label: AppLocalizations.tr(context, 'loading_conversations'),
+      child: ListView.builder(
+        // The real list scrolls; a placeholder must not, or a pull-down on it goes to the page behind.
+        physics: const NeverScrollableScrollPhysics(),
+        // A lazy builder with no item count draws what the viewport needs and stops, so the count
+        // follows the device instead of being guessed at here.
+        itemCount: rows,
+        itemBuilder: (context, index) => _row(_widths[index % _widths.length]),
+      ),
+    );
+  }
+
+  Widget _row(List<double> widths) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.md),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: LynSurface.border(isDark))),
+      ),
+      child: Row(
+        children: [
+          LynSkeletonBlock.circle(isDark: isDark, size: 48),
+          const SizedBox(width: LynSpace.md),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, box) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      // The name's rank is 16px at 1.4, so its line box is 22 high; the block sits
+                      // inside that rather than replacing it, which keeps the row's height unchanged.
+                      LynSkeletonBlock.line(
+                          isDark: isDark, width: box.maxWidth * widths[0], height: 14),
+                      const Spacer(),
+                      // The timestamp.
+                      LynSkeletonBlock.line(isDark: isDark, width: 34, height: 10),
+                    ],
+                  ),
+                  const SizedBox(height: kSkeletonLineGap + 2),
+                  LynSkeletonBlock.line(
+                      isDark: isDark, width: box.maxWidth * widths[1], height: 12),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
