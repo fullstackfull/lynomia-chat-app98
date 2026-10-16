@@ -543,11 +543,6 @@
       "dependencies": []
     },
     {
-      "name": "meta",
-      "version": "1.16.0",
-      "dependencies": []
-    },
-    {
       "name": "clock",
       "version": "1.1.2",
       "dependencies": []
@@ -628,11 +623,6 @@
       ]
     },
     {
-      "name": "vector_math",
-      "version": "2.2.0",
-      "dependencies": []
-    },
-    {
       "name": "stack_trace",
       "version": "1.12.1",
       "dependencies": [
@@ -649,7 +639,7 @@
     },
     {
       "name": "matcher",
-      "version": "0.12.17",
+      "version": "0.12.20",
       "dependencies": [
         "async",
         "meta",
@@ -660,7 +650,7 @@
     },
     {
       "name": "test_api",
-      "version": "0.7.6",
+      "version": "0.7.12",
       "dependencies": [
         "async",
         "boolean_selector",
@@ -1569,14 +1559,14 @@
     },
     {
       "name": "material_color_utilities",
-      "version": "0.11.1",
+      "version": "0.13.0",
       "dependencies": [
         "collection"
       ]
     },
     {
       "name": "characters",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "dependencies": []
     },
     {
@@ -1836,6 +1826,16 @@
         "flutter",
         "linkify"
       ]
+    },
+    {
+      "name": "meta",
+      "version": "1.19.0",
+      "dependencies": []
+    },
+    {
+      "name": "vector_math",
+      "version": "2.4.3",
+      "dependencies": []
     }
   ],
   "configVersion": 1

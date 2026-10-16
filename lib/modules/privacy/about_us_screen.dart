@@ -5,6 +5,9 @@ import '../../layout/cubit/cubit.dart';
 import '../../layout/cubit/states.dart';
 import '../language/cubit/cubit.dart';
 import '../../shared/app_localizations.dart';
+import '../../shared/styles/lyn_palette.dart';
+import 'policy_document.dart';
+import '../../shared/styles/lyn_type.dart';
 
 class PrivacyHubScreen extends StatefulWidget {
   const PrivacyHubScreen({super.key});
@@ -56,9 +59,9 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
-    final subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = LynSurface.textPrimary(isDark);
+    final subTextColor = LynSurface.textSecondary(isDark);
+    final cardColor = LynSurface.surface(isDark);
 
     return BlocBuilder<AppCubit, AppStates>(
       builder: (context, state) {
@@ -81,16 +84,18 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
         }
 
         return Scaffold(
-          backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+          backgroundColor: LynSurface.canvas(isDark),
           appBar: AppBar(
             elevation: 0,
-            backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+            backgroundColor: LynSurface.canvas(isDark),
             iconTheme: IconThemeData(
-              color: isDark ? Colors.white : const Color(0xFF334155),
+              color: LynSurface.textPrimary(isDark),
             ),
             title: Text(
               AppLocalizations.tr(context, 'legal_info'),
-              style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 18),
+              style: LynType.headline.copyWith(
+                color: textColor,
+              ),
             ),
             centerTitle: true,
             bottom: isLoading || error != null || termsData == null
@@ -99,12 +104,14 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
               controller: _tabController,
               isScrollable: true,
               tabAlignment: TabAlignment.center,
-              indicatorColor: const Color(0xFF6366F1),
+              indicatorColor: LynPalette.indigo,
               indicatorWeight: 3,
-              labelColor: const Color(0xFF6366F1),
+              labelColor: LynPalette.indigo,
               unselectedLabelColor: subTextColor,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+              labelStyle: LynType.callout.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              unselectedLabelStyle: LynType.callout,
               tabs: [
                 _buildTab(icon: Icons.privacy_tip_outlined, label: AppLocalizations.tr(context, 'privacy_policy')),
                 _buildTab(icon: Icons.gavel_outlined, label: AppLocalizations.tr(context, 'terms_of_service')),
@@ -116,11 +123,11 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
                 IconButton(
                   icon: const Icon(Icons.refresh_rounded),
                   onPressed: _loadTerms,
-                  color: const Color(0xFF6366F1),
+                  color: LynPalette.indigo,
                 ),
             ],
           ),
-          body: _buildBody(isDark, cardColor, textColor, subTextColor, isLoading, error, termsData,isOffline),
+          body: _buildBody(isDark, cardColor, subTextColor, isLoading, error, termsData, isOffline),
         );
       },
     );
@@ -133,12 +140,11 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
   Widget _buildBody(
       bool isDark,
       Color cardColor,
-      Color textColor,
       Color subTextColor,
       bool isLoading,
       String? error,
       Map<String, String>? termsData,
-      bool isOffline, // ✅ NEW
+      bool isOffline,
       ) {
     if (isLoading) return _buildLoadingState(isDark);
     if (error != null) return _buildErrorState(isDark, subTextColor, error);
@@ -150,7 +156,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
         final lang = localeCubit.isArabic ? 'ar' : 'eng';
         await context.read<AppCubit>().fetchTerms(lang: lang, forceRefresh: true);
       },
-      color: const Color(0xFF6366F1),
+      color: LynPalette.indigo,
       backgroundColor: cardColor,
       displacement: 40,
       child: TabBarView(
@@ -163,34 +169,22 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             title: AppLocalizations.tr(context, 'privacy_policy'),
             content: termsData['privacy'] ?? '',
             icon: Icons.privacy_tip_outlined,
-            accentColor: const Color(0xFF10B981),
             isDark: isDark,
-            cardColor: cardColor,
-            textColor: textColor,
-            subTextColor: subTextColor,
-            isOffline: isOffline, // ✅ NEW
+            isOffline: isOffline,
           ),
           _buildContentTab(
             title: AppLocalizations.tr(context, 'terms_of_service'),
             content: termsData['terms'] ?? '',
             icon: Icons.gavel_outlined,
-            accentColor: const Color(0xFF6366F1),
             isDark: isDark,
-            cardColor: cardColor,
-            textColor: textColor,
-            subTextColor: subTextColor,
-            isOffline: isOffline, // ✅ NEW
+            isOffline: isOffline,
           ),
           _buildContentTab(
             title: AppLocalizations.tr(context, 'about_us'),
             content: termsData['aboutus'] ?? '',
             icon: Icons.info_outline,
-            accentColor: const Color(0xFFF59E0B),
             isDark: isDark,
-            cardColor: cardColor,
-            textColor: textColor,
-            subTextColor: subTextColor,
-            isOffline: isOffline, // ✅ NEW
+            isOffline: isOffline,
           ),
         ],
       ),
@@ -201,84 +195,33 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
     required String title,
     required String content,
     required IconData icon,
-    required Color accentColor,
     required bool isDark,
-    required Color cardColor,
-    required Color textColor,
-    required Color subTextColor,
-    bool isOffline = false, // ✅ NEW
+    bool isOffline = false,
   }) {
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
-      ),
-      padding: const EdgeInsets.all(20),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(LynSpace.lg),
       child: Column(
-          children: [
-            // ✅ NEW: Banner Offline
-            if (isOffline) _buildOfflineBanner(isDark),
-
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [BoxShadow(color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 8))],
-          ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(16)), child: Icon(icon, size: 28, color: accentColor)),
-              const SizedBox(width: 16),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Container(width: 40, height: 3, decoration: BoxDecoration(color: accentColor, borderRadius: BorderRadius.circular(2))),
-              ])),
-            ]),
-            const SizedBox(height: 24),
-            _buildRichContent(content, subTextColor, accentColor),
-          ]),
-        ),
-        const SizedBox(height: 24),
-        // Container(
-        //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        //   decoration: BoxDecoration(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFEEF2FF), borderRadius: BorderRadius.circular(12)),
-        //   child: Row(mainAxisSize: MainAxisSize.min, children: [
-        //     Icon(Icons.update_outlined, size: 16, color: accentColor.withOpacity(0.7)),
-        //     const SizedBox(width: 8),
-        //     Text(AppLocalizations.tr(context, 'last_updated'), style: TextStyle(color: subTextColor, fontSize: 12, fontWeight: FontWeight.w500)),
-        //   ]),
-        // ),
-        // const SizedBox(height: 32),
-      ]),
+        children: [
+          if (isOffline) ...[
+            _buildOfflineBanner(isDark),
+            const SizedBox(height: LynSpace.lg),
+          ],
+          PolicyCard(title: title, icon: icon, text: content, isDark: isDark),
+          const SizedBox(height: LynSpace.xl),
+        ],
+      ),
     );
   }
 
-  Widget _buildRichContent(String text, Color textColor, Color accentColor) {
-    final sections = text.split('\r\n\r\n');
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: sections.map((section) {
-      section = section.trim();
-      if (section.isEmpty) return const SizedBox.shrink();
-      final colonIndex = section.indexOf(':');
-      if (colonIndex > 0 && colonIndex < 50) {
-        final title = section.substring(0, colonIndex).trim();
-        final body = section.substring(colonIndex + 1).trim();
-        return Padding(padding: const EdgeInsets.only(bottom: 20), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)), child: Text(title, style: TextStyle(color: accentColor, fontSize: 14, fontWeight: FontWeight.bold))),
-          const SizedBox(height: 10),
-          Text(body, style: TextStyle(color: textColor, fontSize: 15, height: 1.8, fontWeight: FontWeight.w400), textAlign: TextAlign.start),
-        ]));
-      }
-      return Padding(padding: const EdgeInsets.only(bottom: 16), child: Text(section, style: TextStyle(color: textColor, fontSize: 15, height: 1.8, fontWeight: FontWeight.w400), textAlign: TextAlign.start));
-    }).toList());
-  }
-
   Widget _buildLoadingState(bool isDark) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-    Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: isDark ? const Color(0xFF1E293B) : Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)]), child: Column(children: [
-      SizedBox(width: 48, height: 48, child: CircularProgressIndicator(strokeWidth: 3, valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)), backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+    Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: LynSurface.surface(isDark), borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20)]), child: Column(children: [
+      SizedBox(width: 48, height: 48, child: CircularProgressIndicator(strokeWidth: 3, valueColor: const AlwaysStoppedAnimation<Color>(LynPalette.indigo), backgroundColor: LynSurface.border(isDark))),
       const SizedBox(height: 20),
-      Text(AppLocalizations.tr(context, 'loading'), style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 16, fontWeight: FontWeight.w500)),
+      Text(AppLocalizations.tr(context, 'loading'), style: LynType.subtitle.copyWith(
+        color: LynSurface.textSecondary(isDark),
+        fontWeight: FontWeight.w500,
+      )),
     ])),
   ]));
 
@@ -286,7 +229,10 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
   Widget _buildEmptyState(bool isDark, Color subTextColor) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
     Icon(Icons.description_outlined, size: 64, color: subTextColor.withOpacity(0.5)),
     const SizedBox(height: 16),
-    Text(AppLocalizations.tr(context, 'no_data'), style: TextStyle(color: subTextColor, fontSize: 16)),
+    Text(AppLocalizations.tr(context, 'no_data'), style: LynType.subtitle.copyWith(
+      color: subTextColor,
+      fontWeight: FontWeight.w400,
+    )),
   ]));
 
   // ✅ NEW: Banner للـ Offline Mode
@@ -296,26 +242,25 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF92400E) : const Color(0xFFFEF3C7),
+        color: LynPalette.warning.withOpacity(isDark ? 0.18 : 0.14),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? const Color(0xFFF59E0B) : const Color(0xFFFCD34D),
+          color: LynPalette.warning.withOpacity(0.5),
         ),
       ),
       child: Row(
         children: [
           Icon(
             Icons.wifi_off_rounded,
-            color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
+            color: isDark ? LynPalette.warningSoft : LynPalette.warningInk,
             size: 20,
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               AppLocalizations.tr(context, 'offline_mode'),
-              style: TextStyle(
-                color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
-                fontSize: 13,
+              style: LynType.callout.copyWith(
+                color: isDark ? LynPalette.warningSoft : LynPalette.warningInk,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -341,8 +286,8 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: isDark
-                    ? const Color(0xFF1E293B)
-                    : const Color(0xFFF1F5F9),
+                    ? LynPalette.inkRaised
+                    : LynPalette.mist,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -350,7 +295,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
                     ? Icons.wifi_off_rounded
                     : Icons.error_outline,
                 size: 48,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: LynSurface.textSecondary(isDark),
               ),
             ),
             const SizedBox(height: 24),
@@ -358,9 +303,8 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             // ✅ عنوان الخطأ
             Text(
               errorMessage,
-              style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
-                fontSize: 18,
+              style: LynType.headline.copyWith(
+                color: LynSurface.textPrimary(isDark),
                 fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
@@ -370,10 +314,10 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
             // ✅ وصف إضافي
             Text(
               AppLocalizations.tr(context, 'check_connection'),
-              style: TextStyle(
+              style: LynType.callout.copyWith(
                 color: subTextColor,
-                fontSize: 14,
                 height: 1.5,
+                fontWeight: FontWeight.w400,
               ),
               textAlign: TextAlign.center,
             ),
@@ -385,7 +329,7 @@ class _PrivacyHubScreenState extends State<PrivacyHubScreen>
               icon: const Icon(Icons.refresh),
               label: Text(AppLocalizations.tr(context, 'retry')),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
+                backgroundColor: LynPalette.indigo,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 shape: RoundedRectangleBorder(

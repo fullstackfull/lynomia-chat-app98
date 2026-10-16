@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../layout/cubit/cubit.dart';
 import '../../modules/language/cubit/cubit.dart';
 import '../../shared/app_localizations.dart';
+import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
+import 'api_reference.dart';
 
 class ApiDocumentationScreen extends StatefulWidget {
   const ApiDocumentationScreen({super.key});
@@ -13,6 +17,18 @@ class ApiDocumentationScreen extends StatefulWidget {
 
 class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
   final Set<String> _expandedCards = {};
+  final TextEditingController _search = TextEditingController();
+
+  /// What is in the search box, and how many cards survived it. `_shown` is tallied while the list
+  /// of children is constructed, which finishes before anything reads it.
+  String _query = '';
+  int _shown = 0;
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   void _toggleCard(String cardId) {
     setState(() {
@@ -33,24 +49,21 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        backgroundColor: LynSurface.surface(isDark),
         iconTheme: IconThemeData(
-          color: isDark ? Colors.white : const Color(0xFF334155),
+          color: LynSurface.textPrimary(isDark),
         ),
         title: Text(
           AppLocalizations.tr(context, 'api_documentation'),
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
+          style: LynType.headline,
         ),
         centerTitle: true,
       ),
       body: Container(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
+        color: LynSurface.canvas(isDark),
+        child: Builder(builder: (context) {
+          _shown = 0;
+          final cards = <Widget>[
             // ═══════════════════════════════════════════════════════
             // Header - API Base URL
             // ═══════════════════════════════════════════════════════
@@ -62,7 +75,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
             // Authentication API Documentation
             // ═══════════════════════════════════════════════════════
             _buildSectionHeader(context, isDark, 'Lynomia Chat API'),
-            const SizedBox(height: 16),
             
             // Login API
             _buildApiCard(
@@ -110,8 +122,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
   }
 }''',
             ),
-            
-            const SizedBox(height: 16),
             
             // Google Login API
             _buildApiCard(
@@ -162,8 +172,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
   }
 }''',
             ),
-            
-            const SizedBox(height: 16),
             
             // Apple Login API
             _buildApiCard(
@@ -221,8 +229,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
   }
 }''',
             ),
-            
-            const SizedBox(height: 16),
             
             // Logout API
             _buildApiCard(
@@ -316,8 +322,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
 }''',
             ),
             
-            const SizedBox(height: 16),
-            
             // Get Conversations API
             _buildApiCard(
               context: context,
@@ -362,8 +366,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
 ]''',
             ),
             
-            const SizedBox(height: 16),
-            
             // Create Conversation API
             _buildApiCard(
               context: context,
@@ -404,8 +406,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
   "created_at": "2024-01-15T10:30:00Z"
 }''',
             ),
-            
-            const SizedBox(height: 16),
             
             // Send Message API
             _buildApiCard(
@@ -470,8 +470,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
   "created_at": "2024-01-15T10:35:00Z"
 }''',
             ),
-            
-            const SizedBox(height: 16),
             
             // Get Messages API
             _buildApiCard(
@@ -544,7 +542,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
             // Billing API Documentation
             // ═══════════════════════════════════════════════════════
             _buildSectionHeader(context, isDark, isArabic ? 'توثيق الفوترة' : 'Billing API'),
-            const SizedBox(height: 16),
             
             // Fetch Plans API
             _buildApiCard(
@@ -609,8 +606,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
 }''',
             ),
             
-            const SizedBox(height: 16),
-            
             // Fetch Entitlements API
             _buildApiCard(
               context: context,
@@ -670,8 +665,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
 }''',
             ),
             
-            const SizedBox(height: 16),
-            
             // Create Checkout URL API
             _buildApiCard(
               context: context,
@@ -716,8 +709,6 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
 }''',
             ),
             
-            const SizedBox(height: 16),
-            
             // Create Billing Portal URL API
             _buildApiCard(
               context: context,
@@ -755,89 +746,149 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
 }''',
             ),
             
-            const SizedBox(height: 32),
-          ],
+          ];
+
+          return ListView(
+            padding: const EdgeInsets.all(LynSpace.lg),
+            children: [
+              _buildApiHeader(context, isDark, isArabic),
+              const SizedBox(height: LynSpace.lg),
+              _buildSearchField(isDark, isArabic),
+              const SizedBox(height: LynSpace.lg),
+              ...cards,
+              if (_shown == 0) _buildNoMatches(isDark, isArabic),
+              const SizedBox(height: LynSpace.xxl),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildSearchField(bool isDark, bool isArabic) {
+    return TextField(
+      controller: _search,
+      onChanged: (value) => setState(() => _query = value),
+      style: LynType.body.copyWith(color: LynSurface.textPrimary(isDark)),
+      decoration: InputDecoration(
+        isDense: true,
+        hintText: isArabic ? 'ابحث عن نقطة نهاية' : 'Search endpoints',
+        hintStyle: LynType.body.copyWith(color: LynSurface.textTertiary(isDark)),
+        prefixIcon: Icon(Icons.search_rounded, size: 20, color: LynSurface.textSecondary(isDark)),
+        suffixIcon: _query.isEmpty
+            ? null
+            : IconButton(
+                icon: Icon(Icons.close_rounded, size: 18, color: LynSurface.textSecondary(isDark)),
+                onPressed: () {
+                  _search.clear();
+                  setState(() => _query = '');
+                },
+              ),
+        filled: true,
+        fillColor: LynSurface.surface(isDark),
+        contentPadding: const EdgeInsets.symmetric(vertical: LynSpace.md),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(LynSpace.md),
+          borderSide: BorderSide(color: LynSurface.border(isDark)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(LynSpace.md),
+          borderSide: BorderSide(color: LynSurface.border(isDark)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(LynSpace.md),
+          borderSide: const BorderSide(color: LynPalette.indigo, width: 2),
         ),
       ),
     );
   }
 
-  Widget _buildApiHeader(BuildContext context, bool isDark, bool isArabic) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF6366F1), const Color(0xFF8B5CF6)]
-              : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+  Widget _buildNoMatches(bool isDark, bool isArabic) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: LynSpace.xxl),
+      child: Column(
+        children: [
+          Icon(Icons.search_off_rounded, size: 40, color: LynSurface.textTertiary(isDark)),
+          const SizedBox(height: LynSpace.md),
+          Text(
+            isArabic ? 'لا توجد نقطة نهاية بهذا الاسم' : 'No endpoint matches that',
+            textAlign: TextAlign.center,
+            style: LynType.body.copyWith(color: LynSurface.textSecondary(isDark)),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Where the API lives.
+  ///
+  /// The gradient branched on `isDark` into two IDENTICAL stop pairs, and set white text and a
+  /// white-tinted chip over the brand indigo — which the base URL then sat in at 70% white, under a
+  /// monospace family that does not exist on iOS. The band is still the brand's; the URL is now
+  /// copyable, which is the one thing anyone wants from it.
+  Widget _buildApiHeader(BuildContext context, bool isDark, bool isArabic) {
+    const url = 'https://chat.lynomia.com';
+
+    return Container(
+      padding: const EdgeInsets.all(LynSpace.lg),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [LynPalette.indigo, LynPalette.indigoDeep],
+        ),
+        borderRadius: BorderRadius.circular(LynSpace.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.api,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
+              const Icon(Icons.api_rounded, color: Colors.white, size: 24),
+              const SizedBox(width: LynSpace.md),
               Expanded(
-                child: Text(
-                  'Lynomia API',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: Text('Lynomia API',
+                    style: LynType.headline.copyWith(color: Colors.white)),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.link,
-                  color: Colors.white70,
-                  size: 16,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'https://chat.lynomia.com',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                      fontFamily: 'monospace',
-                    ),
+          const SizedBox(height: LynSpace.md),
+          Material(
+            color: Colors.white.withOpacity(0.14),
+            borderRadius: BorderRadius.circular(LynSpace.sm),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(LynSpace.sm),
+              onTap: () {
+                Clipboard.setData(const ClipboardData(text: url));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(AppLocalizations.tr(context, 'Copied')),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
                   ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(LynSpace.md),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        url,
+                        // A URL is Latin in both languages and must not be reordered.
+                        textDirection: TextDirection.ltr,
+                        style: LynType.caption.copyWith(
+                          // Was white at 70%: 3.7:1 on the indigo. Full white measures 5.3:1.
+                          color: Colors.white,
+                          fontFamily: kMonoFamily, fontFamilyFallback: kMonoFallback,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: LynSpace.sm),
+                    const Icon(Icons.copy_rounded, color: Colors.white, size: 15),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ],
@@ -854,22 +905,33 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
             width: 4,
             height: 24,
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1),
+              color: LynPalette.indigo,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(width: 12),
           Text(
             title,
-            style: TextStyle(
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
-              fontSize: 20,
+            style: LynType.headline.copyWith(
+              color: LynSurface.textPrimary(isDark),
               fontWeight: FontWeight.bold,
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// Does this endpoint answer what was typed into the search box?
+  ///
+  /// The reference is fifteen collapsed cards in one flat list with nothing to navigate by, so
+  /// finding "the one that creates a conversation" meant opening them one at a time.
+  bool _matches(String title, String endpoint, String description) {
+    final q = _query.trim().toLowerCase();
+    if (q.isEmpty) return true;
+    return title.toLowerCase().contains(q) ||
+        endpoint.toLowerCase().contains(q) ||
+        description.toLowerCase().contains(q);
   }
 
   Widget _buildApiCard({
@@ -884,121 +946,108 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
     required List<ApiParameter> parameters,
     String? response,
   }) {
+    if (!_matches(title, endpoint, description)) return const SizedBox.shrink();
+    _shown++;
+
     final cardId = '$method-$title';
     final isExpanded = _expandedCards.contains(cardId);
-    
+
     return Container(
+      // The spacer between cards lives here rather than between the call sites, so a card the search
+      // has filtered out leaves no gap behind it.
+      margin: const EdgeInsets.only(bottom: LynSpace.md),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: LynSurface.surface(isDark),
+        borderRadius: BorderRadius.circular(LynSpace.md),
+        border: Border.all(color: LynSurface.border(isDark)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                _buildMethodBadge(method),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+          InkWell(
+            onTap: () => _toggleCard(cardId),
+            borderRadius: BorderRadius.circular(LynSpace.md),
+            child: Padding(
+              padding: const EdgeInsets.all(LynSpace.lg),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ApiMethodBadge(method: method, isDark: isDark),
+                  const SizedBox(width: LynSpace.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title,
+                            style: LynType.subtitle
+                                .copyWith(color: LynSurface.textPrimary(isDark))),
+                        const SizedBox(height: 2),
+                        Text(
+                          endpoint,
+                          // The path is the thing a reader scans for, and it is Latin in both
+                          // languages. It was only visible once the card was opened.
+                          textDirection: TextDirection.ltr,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: LynType.caption.copyWith(
+                            color: LynSurface.textSecondary(isDark),
+                            fontFamily: kMonoFamily, fontFamilyFallback: kMonoFallback,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        description,
-                        style: TextStyle(
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: Icon(
+                  const SizedBox(width: LynSpace.sm),
+                  Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: LynSurface.textSecondary(isDark),
                   ),
-                  onPressed: () => _toggleCard(cardId),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-          
-          // Expanded content
           if (isExpanded) ...[
-            const Divider(height: 1),
+            Divider(height: 1, thickness: 1, color: LynSurface.border(isDark)),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(LynSpace.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Endpoint
-                  _buildSection(
-                    context: context,
-                    isDark: isDark,
-                    isArabic: isArabic,
-                    title: isArabic ? 'نقطة النهاية' : 'Endpoint',
-                    content: endpoint,
-                    isCode: true,
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Body Type (if applicable)
+                  Text(description,
+                      style: LynType.body.copyWith(color: LynSurface.textSecondary(isDark))),
+                  const SizedBox(height: LynSpace.lg),
                   if (bodyType != null) ...[
                     _buildSection(
-                      context: context,
                       isDark: isDark,
-                      isArabic: isArabic,
-                      title: isArabic ? 'نوع الطلب' : 'Request Type',
-                      content: bodyType,
+                      title: isArabic ? 'نوع الطلب' : 'Request type',
+                      child: Text(bodyType,
+                          textDirection: TextDirection.ltr,
+                          style: LynType.caption.copyWith(
+                            color: LynSurface.textPrimary(isDark),
+                            fontFamily: kMonoFamily, fontFamilyFallback: kMonoFallback,
+                          )),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: LynSpace.lg),
                   ],
-                  
-                  // Parameters
-                  _buildSection(
-                    context: context,
-                    isDark: isDark,
-                    isArabic: isArabic,
-                    title: isArabic ? 'المعاملات' : 'Parameters',
-                    child: Column(
-                      children: parameters.map((param) => _buildParameterItem(context, isDark, isArabic, param)).toList(),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Response (if applicable)
-                  if (response != null) ...[
+                  if (parameters.isNotEmpty) ...[
                     _buildSection(
-                      context: context,
                       isDark: isDark,
-                      isArabic: isArabic,
-                      title: isArabic ? 'الاستجابة' : 'Response',
-                      content: response,
-                      isCode: true,
+                      title: isArabic ? 'المعاملات' : 'Parameters',
+                      child: Column(
+                        children: [
+                          for (final param in parameters)
+                            ApiParameterRow(param: param, isDark: isDark),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: LynSpace.lg),
                   ],
+                  if (response != null)
+                    _buildSection(
+                      isDark: isDark,
+                      title: isArabic ? 'الاستجابة' : 'Response',
+                      child: ApiCodeBlock(code: response, isDark: isDark),
+                    ),
                 ],
               ),
             ),
@@ -1008,194 +1057,19 @@ class _ApiDocumentationScreenState extends State<ApiDocumentationScreen> {
     );
   }
 
-  Widget _buildMethodBadge(String method) {
-    Color bgColor;
-    Color textColor;
-    
-    switch (method.toUpperCase()) {
-      case 'GET':
-        bgColor = const Color(0xFF10B981);
-        textColor = Colors.white;
-        break;
-      case 'POST':
-        bgColor = const Color(0xFFF59E0B);
-        textColor = Colors.white;
-        break;
-      case 'PUT':
-        bgColor = const Color(0xFF3B82F6);
-        textColor = Colors.white;
-        break;
-      case 'DELETE':
-        bgColor = const Color(0xFFEF4444);
-        textColor = Colors.white;
-        break;
-      default:
-        bgColor = const Color(0xFF6B7280);
-        textColor = Colors.white;
-    }
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        method.toUpperCase(),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
   Widget _buildSection({
-    required BuildContext context,
     required bool isDark,
-    required bool isArabic,
     required String title,
-    String? content,
-    Widget? child,
-    bool isCode = false,
+    required Widget child,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        if (content != null)
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isCode
-                  ? (isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9))
-                  : (isDark ? const Color(0xFF334155).withOpacity(0.5) : const Color(0xFFF8FAFC)),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
-              ),
-            ),
-            child: Text(
-              content,
-              style: TextStyle(
-                color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF475569),
-                fontSize: isCode ? 12 : 14,
-                fontFamily: isCode ? 'monospace' : null,
-              ),
-            ),
-          ),
-        if (child != null) child,
+        Text(title,
+            style: LynType.micro.copyWith(color: LynSurface.textTertiary(isDark))),
+        const SizedBox(height: LynSpace.sm),
+        child,
       ],
     );
   }
-
-  Widget _buildParameterItem(BuildContext context, bool isDark, bool isArabic, ApiParameter param) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF334155).withOpacity(0.3) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                param.name,
-                style: TextStyle(
-                  color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'monospace',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  param.type,
-                  style: TextStyle(
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              if (param.required) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    isArabic ? 'مطلوب' : 'required',
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            param.description,
-            style: TextStyle(
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-              fontSize: 12,
-            ),
-          ),
-          if (param.example != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              '${isArabic ? 'مثال' : 'Example'}: ${param.example}',
-              style: TextStyle(
-                color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
-                fontSize: 11,
-                fontFamily: 'monospace',
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class ApiParameter {
-  final String name;
-  final String type;
-  final bool required;
-  final String description;
-  final String? example;
-
-  ApiParameter({
-    required this.name,
-    required this.type,
-    required this.required,
-    required this.description,
-    this.example,
-  });
 }

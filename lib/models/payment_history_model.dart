@@ -35,24 +35,17 @@ class PaymentHistoryModel {
     );
   }
 
-  // استخراج اسم الخطة من note
+  /// The plan's name, dug out of the server's free-text note, or EMPTY when the note does not carry
+  /// one. It used to return the literal English word 'Unknown', which was then drawn as the row's
+  /// title in both languages; what to show instead is the view's decision and the view can translate.
   String get planName {
-    if (note.contains('Package ID:')) {
-      final match = RegExp(r'Package ID:\s*\{([^}]+)\}').firstMatch(note);
-      if (match != null) {
-        return match.group(1)?.trim() ?? 'Unknown';
-      }
-    }
-    return 'Unknown';
+    final match = RegExp(r'Package ID:\s*\{([^}]+)\}').firstMatch(note);
+    return match?.group(1)?.trim() ?? '';
   }
 
-  // تنسيق السعر
-  String get formattedPrice {
-    return '\$$price';
-  }
+  String get formattedPrice => '\$$price';
 
-  // تنسيق التاريخ
-  String get formattedDate {
-    return '${createdAt.day}/${createdAt.month}/${createdAt.year}';
-  }
+  // `formattedDate` was here: '${createdAt.day}/${createdAt.month}/${createdAt.year}', which is
+  // unpadded, ambiguous between day-first and month-first, and in Latin digits and slashes in the
+  // middle of an Arabic screen. A date is formatted at the view now, where the locale is known.
 }

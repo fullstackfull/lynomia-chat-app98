@@ -1,759 +1,51 @@
-
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:hexcolor/hexcolor.dart';
-// import 'package:chat/layout/payment/payment_cubit.dart';
-// import 'package:chat/layout/payment/payment_states.dart';
-// import 'package:chat/shared/app_localizations.dart';
-//
-// import '../../layout/cubit/cubit.dart';
-// import '../../models/plan_models.dart';
-//
-// class PaymentScreen extends StatelessWidget {
-//   final PlanModel plan;
-//
-//   const PaymentScreen({
-//     super.key,
-//     required this.plan,
-//   });
-//
-//   // ─── ترجمة المميزات ديناميكياً ─────────────────
-//   String _translateFeature(BuildContext context, String featureKey) {
-//     final translated = AppLocalizations.tr(context, 'feature_$featureKey');
-//
-//     // إذا لم تُترجم (تساوي نفس المفتاح)، ننسق المفتاح
-//     if (translated == 'feature_$featureKey') {
-//       return _formatFeatureKey(featureKey);
-//     }
-//
-//     return translated;
-//   }
-//
-//   // ─── تنسيق المفتاح إذا لم تُترجم ────────────────
-//   String _formatFeatureKey(String key) {
-//     return key
-//         .split('_')
-//         .map((word) => word.isNotEmpty
-//         ? '${word[0].toUpperCase()}${word.substring(1)}'
-//         : '')
-//         .join(' ');
-//   }
-//
-//   // ─── ترجمة الحدود ──────────────────────────────
-//   String _translateAgents(BuildContext context, int count) {
-//     return AppLocalizations.tr(context, 'limit_agents')
-//         .replaceFirst('{count}', count.toString());
-//   }
-//
-//   String _translateInboxes(BuildContext context, int count) {
-//     return AppLocalizations.tr(context, 'limit_inboxes')
-//         .replaceFirst('{count}', count.toString());
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final isDark = AppCubit.get(context).isDark;
-//     final color = _getPlanColor(plan.id);
-//
-//     return Scaffold(
-//       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-//       appBar: AppBar(
-//         backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
-//         elevation: 0,
-//         leading: IconButton(
-//           icon: Icon(Icons.arrow_back, color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B')),
-//           onPressed: () => Navigator.pop(context),
-//         ),
-//         title: Text(
-//           AppLocalizations.tr(context, 'Complete Payment'),
-//           style: TextStyle(
-//             color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-//             fontSize: 20,
-//             fontWeight: FontWeight.w600,
-//           ),
-//         ),
-//       ),
-//       body: BlocConsumer<PaymentCubit, PaymentState>(
-//         listener: (context, state) {
-//           if (state is PaymentSuccess) {
-//             Navigator.pushReplacement(
-//               context,
-//               MaterialPageRoute(
-//                 builder: (context) => PaymentResultScreen(
-//                   isSuccess: true,
-//                   paymentId: state.paymentId,
-//                   planName: state.planName,
-//                 ),
-//               ),
-//             );
-//           } else if (state is PaymentError) {
-//             ScaffoldMessenger.of(context).showSnackBar(
-//               SnackBar(
-//                 content: Text(state.message),
-//                 backgroundColor: HexColor('#EF4444'),
-//                 behavior: SnackBarBehavior.floating,
-//               ),
-//             );
-//           } else if (state is PaymentCancelled) {
-//             ScaffoldMessenger.of(context).showSnackBar(
-//               SnackBar(
-//                 content: Text(AppLocalizations.tr(context, 'Payment cancelled')),
-//                 backgroundColor: HexColor('#F59E0B'),
-//                 behavior: SnackBarBehavior.floating,
-//               ),
-//             );
-//           }
-//         },
-//         builder: (context, state) {
-//           return SafeArea(
-//             child: SingleChildScrollView(
-//               padding: const EdgeInsets.all(20),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   // Plan Info Card
-//                   Container(
-//                     width: double.infinity,
-//                     padding: const EdgeInsets.all(24),
-//                     decoration: BoxDecoration(
-//                       color: isDark ? HexColor('#1E293B') : Colors.white,
-//                       borderRadius: BorderRadius.circular(20),
-//                       border: Border.all(
-//                         color: color.withOpacity(0.3),
-//                         width: 2,
-//                       ),
-//                       boxShadow: isDark ? null : [
-//                         BoxShadow(
-//                           color: Colors.black.withOpacity(0.05),
-//                           blurRadius: 10,
-//                           offset: const Offset(0, 4),
-//                         ),
-//                       ],
-//                     ),
-//                     child: Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         Row(
-//                           children: [
-//                             Container(
-//                               padding: const EdgeInsets.all(12),
-//                               decoration: BoxDecoration(
-//                                 color: color.withOpacity(0.1),
-//                                 borderRadius: BorderRadius.circular(12),
-//                               ),
-//                               child: Icon(
-//                                 Icons.workspace_premium,
-//                                 color: color,
-//                                 size: 32,
-//                               ),
-//                             ),
-//                             const SizedBox(width: 16),
-//                             Expanded(
-//                               child: Column(
-//                                 crossAxisAlignment: CrossAxisAlignment.start,
-//                                 children: [
-//                                   Text(
-//                                     plan.name,
-//                                     style: TextStyle(
-//                                       color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-//                                       fontSize: 24,
-//                                       fontWeight: FontWeight.w700,
-//                                     ),
-//                                   ),
-//                                   const SizedBox(height: 4),
-//                                   Text(
-//                                     plan.formattedPrice,
-//                                     style: TextStyle(
-//                                       color: color,
-//                                       fontSize: 28,
-//                                       fontWeight: FontWeight.w800,
-//                                     ),
-//                                   ),
-//                                 ],
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                         const SizedBox(height: 16),
-//                         Divider(
-//                           color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
-//                         ),
-//                         const SizedBox(height: 12),
-//                         // ✅ الحدود المترجمة ديناميكياً
-//                         Row(
-//                           children: [
-//                             _buildInfoItem(
-//                               icon: Icons.people,
-//                               text: _translateAgents(context, plan.agents),
-//                               color: color,
-//                               isDark: isDark,
-//                             ),
-//                             const SizedBox(width: 20),
-//                             _buildInfoItem(
-//                               icon: Icons.inbox,
-//                               text: _translateInboxes(context, plan.inboxes),
-//                               color: color,
-//                               isDark: isDark,
-//                             ),
-//                           ],
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                   // في بداية Column (بعد Plan Info Card):
-//                   const SizedBox(height: 24),
-//
-// // ─── اختيار طريقة الدفع ──────────────────────
-//                   Text(
-//                     AppLocalizations.tr(context, 'Payment Method'),
-//                     style: TextStyle(
-//                       color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-//                       fontSize: 18,
-//                       fontWeight: FontWeight.w600,
-//                     ),
-//                   ),
-//                   const SizedBox(height: 12),
-//
-// // Google Play Billing Option
-//                   _buildPaymentMethodCard(
-//                     context: context,
-//                     title: 'Google Play',
-//                     subtitle: 'Pay with Google Play Billing',
-//                     icon: Icons.play_circle_fill,
-//                     color: HexColor('#4285F4'), // Google Blue
-//                     isSelected: context.watch<PaymentCubit>().selectedMethod == PaymentMethod.googlePlay,
-//                     onTap: () => context.read<PaymentCubit>().selectPaymentMethod(PaymentMethod.googlePlay),
-//                     isDark: isDark,
-//                   ),
-//
-//                   const SizedBox(height: 12),
-//
-// // Stripe Option
-//                   _buildPaymentMethodCard(
-//                     context: context,
-//                     title: 'Credit Card (Stripe)',
-//                     subtitle: 'Pay with credit card',
-//                     icon: Icons.credit_card,
-//                     color: HexColor('#635BFF'), // Stripe Purple
-//                     isSelected: context.watch<PaymentCubit>().selectedMethod == PaymentMethod.stripe,
-//                     onTap: () => context.read<PaymentCubit>().selectPaymentMethod(PaymentMethod.stripe),
-//                     isDark: isDark,
-//                   ),
-//                   const SizedBox(height: 40),
-//
-//                   // ✅ المميزات المترجمة ديناميكياً
-//                   Text(
-//                     AppLocalizations.tr(context, 'Included Features'),
-//                     style: TextStyle(
-//                       color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-//                       fontSize: 18,
-//                       fontWeight: FontWeight.w600,
-//                     ),
-//                   ),
-//                   const SizedBox(height: 16),
-//                   ...plan.features.map(
-//                         (feature) => Padding(
-//                       padding: const EdgeInsets.only(bottom: 12),
-//                       child: Row(
-//                         children: [
-//                           Icon(
-//                             Icons.check_circle,
-//                             color: HexColor('#10B981'),
-//                             size: 20,
-//                           ),
-//                           const SizedBox(width: 12),
-//                           Text(
-//                             _translateFeature(context, feature),
-//                             style: TextStyle(
-//                               color: isDark ? HexColor('#E2E8F0') : HexColor('#334155'),
-//                               fontSize: 16,
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                   const SizedBox(height: 40),
-//
-//                   // Payment Info
-//                   _buildSecurityInfo(context, isDark),
-//                   const SizedBox(height: 40),
-//
-//                   // Pay Button
-//                   if (state is PaymentLoading)
-//                     Center(
-//                       child: Column(
-//                         children: [
-//                           CircularProgressIndicator(
-//                             color: color,
-//                           ),
-//                           const SizedBox(height: 16),
-//                           Text(
-//                             AppLocalizations.tr(context, 'Processing payment...'),
-//                             style: TextStyle(
-//                               color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-//                               fontSize: 16,
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     )
-//                   else
-//                     SizedBox(
-//                       width: double.infinity,
-//                       height: 56,
-//                       child: ElevatedButton(
-//                         onPressed: () {
-//                           context.read<PaymentCubit>().completePayment(
-//                             plan: plan.id,
-//                           );
-//                         },
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: color,
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(16),
-//                           ),
-//                           elevation: 0,
-//                         ),
-//                         child: Row(
-//                           mainAxisAlignment: MainAxisAlignment.center,
-//                           children: [
-//                             const Icon(
-//                               Icons.payment,
-//                               color: Colors.white,
-//                               size: 24,
-//                             ),
-//                             const SizedBox(width: 12),
-//                             Text(
-//                               context.read<PaymentCubit>().selectedMethod == PaymentMethod.googlePlay
-//                                   ? 'Subscribe via Google Play'
-//                                   : 'Pay ${plan.formattedPrice}',
-//                               style: const TextStyle(
-//                                 color: Colors.white,
-//                                 fontSize: 18,
-//                                 fontWeight: FontWeight.w600,
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                     ),
-//                   const SizedBox(height: 20),
-//
-//                   // Cancel Button
-//                   if (state is! PaymentLoading)
-//                     Center(
-//                       child: TextButton(
-//                         onPressed: () => Navigator.pop(context),
-//                         child: Text(
-//                           AppLocalizations.tr(context, 'cancel'),
-//                           style: TextStyle(
-//                             color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-//                             fontSize: 16,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                 ],
-//               ),
-//             ),
-//           );
-//         },
-//       ),
-//     );
-//   }
-//
-//   Widget _buildInfoItem({
-//     required IconData icon,
-//     required String text,
-//     required Color color,
-//     required bool isDark,
-//   }) {
-//     return Row(
-//       mainAxisSize: MainAxisSize.min,
-//       children: [
-//         Icon(icon, color: color, size: 18),
-//         const SizedBox(width: 6),
-//         Text(
-//           text,
-//           style: TextStyle(
-//             color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-//             fontSize: 14,
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-//   Widget _buildPaymentMethodCard({
-//     required BuildContext context,
-//     required String title,
-//     required String subtitle,
-//     required IconData icon,
-//     required Color color,
-//     required bool isSelected,
-//     required VoidCallback onTap,
-//     required bool isDark,
-//   }) {
-//     return GestureDetector(
-//       onTap: onTap,
-//       child: Container(
-//         padding: const EdgeInsets.all(16),
-//         decoration: BoxDecoration(
-//           color: isDark ? HexColor('#1E293B') : Colors.white,
-//           borderRadius: BorderRadius.circular(12),
-//           border: Border.all(
-//             color: isSelected ? color : (isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
-//             width: isSelected ? 2 : 1,
-//           ),
-//         ),
-//         child: Row(
-//           children: [
-//             Container(
-//               padding: const EdgeInsets.all(10),
-//               decoration: BoxDecoration(
-//                 color: color.withOpacity(0.1),
-//                 borderRadius: BorderRadius.circular(10),
-//               ),
-//               child: Icon(icon, color: color, size: 28),
-//             ),
-//             const SizedBox(width: 16),
-//             Expanded(
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Text(
-//                     title,
-//                     style: TextStyle(
-//                       color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-//                       fontSize: 16,
-//                       fontWeight: FontWeight.w600,
-//                     ),
-//                   ),
-//                   const SizedBox(height: 4),
-//                   Text(
-//                     subtitle,
-//                     style: TextStyle(
-//                       color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-//                       fontSize: 14,
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//             if (isSelected)
-//               Icon(Icons.check_circle, color: color, size: 24),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildSecurityInfo(BuildContext context, bool isDark) {
-//     return Column(
-//       children: [
-//         _buildSecurityItem(
-//           context: context,
-//           isDark: isDark,
-//           icon: Icons.lock,
-//           title: AppLocalizations.tr(context, 'Data Encryption'),
-//           description: AppLocalizations.tr(context, 'All your information is encrypted and protected'),
-//         ),
-//         const SizedBox(height: 16),
-//         _buildSecurityItem(
-//           context: context,
-//           isDark: isDark,
-//           icon: Icons.security,
-//           title: AppLocalizations.tr(context, 'Stripe Protection'),
-//           description: 'We use Stripe to process payments securely',
-//         ),
-//         const SizedBox(height: 16),
-//         _buildSecurityItem(
-//           context: context,
-//           isDark: isDark,
-//           icon: Icons.cancel,
-//           title: AppLocalizations.tr(context, 'Easy Cancellation'),
-//           description: 'You can cancel your subscription at any time',
-//         ),
-//       ],
-//     );
-//   }
-//
-//   Widget _buildSecurityItem({
-//     required BuildContext context,
-//     required bool isDark,
-//     required IconData icon,
-//     required String title,
-//     required String description,
-//   }) {
-//     return Row(
-//       children: [
-//         Container(
-//           width: 48,
-//           height: 48,
-//           decoration: BoxDecoration(
-//             color: isDark ? HexColor('#1E293B') : HexColor('#F1F5F9'),
-//             borderRadius: BorderRadius.circular(12),
-//           ),
-//           child: Icon(
-//             icon,
-//             color: HexColor('#6366F1'),
-//             size: 24,
-//           ),
-//         ),
-//         const SizedBox(width: 16),
-//         Expanded(
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               Text(
-//                 title,
-//                 style: TextStyle(
-//                   color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-//                   fontSize: 16,
-//                   fontWeight: FontWeight.w600,
-//                 ),
-//               ),
-//               const SizedBox(height: 4),
-//               Text(
-//                 description,
-//                 style: TextStyle(
-//                   color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-//                   fontSize: 14,
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-//
-//   Color _getPlanColor(String planId) {
-//     switch (planId) {
-//       case 'startup':
-//         return HexColor('#6366F1');
-//       case 'growth':
-//         return HexColor('#8B5CF6');
-//       case 'enterprise':
-//         return HexColor('#EC4899');
-//       default:
-//         return HexColor('#6366F1');
-//     }
-//   }
-// }
-//
-// class PaymentResultScreen extends StatelessWidget {
-//   final bool isSuccess;
-//   final String paymentId;
-//   final String planName;
-//
-//   const PaymentResultScreen({
-//     super.key,
-//     required this.isSuccess,
-//     required this.paymentId,
-//     required this.planName,
-//   });
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final isDark = AppCubit.get(context).isDark;
-//
-//     return Scaffold(
-//       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-//       appBar: AppBar(
-//         backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
-//         elevation: 0,
-//         automaticallyImplyLeading: false,
-//       ),
-//       body: SafeArea(
-//         child: Center(
-//           child: Padding(
-//             padding: const EdgeInsets.all(24),
-//             child: Column(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 Container(
-//                   width: 120,
-//                   height: 120,
-//                   decoration: BoxDecoration(
-//                     color: isSuccess
-//                         ? HexColor('#10B981').withOpacity(0.2)
-//                         : HexColor('#EF4444').withOpacity(0.2),
-//                     shape: BoxShape.circle,
-//                   ),
-//                   child: Icon(
-//                     isSuccess ? Icons.check_circle : Icons.error,
-//                     color: isSuccess ? HexColor('#10B981') : HexColor('#EF4444'),
-//                     size: 64,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 32),
-//                 Text(
-//                   isSuccess
-//                       ? AppLocalizations.tr(context, 'Payment Successful!')
-//                       : AppLocalizations.tr(context, 'Payment Failed'),
-//                   style: TextStyle(
-//                     color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-//                     fontSize: 28,
-//                     fontWeight: FontWeight.w700,
-//                   ),
-//                   textAlign: TextAlign.center,
-//                 ),
-//                 const SizedBox(height: 16),
-//                 Text(
-//                   isSuccess
-//                       ? AppLocalizations.tr(context, 'Your subscription to plan {plan} has been activated successfully')
-//                       .replaceFirst('{plan}', planName)
-//                       : AppLocalizations.tr(context, 'An error occurred while processing the payment. Please try again.'),
-//                   style: TextStyle(
-//                     color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
-//                     fontSize: 16,
-//                   ),
-//                   textAlign: TextAlign.center,
-//                 ),
-//                 const SizedBox(height: 32),
-//                 if (widget.isSuccess)
-//                   Container(
-//                     width: double.infinity,
-//                     padding: const EdgeInsets.all(16),
-//                     decoration: BoxDecoration(
-//                       color: isDark ? HexColor('#1E293B') : Colors.white,
-//                       borderRadius: BorderRadius.circular(12),
-//                       border: Border.all(
-//                         color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
-//                         width: 1,
-//                       ),
-//                     ),
-//                     child: Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       children: [
-//                         Text(
-//                           AppLocalizations.tr(context, 'Transaction ID'),
-//                           style: TextStyle(
-//                             color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-//                             fontSize: 12,
-//                           ),
-//                         ),
-//                         const SizedBox(height: 4),
-//                         Text(
-//                           paymentId,
-//                           style: TextStyle(
-//                             color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-//                             fontSize: 14,
-//                             fontWeight: FontWeight.w600,
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 const SizedBox(height: 40),
-//                 SizedBox(
-//                   width: double.infinity,
-//                   height: 56,
-//                   child: ElevatedButton(
-//                     onPressed: () {
-//                       Navigator.popUntil(context, (route) => route.isFirst);
-//                     },
-//                     style: ElevatedButton.styleFrom(
-//                       backgroundColor: isSuccess
-//                           ? HexColor('#10B981')
-//                           : HexColor('#6366F1'),
-//                       shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(16),
-//                       ),
-//                       elevation: 0,
-//                     ),
-//                     child: Text(
-//                       isSuccess
-//                           ? AppLocalizations.tr(context, 'Back to Home')
-//                           : AppLocalizations.tr(context, 'Try Again'),
-//                       style: const TextStyle(
-//                         color: Colors.white,
-//                         fontSize: 18,
-//                         fontWeight: FontWeight.w600,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hexcolor/hexcolor.dart';
+
 import 'package:chat/layout/payment/payment_cubit.dart';
 import 'package:chat/layout/payment/payment_states.dart';
 import 'package:chat/shared/app_localizations.dart';
 import 'package:chat/shared/network/local/cache_helper.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../layout/cubit/cubit.dart';
 import '../../models/plan_models.dart';
+import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_plan.dart';
+import '../../shared/styles/lyn_type.dart';
 
+/// Paying for the plan: the cubit wiring. The layout is [PaymentForm].
+///
+/// WHAT THIS SCREEN USED TO BE. One long scroll: a 24-padding hero card for the plan, two payment
+/// methods, then the plan's ENTIRE feature list again — the same list the buyer had just read on the
+/// previous screen — then three security panels, and only then the pay button, roughly 1,100 pixels
+/// down. On an 844-tall phone the action was three screens below the fold, and the amount being
+/// charged scrolled out of sight long before it.
+///
+/// WHAT IT IS NOW. The amount and the button are pinned to the bottom, together, so the figure you
+/// are agreeing to is on screen at the moment you agree to it. The feature list is still here and
+/// still complete, but folded shut, because it is a reassurance on this screen rather than the reason
+/// for it. Google Play is offered only where Google Play can take a payment.
 class PaymentScreen extends StatelessWidget {
   final PlanModel plan;
 
-  const PaymentScreen({
-    super.key,
-    required this.plan,
-  });
-
-  String _translateFeature(BuildContext context, String featureKey) {
-    final translated = AppLocalizations.tr(context, 'feature_$featureKey');
-    if (translated == 'feature_$featureKey') {
-      return _formatFeatureKey(featureKey);
-    }
-    return translated;
-  }
-
-  String _formatFeatureKey(String key) {
-    return key
-        .split('_')
-        .map((word) => word.isNotEmpty
-        ? '${word[0].toUpperCase()}${word.substring(1)}'
-        : '')
-        .join(' ');
-  }
-
-  String _translateAgents(BuildContext context, int count) {
-    return AppLocalizations.tr(context, 'limit_agents')
-        .replaceFirst('{count}', count.toString());
-  }
-
-  String _translateInboxes(BuildContext context, int count) {
-    return AppLocalizations.tr(context, 'limit_inboxes')
-        .replaceFirst('{count}', count.toString());
-  }
+  const PaymentScreen({super.key, required this.plan});
 
   @override
   Widget build(BuildContext context) {
     final isDark = AppCubit.get(context).isDark;
-    final color = _getPlanColor(plan.id);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: LynSurface.canvas(isDark),
       appBar: AppBar(
-        backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
+        backgroundColor: LynSurface.surface(isDark),
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B')),
-          onPressed: () => Navigator.pop(context),
-        ),
+        scrolledUnderElevation: 0,
+        shape: Border(bottom: BorderSide(color: LynSurface.border(isDark))),
+        iconTheme: IconThemeData(color: LynSurface.textPrimary(isDark)),
         title: Text(
-          AppLocalizations.tr(context, 'Complete Payment'),
-          style: TextStyle(
-            color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+          AppLocalizations.tr(context, 'Complete payment'),
+          style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark)),
         ),
       ),
       body: BlocConsumer<PaymentCubit, PaymentState>(
@@ -762,7 +54,7 @@ class PaymentScreen extends StatelessWidget {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => PaymentResultScreen(
+                builder: (_) => PaymentResultScreen(
                   isSuccess: true,
                   paymentId: state.paymentId,
                   planName: state.planName,
@@ -772,8 +64,11 @@ class PaymentScreen extends StatelessWidget {
           } else if (state is PaymentError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
-                backgroundColor: HexColor('#EF4444'),
+                // The cubit emits a catalogue KEY for the failures it raises itself; `tr` returns any
+                // other string unchanged, so a message relayed from the server still shows verbatim.
+                // Those failures used to be hardcoded Arabic sentences, shown to English users as-is.
+                content: Text(AppLocalizations.tr(context, state.message)),
+                backgroundColor: LynPalette.danger,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -781,482 +76,332 @@ class PaymentScreen extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(AppLocalizations.tr(context, 'Payment cancelled')),
-                backgroundColor: HexColor('#F59E0B'),
+                backgroundColor: LynPalette.warning,
                 behavior: SnackBarBehavior.floating,
               ),
             );
           }
         },
         builder: (context, state) {
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Plan Info Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: isDark ? HexColor('#1E293B') : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: color.withOpacity(0.3),
-                        width: 2,
-                      ),
-                      boxShadow: isDark ? null : [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: color.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                Icons.workspace_premium,
-                                color: color,
-                                size: 32,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    plan.name,
-                                    style: TextStyle(
-                                      color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    plan.formattedPrice,
-                                    style: TextStyle(
-                                      color: color,
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Divider(
-                          color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            _buildInfoItem(
-                              icon: Icons.people,
-                              text: _translateAgents(context, plan.agents),
-                              color: color,
-                              isDark: isDark,
-                            ),
-                            const SizedBox(width: 20),
-                            _buildInfoItem(
-                              icon: Icons.inbox,
-                              text: _translateInboxes(context, plan.inboxes),
-                              color: color,
-                              isDark: isDark,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // // ✅ معلومات التجديد التلقائي
-                  // Container(
-                  //   width: double.infinity,
-                  //   padding: const EdgeInsets.all(16),
-                  //   decoration: BoxDecoration(
-                  //     color: HexColor('#FEF3C7').withOpacity(0.3),
-                  //     borderRadius: BorderRadius.circular(12),
-                  //     border: Border.all(
-                  //       color: HexColor('#F59E0B').withOpacity(0.3),
-                  //     ),
-                  //   ),
-                  //   child: Column(
-                  //     crossAxisAlignment: CrossAxisAlignment.start,
-                  //     children: [
-                  //       Row(
-                  //         children: [
-                  //           Icon(
-                  //             Icons.autorenew,
-                  //             color: HexColor('#D97706'),
-                  //             size: 20,
-                  //           ),
-                  //           const SizedBox(width: 8),
-                  //           Text(
-                  //             'تجديد تلقائي',
-                  //             style: TextStyle(
-                  //               color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-                  //               fontSize: 16,
-                  //               fontWeight: FontWeight.w700,
-                  //             ),
-                  //           ),
-                  //         ],
-                  //       ),
-                  //       const SizedBox(height: 8),
-                  //       Text(
-                  //         'هذا الاشتراك يتجدد تلقائياً كل شهر. سيتم خصم ${plan.formattedPrice} من طريقة الدفع المختارة شهرياً.',
-                  //         style: TextStyle(
-                  //           color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
-                  //           fontSize: 14,
-                  //         ),
-                  //       ),
-                  //       const SizedBox(height: 8),
-                  //       Text(
-                  //         'يمكنك إلغاء التجديد التلقائي في أي وقت من إعدادات Google Play.',
-                  //         style: TextStyle(
-                  //           color: HexColor('#D97706'),
-                  //           fontSize: 13,
-                  //           fontWeight: FontWeight.w600,
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                  // const SizedBox(height: 24),
-
-                  // Payment Method Selection
-                  Text(
-                    AppLocalizations.tr(context, 'Payment Method:'),
-                    style: TextStyle(
-                      color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Google Play Billing Option
-                  _buildPaymentMethodCard(
-                    context: context,
-                    title: 'Google Play',
-                    subtitle:AppLocalizations.tr(context, 'Payment via Google Play Billing'),
-                    icon: Icons.play_circle_fill,
-                    color: HexColor('#4285F4'),
-                    isSelected: context.watch<PaymentCubit>().selectedMethod == PaymentMethod.googlePlay,
-                    onTap: () => context.read<PaymentCubit>().selectPaymentMethod(PaymentMethod.googlePlay),
-                    isDark: isDark,
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Stripe Option
-                  _buildPaymentMethodCard(
-                    context: context,
-                    title: 'Credit Card (Stripe)',
-                    subtitle: AppLocalizations.tr(context, 'Credit card payment'),
-                    icon: Icons.credit_card,
-                    color: HexColor('#635BFF'),
-                    isSelected: context.watch<PaymentCubit>().selectedMethod == PaymentMethod.stripe,
-                    onTap: () => context.read<PaymentCubit>().selectPaymentMethod(PaymentMethod.stripe),
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 40),
-
-                  // Features
-                  Text(
-                    AppLocalizations.tr(context, 'Included Features'),
-                    style: TextStyle(
-                      color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ...plan.features.map(
-                        (feature) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.check_circle,
-                            color: HexColor('#10B981'),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            _translateFeature(context, feature),
-                            style: TextStyle(
-                              color: isDark ? HexColor('#E2E8F0') : HexColor('#334155'),
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-
-                  // Payment Info
-                  _buildSecurityInfo(context, isDark),
-                  const SizedBox(height: 40),
-
-                  // Pay Button
-                  if (state is PaymentLoading)
-                    Center(
-                      child: Column(
-                        children: [
-                          CircularProgressIndicator(
-                            color: color,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            AppLocalizations.tr(context, 'Processing payment...'),
-                            style: TextStyle(
-                              color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  else
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          context.read<PaymentCubit>().completePayment(
-                            plan: plan.id,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: color,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.payment,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              context.read<PaymentCubit>().selectedMethod == PaymentMethod.googlePlay
-                                  ?' ${AppLocalizations.tr(context,'Subscribe via Google Play')}'
-                                  : '${AppLocalizations.tr(context, 'Pay ')} ${plan.formattedPrice}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 20),
-
-                  // Cancel Button
-                  if (state is! PaymentLoading)
-                    Center(
-                      child: TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          AppLocalizations.tr(context, 'cancel'),
-                          style: TextStyle(
-                            color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+          final cubit = context.read<PaymentCubit>();
+          return PaymentForm(
+            plan: plan,
+            method: context.watch<PaymentCubit>().selectedMethod,
+            isProcessing: state is PaymentLoading,
+            isDark: isDark,
+            onMethodChange: cubit.selectPaymentMethod,
+            onPay: () => cubit.completePayment(plan: plan.id),
+            onCancel: () => Navigator.pop(context),
           );
         },
       ),
     );
   }
+}
 
-  Widget _buildInfoItem({
-    required IconData icon,
-    required String text,
-    required Color color,
-    required bool isDark,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: color, size: 18),
-        const SizedBox(width: 6),
-        Text(
-          text,
-          style: TextStyle(
-            color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-            fontSize: 14,
-          ),
-        ),
-      ],
-    );
-  }
+/// What is being bought, how it will be paid for, and the action — as a widget, so a golden can pump
+/// exactly what ships rather than a reconstruction of it.
+class PaymentForm extends StatelessWidget {
+  const PaymentForm({
+    super.key,
+    required this.plan,
+    required this.method,
+    required this.isProcessing,
+    required this.isDark,
+    required this.onMethodChange,
+    required this.onPay,
+    required this.onCancel,
+  });
 
-  Widget _buildPaymentMethodCard({
-    required BuildContext context,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    required bool isSelected,
-    required VoidCallback onTap,
-    required bool isDark,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? HexColor('#1E293B') : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? color : (isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
+  final PlanModel plan;
+  final PaymentMethod method;
+  final bool isProcessing;
+  final bool isDark;
+  final ValueChanged<PaymentMethod> onMethodChange;
+  final VoidCallback onPay;
+  final VoidCallback onCancel;
+
+  // Was `_getPlanColor`, a second private copy that disagreed with the plan screen's: `startup` came
+  // out indigo here and blue there, so a plan changed colour between the two steps of one purchase.
+  ({Color fill, Color ink}) get _accent => LynPlan.accent(plan.id, isDark);
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(LynSpace.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  _orderSummary(context),
+                  const SizedBox(height: LynSpace.xl),
+                  _sectionHead(context, 'Payment method'),
+                  const SizedBox(height: LynSpace.md),
+
+                  // Android only. Google Play Billing cannot take a payment on an iPhone, so on iOS
+                  // this card used to be a guaranteed dead end: selecting it and paying hit
+                  // `isAvailable == false` and raised an error.
+                  if (Platform.isAndroid) ...[
+                    _methodCard(
+                      context: context,
+                      title: 'Google Play',
+                      subtitle: AppLocalizations.tr(context, 'Payment via Google Play Billing'),
+                      icon: Icons.play_circle_fill,
+                      // Google's own blue: a third party's mark, not a product colour.
+                      brand: const Color(0xFF4285F4),
+                      isSelected: method == PaymentMethod.googlePlay,
+                      onTap: isProcessing ? null : () => onMethodChange(PaymentMethod.googlePlay),
                     ),
+                    const SizedBox(height: LynSpace.md),
+                  ],
+
+                  _methodCard(
+                    context: context,
+                    title: AppLocalizations.tr(context, 'Credit Card (Stripe)'),
+                    subtitle: AppLocalizations.tr(context, 'Credit card payment'),
+                    icon: Icons.credit_card,
+                    // Stripe's own violet, for the same reason.
+                    brand: const Color(0xFF635BFF),
+                    isSelected: method == PaymentMethod.stripe,
+                    onTap: isProcessing ? null : () => onMethodChange(PaymentMethod.stripe),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                      fontSize: 14,
-                    ),
-                  ),
+
+                  const SizedBox(height: LynSpace.xl),
+                  _features(context),
+                  const SizedBox(height: LynSpace.xl),
+                  _sectionHead(context, 'Your payment is secure'),
+                  const SizedBox(height: LynSpace.md),
+                  _security(context),
                 ],
               ),
             ),
-            if (isSelected)
-              Icon(Icons.check_circle, color: color, size: 24),
+          ),
+          _footer(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionHead(BuildContext context, String key) => Text(
+        AppLocalizations.tr(context, key),
+        style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark)),
+      );
+
+  /// What is being bought, in one band: the plan, its price, and the limits that distinguish it.
+  Widget _orderSummary(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(LynSpace.lg),
+      decoration: BoxDecoration(
+        color: LynSurface.surface(isDark),
+        borderRadius: BorderRadius.circular(LynSpace.lg),
+        border: Border.all(color: LynSurface.border(isDark)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  plan.name,
+                  style: LynType.subtitle.copyWith(color: LynSurface.textPrimary(isDark)),
+                ),
+              ),
+              const SizedBox(width: LynSpace.sm),
+              Text(plan.formattedPrice, style: LynType.subtitle.copyWith(color: _accent.ink)),
+            ],
+          ),
+          const SizedBox(height: LynSpace.sm),
+          Text(
+            // One line, separated by a middot, instead of two icon-and-label pairs on a row that
+            // overflowed once Arabic set the numbers wider.
+            '${LynPlan.agents(context, plan.agents)}  ·  ${LynPlan.inboxes(context, plan.inboxes)}',
+            style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The plan's features, complete, but folded shut: the buyer read them on the previous screen, and
+  /// unfolded they put a thousand pixels between this screen's top and its button.
+  Widget _features(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: LynSurface.surface(isDark),
+        borderRadius: BorderRadius.circular(LynSpace.md),
+        border: Border.all(color: LynSurface.border(isDark)),
+      ),
+      child: Theme(
+        // The stock tile draws its own dividers above and below; the container's border is the edge.
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          shape: const Border(),
+          collapsedShape: const Border(),
+          tilePadding: const EdgeInsets.symmetric(horizontal: LynSpace.lg),
+          childrenPadding: const EdgeInsets.fromLTRB(LynSpace.lg, 0, LynSpace.lg, LynSpace.lg),
+          iconColor: LynSurface.textSecondary(isDark),
+          collapsedIconColor: LynSurface.textSecondary(isDark),
+          title: Text(
+            AppLocalizations.tr(context, 'Included features'),
+            style: LynType.subtitle.copyWith(color: LynSurface.textPrimary(isDark)),
+          ),
+          children: [
+            for (final feature in plan.features)
+              Padding(
+                padding: const EdgeInsets.only(bottom: LynSpace.md),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child:
+                          Icon(Icons.check_rounded, color: LynSurface.successText(isDark), size: 18),
+                    ),
+                    const SizedBox(width: LynSpace.md),
+                    Expanded(
+                      child: Text(
+                        LynPlan.feature(context, feature),
+                        style: LynType.body.copyWith(color: LynSurface.textPrimary(isDark)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSecurityInfo(BuildContext context, bool isDark) {
+  Widget _methodCard({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color brand,
+    required bool isSelected,
+    required VoidCallback? onTap,
+  }) {
+    return Material(
+      color: LynSurface.surface(isDark),
+      borderRadius: BorderRadius.circular(LynSpace.md),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(LynSpace.md),
+        child: Container(
+          padding: const EdgeInsets.all(LynSpace.lg),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(LynSpace.md),
+            border: Border.all(
+              color: isSelected ? brand : LynSurface.border(isDark),
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: brand.withOpacity(isDark ? 0.22 : 0.12),
+                  borderRadius: BorderRadius.circular(LynSpace.sm + 2),
+                ),
+                child: Icon(icon, color: brand, size: 24),
+              ),
+              const SizedBox(width: LynSpace.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: LynType.subtitle.copyWith(color: LynSurface.textPrimary(isDark))),
+                    const SizedBox(height: 2),
+                    Text(subtitle,
+                        style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark))),
+                  ],
+                ),
+              ),
+              const SizedBox(width: LynSpace.sm),
+              // A radio, not a tick that only ever appears: these two are one choice, and an empty
+              // ring on the other card is what says so.
+              Icon(
+                isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                color: isSelected ? brand : LynSurface.borderStrong(isDark),
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _security(BuildContext context) {
     return Column(
       children: [
-        _buildSecurityItem(
+        _securityItem(
           context: context,
-          isDark: isDark,
-          icon: Icons.lock,
-          title: AppLocalizations.tr(context, 'Data Encryption'),
-          description: AppLocalizations.tr(context, 'All your information is encrypted and protected'),
+          icon: Icons.lock_outline_rounded,
+          title: 'Data encryption',
+          description: 'All your information is encrypted and protected',
         ),
-        const SizedBox(height: 16),
-        _buildSecurityItem(
+        // Only where Stripe is the one taking the money. It was claimed on both methods, which made
+        // it a promise about a processor that was not involved.
+        if (method == PaymentMethod.stripe) ...[
+          const SizedBox(height: LynSpace.md),
+          _securityItem(
+            context: context,
+            icon: Icons.verified_user_outlined,
+            title: 'Stripe protection',
+            description: 'We use Stripe to process payments securely',
+          ),
+        ],
+        const SizedBox(height: LynSpace.md),
+        _securityItem(
           context: context,
-          isDark: isDark,
-          icon: Icons.security,
-          title: AppLocalizations.tr(context, 'Stripe Protection'),
-          description: AppLocalizations.tr(context, 'We use Stripe to process payments securely'),
-        ),
-        const SizedBox(height: 16),
-    _buildSecurityItem(
-          context: context,
-          isDark: isDark,
-          icon: Icons.cancel,
-          title: AppLocalizations.tr(context, 'Easy Cancellation'),
-          description: AppLocalizations.tr(context, 'You can cancel your subscription at any time'),
+          icon: Icons.event_busy_outlined,
+          title: 'Easy cancellation',
+          description: 'You can cancel your subscription at any time',
         ),
       ],
     );
   }
 
-  Widget _buildSecurityItem({
+  Widget _securityItem({
     required BuildContext context,
-    required bool isDark,
     required IconData icon,
     required String title,
     required String description,
   }) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 48,
-          height: 48,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
-            color: isDark ? HexColor('#1E293B') : HexColor('#F1F5F9'),
-            borderRadius: BorderRadius.circular(12),
+            color: LynPalette.indigo.withOpacity(isDark ? 0.22 : 0.10),
+            borderRadius: BorderRadius.circular(LynSpace.sm + 2),
           ),
-          child: Icon(
-            icon,
-            color: HexColor('#6366F1'),
-            size: 24,
-          ),
+          child: Icon(icon,
+              color: isDark ? LynPalette.indigoOnDark : LynPalette.indigoDeep, size: 19),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: LynSpace.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: TextStyle(
-                  color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                  fontSize: 14,
-                ),
-              ),
+              Text(AppLocalizations.tr(context, title),
+                  style: LynType.callout.copyWith(color: LynSurface.textPrimary(isDark))),
+              const SizedBox(height: 2),
+              Text(AppLocalizations.tr(context, description),
+                  style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark))),
             ],
           ),
         ),
@@ -1264,17 +409,85 @@ class PaymentScreen extends StatelessWidget {
     );
   }
 
-  Color _getPlanColor(String planId) {
-    switch (planId) {
-      case 'startup':
-        return HexColor('#6366F1');
-      case 'growth':
-        return HexColor('#8B5CF6');
-      case 'enterprise':
-        return HexColor('#EC4899');
-      default:
-        return HexColor('#6366F1');
-    }
+  /// The amount and the action, together and pinned.
+  ///
+  /// The button's own label cannot always carry the figure — the Google Play label names the store
+  /// rather than a sum — so the figure gets its own line above it and is on screen either way.
+  Widget _footer(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(LynSpace.lg),
+      decoration: BoxDecoration(
+        color: LynSurface.surface(isDark),
+        border: Border(top: BorderSide(color: LynSurface.border(isDark))),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  AppLocalizations.tr(context, 'Total'),
+                  style: LynType.callout.copyWith(color: LynSurface.textSecondary(isDark)),
+                ),
+              ),
+              Text(plan.formattedPrice,
+                  style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark))),
+              const SizedBox(width: LynSpace.xs),
+              Text(AppLocalizations.tr(context, 'per_month'),
+                  style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark))),
+            ],
+          ),
+          const SizedBox(height: LynSpace.md),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: isProcessing ? null : onPay,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _accent.fill,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: _accent.fill.withOpacity(0.5),
+                disabledForegroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(LynSpace.md)),
+              ),
+              child: isProcessing
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        ),
+                        const SizedBox(width: LynSpace.md),
+                        Text(AppLocalizations.tr(context, 'Processing payment...'),
+                            style: LynType.subtitle.copyWith(color: Colors.white)),
+                      ],
+                    )
+                  : Text(
+                      method == PaymentMethod.googlePlay
+                          ? AppLocalizations.tr(context, 'Subscribe via Google Play')
+                          : AppLocalizations.tr(context, 'Pay {amount}')
+                              .replaceFirst('{amount}', plan.formattedPrice),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: LynType.subtitle.copyWith(color: Colors.white),
+                    ),
+            ),
+          ),
+          if (!isProcessing)
+            TextButton(
+              onPressed: onCancel,
+              child: Text(
+                AppLocalizations.tr(context, 'cancel'),
+                style: LynType.callout.copyWith(color: LynSurface.textSecondary(isDark)),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1316,162 +529,163 @@ class _PaymentResultScreenState extends State<PaymentResultScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = AppCubit.get(context).isDark;
+    return PaymentResultView(
+      isSuccess: widget.isSuccess,
+      paymentId: widget.paymentId,
+      planName: widget.planName,
+      isDark: isDark,
+      onDone: () => Navigator.popUntil(context, (route) => route.isFirst),
+    );
+  }
+}
+
+/// How the purchase ended.
+class PaymentResultView extends StatelessWidget {
+  const PaymentResultView({
+    super.key,
+    required this.isSuccess,
+    required this.paymentId,
+    required this.planName,
+    required this.isDark,
+    required this.onDone,
+  });
+
+  final bool isSuccess;
+  final String paymentId;
+  final String planName;
+  final bool isDark;
+  final VoidCallback onDone;
+
+  /// What actually happened, in a sentence.
+  ///
+  /// The plan's name arrives from the server and can be absent — the Stripe deep link reads it out of
+  /// an entitlements call that may not have caught up yet. It used to fall back to the Arabic word
+  /// 'الجديدة', which an English buyer then read in the middle of an English sentence. A missing name
+  /// now picks the sentence that does not need one, which is true in both languages.
+  String _message(BuildContext context) {
+    if (!isSuccess) {
+      return AppLocalizations.tr(
+          context, 'An error occurred while processing the payment. Please try again.');
+    }
+    if (planName.isEmpty) {
+      return AppLocalizations.tr(context, 'Your subscription has been activated successfully');
+    }
+    return AppLocalizations.tr(
+            context, 'Your subscription to plan {plan} has been activated successfully')
+        .replaceFirst('{plan}', planName);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = isSuccess ? LynPalette.success : LynPalette.danger;
+    final ink = isSuccess ? LynSurface.successText(isDark) : LynSurface.dangerText(isDark);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: LynSurface.canvas(isDark),
       appBar: AppBar(
-        backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#FFFFFF'),
+        backgroundColor: LynSurface.canvas(isDark),
         elevation: 0,
+        scrolledUnderElevation: 0,
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: widget.isSuccess
-                        ? HexColor('#10B981').withOpacity(0.2)
-                        : HexColor('#EF4444').withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    widget.isSuccess ? Icons.check_circle : Icons.error,
-                    color: widget.isSuccess ? HexColor('#10B981') : HexColor('#EF4444'),
-                    size: 64,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  widget.isSuccess
-                      ? AppLocalizations.tr(context, 'Payment Successful!')
-                      : AppLocalizations.tr(context, 'Payment Failed'),
-                  style: TextStyle(
-                    color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  widget.isSuccess
-                      ? AppLocalizations.tr(context, 'Your subscription to plan {plan} has been activated successfully')
-                      .replaceFirst('{plan}', widget.planName)
-                      : AppLocalizations.tr(context, 'An error occurred while processing the payment. Please try again.'),
-                  style: TextStyle(
-                    color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
-                    fontSize: 16,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-
-                // ✅ معلومات التجديد التلقائي في شاشة النتيجة
-                // if (isSuccess)
-                //   Container(
-                //     width: double.infinity,
-                //     padding: const EdgeInsets.all(16),
-                //     margin: const EdgeInsets.only(bottom: 16),
-                //     decoration: BoxDecoration(
-                //       color: HexColor('#FEF3C7').withOpacity(0.3),
-                //       borderRadius: BorderRadius.circular(12),
-                //       border: Border.all(
-                //         color: HexColor('#F59E0B').withOpacity(0.3),
-                //       ),
-                //     ),
-                //     child: Row(
-                //       children: [
-                //         Icon(
-                //           Icons.info_outline,
-                //           color: HexColor('#D97706'),
-                //           size: 24,
-                //         ),
-                //         const SizedBox(width: 12),
-                //         Expanded(
-                //           child: Text(
-                //             'سيتم تجديد اشتراكك تلقائياً شهرياً. يمكنك إلغاء التجديد من إعدادات Google Play في أي وقت.',
-                //             style: TextStyle(
-                //               color: isDark ? HexColor('#E2E8F0') : HexColor('#475569'),
-                //               fontSize: 14,
-                //             ),
-                //           ),
-                //         ),
-                //       ],
-                //     ),
-                //   ),
-
-                if (widget.isSuccess)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark ? HexColor('#1E293B') : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
-                        width: 1,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: LynSpace.xl),
+                child: Column(
+                  children: [
+                    const SizedBox(height: LynSpace.xxl),
+                    Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: tone.withOpacity(isDark ? 0.22 : 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isSuccess ? Icons.check_rounded : Icons.close_rounded,
+                        color: ink,
+                        size: 48,
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppLocalizations.tr(context, 'Transaction ID'),
-                          style: TextStyle(
-                            color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                            fontSize: 12,
-                          ),
+                    const SizedBox(height: LynSpace.xl),
+                    Text(
+                      isSuccess
+                          ? AppLocalizations.tr(context, 'Payment successful')
+                          : AppLocalizations.tr(context, 'Payment failed'),
+                      textAlign: TextAlign.center,
+                      style: LynType.title.copyWith(color: LynSurface.textPrimary(isDark)),
+                    ),
+                    const SizedBox(height: LynSpace.md),
+                    Text(
+                      _message(context),
+                      textAlign: TextAlign.center,
+                      style: LynType.body.copyWith(color: LynSurface.textSecondary(isDark)),
+                    ),
+                    if (isSuccess && paymentId.isNotEmpty) ...[
+                      const SizedBox(height: LynSpace.xl),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(LynSpace.lg),
+                        decoration: BoxDecoration(
+                          color: LynSurface.surface(isDark),
+                          borderRadius: BorderRadius.circular(LynSpace.md),
+                          border: Border.all(color: LynSurface.border(isDark)),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.paymentId,
-                          style: TextStyle(
-                            color: isDark ? HexColor('#E2E8F0') : HexColor('#1E293B'),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppLocalizations.tr(context, 'Transaction ID'),
+                              style:
+                                  LynType.caption.copyWith(color: LynSurface.textSecondary(isDark)),
+                            ),
+                            const SizedBox(height: LynSpace.xs),
+                            Text(
+                              paymentId,
+                              // Left-to-right even in Arabic: a reference someone reads out or
+                              // compares against a receipt character by character must not have its
+                              // segments reordered by the bidi algorithm.
+                              textDirection: TextDirection.ltr,
+                              style: LynType.body.copyWith(
+                                color: LynSurface.textPrimary(isDark),
+                                fontFeatures: const [FontFeature.tabularFigures()],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                const SizedBox(height: 40),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.popUntil(context, (route) => route.isFirst);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.isSuccess
-                          ? HexColor('#10B981')
-                          : HexColor('#6366F1'),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
                       ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      widget.isSuccess
-                          ? AppLocalizations.tr(context, 'Back to Home')
-                          : AppLocalizations.tr(context, 'Try Again'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                    ],
+                    const SizedBox(height: LynSpace.xl),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.all(LynSpace.lg),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: onDone,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isSuccess ? LynPalette.success : LynPalette.indigo,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(LynSpace.md)),
+                  ),
+                  child: Text(
+                    isSuccess
+                        ? AppLocalizations.tr(context, 'Back to home')
+                        : AppLocalizations.tr(context, 'Try again'),
+                    style: LynType.subtitle.copyWith(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

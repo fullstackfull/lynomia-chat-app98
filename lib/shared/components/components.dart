@@ -1,8 +1,9 @@
 
 import 'package:flutter/material.dart';
-import 'package:hexcolor/hexcolor.dart';
 
 import 'custom_toast.dart';
+import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 // ✅ Re-export ToastStates
 export 'custom_toast.dart' show ToastStates, CustomToast;
@@ -29,28 +30,24 @@ Widget defaultButton({
   required VoidCallback function,
   required String text,
   double width = double.infinity,
-  double height = 56,
-  double radius = 12,
+  double height = 52,
+  double radius = LynSpace.md,
   bool isUpperCase = true,
   Color? background,
   Color? textColor,
 }) {
-  return Container(
+  return SizedBox(
     width: width,
     height: height,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(radius),
-      color: background ?? HexColor('#6366F1'),
-    ),
     child: MaterialButton(
       onPressed: function,
+      elevation: 0,
+      highlightElevation: 0,
+      color: background ?? LynPalette.indigo,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
       child: Text(
         isUpperCase ? text.toUpperCase() : text,
-        style: TextStyle(
-          color: textColor ?? Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
+        style: LynType.subtitle.copyWith(color: textColor ?? Colors.white),
       ),
     ),
   );
@@ -70,6 +67,10 @@ Widget defaultFormField({
   Function(String)? onSubmit,
   Function(String)? onChange,
   bool isDark = true,
+  // Without these the platform password manager has nothing to offer against, so every sign-in on a
+  // new device is typed by hand.
+  Iterable<String>? autofillHints,
+  TextInputAction? textInputAction,
 }) {
   return TextFormField(
     controller: controller,
@@ -79,43 +80,47 @@ Widget defaultFormField({
     onTap: onTap,
     onFieldSubmitted: onSubmit,
     onChanged: onChange,
-    style: TextStyle(color: isDark ? HexColor('#F1F5F9') : HexColor('#0F172A')),
+    autofillHints: autofillHints,
+    textInputAction: textInputAction,
+    style: LynType.body.copyWith(color: LynSurface.textPrimary(isDark)),
     decoration: InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
-      prefixIcon: Icon(prefix, color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+      // The tertiary tone measured 3.5:1 on the field; a hint is text and has to be readable.
+      hintStyle: LynType.body.copyWith(color: LynSurface.textSecondary(isDark)),
+      prefixIcon: Icon(prefix, color: LynSurface.textSecondary(isDark)),
       suffixIcon: suffix != null
           ? IconButton(
         onPressed: suffixPressed,
-        icon: Icon(suffix, color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+        icon: Icon(suffix, color: LynSurface.textSecondary(isDark)),
       )
           : null,
       filled: true,
-      fillColor: isDark ? HexColor('#1E293B') : HexColor('#F1F5F9'),
+      fillColor: LynSurface.surface(isDark),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(LynSpace.md),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
+        borderRadius: BorderRadius.circular(LynSpace.md),
+        borderSide: BorderSide(color: LynSurface.border(isDark)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: HexColor('#6366F1'), width: 2),
+        borderRadius: BorderRadius.circular(LynSpace.md),
+        borderSide: BorderSide(color: LynPalette.indigo, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: HexColor('#EF4444')),
+        borderRadius: BorderRadius.circular(LynSpace.md),
+        borderSide: BorderSide(color: LynPalette.danger),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.lg),
     ),
   );
 }
 
 // ─── Divider ───────────────────────────────────
-Widget myDivider() => Divider(
-  color: HexColor('#334155'),
+/// Takes the brightness now: it was one fixed slate line, drawn the same on paper and on ink.
+Widget myDivider({bool isDark = true}) => Divider(
+  color: LynSurface.border(isDark),
   thickness: 1,
   height: 1,
 );

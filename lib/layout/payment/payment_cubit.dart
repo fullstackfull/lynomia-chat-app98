@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:app_links/app_links.dart';
@@ -65,7 +64,7 @@ class PaymentCubit extends Cubit<PaymentState> with WidgetsBindingObserver {
           await Future.delayed(const Duration(seconds: 3));
           try {
             final entitlements = await _apiService.fetchEntitlements();
-            String planName = 'الجديدة';
+            String planName = '';
             if (entitlements['plan'] != null && entitlements['plan']['name'] != null) {
               planName = entitlements['plan']['name'].toString();
             }
@@ -75,7 +74,7 @@ class PaymentCubit extends Cubit<PaymentState> with WidgetsBindingObserver {
           } catch (e) {
             print('❌ Error fetching entitlements: $e');
             if (!isClosed) {
-              emit(PaymentSuccess('external_stripe', 'الجديدة'));
+              emit(PaymentSuccess('external_stripe', ''));
             }
           }
         } else if (checkoutStatus == 'canceled') {
@@ -249,8 +248,7 @@ class PaymentCubit extends Cubit<PaymentState> with WidgetsBindingObserver {
     try {
       if (!_googlePlayBilling.isAvailable) {
         if (!isClosed) {
-          emit(const PaymentError('Google Play Billing غير متاح.\n'
-              'تأكد من تثبيت التطبيق من Play Store'));
+          emit(const PaymentError('google_play_unavailable'));
         }
         return;
       }
@@ -276,20 +274,23 @@ class PaymentCubit extends Cubit<PaymentState> with WidgetsBindingObserver {
             }
           } else {
             if (!isClosed) {
-              emit(const PaymentError('فشل التحقق من الشراء في السيرفر'));
+              emit(const PaymentError('purchase_verification_failed'));
             }
           }
           break;
 
         case PurchaseStatus.pending:
           if (!isClosed) {
-            emit(const PaymentError('الشراء معلق — يرجى الانتظار'));
+            emit(const PaymentError('purchase_pending'));
           }
           break;
 
         case PurchaseStatus.error:
+          // The store's own message is a vendor string, not product copy: logged for diagnosis, not
+          // shown.
+          print('❌ Google Play purchase error: ${purchaseResult.error?.message}');
           if (!isClosed) {
-            emit(PaymentError('خطأ: ${purchaseResult.error?.message}'));
+            emit(const PaymentError('purchase_failed'));
           }
           break;
 
@@ -312,11 +313,12 @@ class PaymentCubit extends Cubit<PaymentState> with WidgetsBindingObserver {
       }
     } on TimeoutException {
       if (!isClosed) {
-        emit(const PaymentError('انتهت مهلة الشراء'));
+        emit(const PaymentError('purchase_timed_out'));
       }
     } catch (e) {
+      print('❌ Google Play purchase failed: $e');
       if (!isClosed) {
-        emit(PaymentError('فشل الشراء: $e'));
+        emit(const PaymentError('purchase_failed'));
       }
     }
   }
@@ -350,8 +352,11 @@ class PaymentCubit extends Cubit<PaymentState> with WidgetsBindingObserver {
       print('🔍 Account ID: $accountId');
       print('🔍 Product ID: ${purchase.productID}');
       print('🔍 Purchase ID (Order ID): ${purchase.purchaseID}');
-      print(
-          '🔍 Purchase Token (Server Verification Data): ${purchase.verificationData.serverVerificationData}');
+      // The purchase token is NOT logged. It is a bearer credential — it is what the server presents
+      // to Google to verify and acknowledge this purchase — and `print` goes to the device log, which
+      // a bug report or a crash dump carries off the device. Its length is enough to confirm it
+      // arrived.
+      print('🔍 Purchase token: ${purchase.verificationData.serverVerificationData.length} chars');
       print('🔍 Plan ID: $planId');
 
       if (accountId == 0) {
@@ -374,9 +379,6 @@ class PaymentCubit extends Cubit<PaymentState> with WidgetsBindingObserver {
     }
   }
 
-  String? get _lynomiaToken =>
-      CacheHelper.getString(key: CacheHelper.keyLynomiaToken);
-
   // ─── الدفع عبر Stripe في المتصفح الخارجي ────────────────────────
   Future<void> _completeStripePayment(String plan) async {
     try {
@@ -398,13 +400,16 @@ class PaymentCubit extends Cubit<PaymentState> with WidgetsBindingObserver {
       );
 
       if (!launched) {
-        throw Exception('تعذر فتح متصفح الإنترنت الخارجي');
+        _awaitingStripeResult = false;
+        if (!isClosed) {
+          emit(const PaymentError('checkout_browser_unavailable'));
+        }
       }
     } catch (e) {
       _awaitingStripeResult = false;
       print('❌ Stripe Checkout Error: $e');
       if (!isClosed) {
-        emit(PaymentError('فشل فتح رابط الدفع: $e'));
+        emit(const PaymentError('checkout_open_failed'));
       }
     }
   }

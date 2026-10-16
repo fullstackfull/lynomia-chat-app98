@@ -1,0 +1,110 @@
+import 'package:flutter/material.dart';
+
+import 'lyn_palette.dart';
+import 'lyn_type.dart';
+import '../app_localizations.dart';
+
+/// A chevron that points the way the script runs.
+///
+/// WHICH IS WHAT FLUTTER ALREADY DOES. This used to swap the glyph on `Directionality`, under a
+/// comment claiming `Icons.arrow_forward_ios` "does not mirror itself". It does: the icon is
+/// declared `matchTextDirection: true` (material/icons.dart:2510), and `Icon` answers that by
+/// flipping the glyph horizontally under RTL (widgets/icon.dart:334-342). So the swap was a SECOND
+/// mirror on top of Flutter's, and the net effect in Arabic was a "more" chevron pointing right --
+/// exactly the bug the swap was written to prevent.
+///
+/// One glyph, no condition. Arabic gets it pointing left because the framework turns it.
+class LynChevron extends StatelessWidget {
+  const LynChevron({super.key, required this.color, this.size = 16});
+
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Icon(
+        Icons.arrow_forward_ios,
+        size: size,
+        color: color,
+      );
+}
+
+/// Subscription state as a dot AND a word.
+///
+/// The app previously drew this as a green pill or a red pill with no other difference between them,
+/// which is the same pill to the one man in twelve who cannot separate those two hues — and in this
+/// product that pill is what says whether the inbox opens at all. The dot keeps the colour, the word
+/// carries the meaning, and the text tone is the measured one for its own tint rather than the raw
+/// status colour, which fails on it (2.96:1 for success, 3.29:1 for danger).
+class LynStatusPill extends StatelessWidget {
+  const LynStatusPill({super.key, required this.isActive, required this.isDark});
+
+  final bool isActive;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final dot = isActive ? LynPalette.success : LynPalette.danger;
+    final ink = isActive ? LynSurface.successText(isDark) : LynSurface.dangerText(isDark);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: LynSpace.sm, vertical: 2),
+      decoration: BoxDecoration(
+        color: isActive ? LynSurface.successSurface(isDark) : LynSurface.dangerSurface(isDark),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: LynSpace.xs + 2),
+          Text(
+            AppLocalizations.tr(context, isActive ? 'active' : 'inactive'),
+            style: LynType.micro.copyWith(color: ink),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The Lynomia attribution, as a link.
+///
+/// Left-to-right whatever the screen's direction: it is a brand name after an English preposition,
+/// and mirroring the row puts the brand first and the preposition after it. It was written out twice,
+/// in the splash screen and in the payment history's empty state.
+class LynPoweredBy extends StatelessWidget {
+  const LynPoweredBy({super.key, required this.isDark, required this.onTap});
+
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        textDirection: TextDirection.ltr,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Powered by',
+              style: LynType.caption.copyWith(color: LynSurface.textTertiary(isDark))),
+          // A real gap, not a trailing space inside the string: a Text's own trailing whitespace is
+          // trimmed during layout, so the two words ran together as "Powered byLynomia".
+          const SizedBox(width: LynSpace.xs),
+          Text(
+            'Lynomia',
+            style: LynType.caption.copyWith(
+              color: isDark ? LynPalette.indigoOnDark : LynPalette.indigoDeep,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

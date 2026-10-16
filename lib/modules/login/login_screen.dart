@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../layout/cubit/cubit.dart';
@@ -11,8 +10,9 @@ import '../../shared/app_localizations.dart';
 import '../../shared/components/components.dart';
 
 import '../../shared/network/local/cache_helper.dart';
-import '../inbox_selection/inbox_selection_screen.dart';
 import '../splash/splash_screen.dart';
+import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (state is AppLoginErrorState) {
           CustomToast.show(
             context: context,
-            message: state.error,
+            message: AppLocalizations.tr(context, state.messageKey),
             state: ToastStates.error,
           );
         }
@@ -94,68 +94,55 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(
+                  LynSpace.xl, LynSpace.lg, LynSpace.xl, LynSpace.xxl),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 40),
+                    const SizedBox(height: LynSpace.xxl),
 
-                    // 🎨 الأيقونة
+                    // The product's own mark, not a generic chat bubble in a circle. The fallback is
+                    // the wordmark rather than another glyph, so a missing asset still says Lynomia.
                     Center(
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: HexColor('#6366F1').withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.chat_bubble_rounded,
-                          size: 40,
-                          color: HexColor('#6366F1'),
+                      child: Image.asset(
+                        'assets/images/Logo.png',
+                        height: 64,
+                        errorBuilder: (context, error, stackTrace) => Text(
+                          'Lynomia',
+                          style: LynType.display.copyWith(color: LynPalette.indigo),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: LynSpace.xxl),
 
-                    // 📝 العنوان
                     Center(
                       child: Text(
                         AppLocalizations.tr(context, 'Welcome! 👋'),
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? HexColor('#F8FAFC') : HexColor('#0F172A'),
-                        ),
+                        style: LynType.title.copyWith(color: LynSurface.textPrimary(isDark)),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: LynSpace.sm),
 
                     Center(
                       child: Text(
                         AppLocalizations.tr(context, 'Enter your details to start chatting'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: isDark ? HexColor('#94A3B8') : HexColor('#475569'),
-                        ),
+                        textAlign: TextAlign.center,
+                        style: LynType.callout.copyWith(color: LynSurface.textSecondary(isDark)),
                       ),
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: LynSpace.xxl),
 
-                    // 📧 حقل البريد
                     Text(AppLocalizations.tr(context, 'Email'),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? HexColor('#E2E8F0') : HexColor('#334155'),
-                      ),
+                      style: LynType.callout.copyWith(color: LynSurface.textPrimary(isDark)),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: LynSpace.sm),
                     defaultFormField(
                       controller: _emailController,
                       type: TextInputType.emailAddress,
+                      autofillHints: const [AutofillHints.username, AutofillHints.email],
+                      textInputAction: TextInputAction.next,
                       validate: (value) {
                         if (value == null || value.isEmpty) {
                           return AppLocalizations.tr(context, 'Email is required');
@@ -169,17 +156,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       hint: 'example@email.com',
                       isDark: isDark,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: LynSpace.lg),
 
-                    // 🔒 حقل كلمة المرور — مع أيقونة العين
                     Text(AppLocalizations.tr(context, 'Password'),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? HexColor('#E2E8F0') : HexColor('#334155'),
-                      ),
+                      style: LynType.callout.copyWith(color: LynSurface.textPrimary(isDark)),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: LynSpace.sm),
 
                     // ✅ استخدام defaultFormField مع أيقونة العين
                     StatefulBuilder(
@@ -198,6 +180,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                           prefix: Icons.lock_outline,
                           hint: '••••••••',
+                          autofillHints: const [AutofillHints.password],
+                          textInputAction: TextInputAction.done,
+                          onSubmit: (_) => _submit(),
                           isPassword: !_isPasswordVisible, // ✅ التحكم في الإخفاء
                           suffix: _isPasswordVisible
                               ? Icons.visibility_off_outlined
@@ -211,54 +196,75 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: LynSpace.xl),
 
-                    // 🔘 زر الدخول
                     isLoading
-                        ? Center(
-                      child: Column(
-                        children: [
-                          CircularProgressIndicator(
-                            color: HexColor('#6366F1'),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            state is AppSubscriptionLoadingState
-                                ? AppLocalizations.tr(context, 'Checking subscription...')
-                                : AppLocalizations.tr(context, 'Logging in...'),
-                            style: TextStyle(
-                              color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                              fontSize: 14,
+                        ? SizedBox(
+                      height: 52,
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                  color: LynPalette.indigo, strokeWidth: 2),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: LynSpace.md),
+                            Text(
+                              state is AppSubscriptionLoadingState
+                                  ? AppLocalizations.tr(context, 'Checking subscription...')
+                                  : AppLocalizations.tr(context, 'Logging in...'),
+                              style: LynType.callout
+                                  .copyWith(color: LynSurface.textSecondary(isDark)),
+                            ),
+                          ],
+                        ),
                       ),
                     )
                         : defaultButton(
                       function: _submit,
                       text: AppLocalizations.tr(context, 'login'),
                       isUpperCase: false,
-                      radius: 16,
                     ),
 
-                    const SizedBox(height: 50),
-                    // 🔘 زر Google Sign-In
+                    // A bare 50px gap used to stand between the password button and the social ones,
+                    // which left it unclear whether they were alternatives or extra steps.
+                    const SizedBox(height: LynSpace.xl),
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: LynSurface.border(isDark), height: 1)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: LynSpace.md),
+                          child: Text(
+                            AppLocalizations.tr(context, 'or_continue_with'),
+                            style: LynType.caption
+                                .copyWith(color: LynSurface.textSecondary(isDark)),
+                          ),
+                        ),
+                        Expanded(child: Divider(color: LynSurface.border(isDark), height: 1)),
+                      ],
+                    ),
+                    const SizedBox(height: LynSpace.lg),
+
                     isLoading
                         ? const SizedBox()
                         : InkWell(
                       onTap: () {
                         context.read<AppCubit>().loginWithGoogle();
                       },
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(LynSpace.md),
                       child: Container(
-                        height: 56,
+                        height: 52,
                         decoration: BoxDecoration(
-                          color: isDark ? HexColor('#FFFFFF') : HexColor('#F1F5F9'),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isDark ? HexColor('#E2E8F0') : HexColor('#CBD5E1'),
-                            width: 1,
-                          ),
+                          // Google's own guidance is one white button with a grey rule, in both
+                          // themes. What was here inverted that -- white on the dark theme and a
+                          // near-white slate on the light one -- with the border colours swapped too,
+                          // so on paper the button was a pale rectangle on a pale page.
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(LynSpace.md),
+                          border: Border.all(color: const Color(0xFF747775)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -266,30 +272,26 @@ class _LoginScreenState extends State<LoginScreen> {
                             // ✅ شعار Google
                             Image.asset(
                               'assets/images/Google.png',
-                              height: 30,
-                              width: 30,
+                              height: 20,
+                              width: 20,
                               errorBuilder: (context, error, stackTrace) {
                                 // ✅ fallback لو ما لقى الصورة
                                 return Icon(
                                   Icons.g_mobiledata,
-                                  color: HexColor('#4285F4'),
+                                  color: const Color(0xFF4285F4),
                                   size: 28,
                                 );
                               },
                             ),
                             const SizedBox(width: 12),
                             Text(AppLocalizations.tr(context, 'google_sign_in'),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: HexColor('#1E293B'),
-                              ),
+                              style: LynType.subtitle.copyWith(color: const Color(0xFF1F1F1F)),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: LynSpace.md),
 
 // 🍎 زر Apple Sign-In
                     isLoading
@@ -298,40 +300,32 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: () {
                         context.read<AppCubit>().loginWithApple();
                       },
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(LynSpace.md),
                       child: Container(
-                        height: 56,
+                        height: 52,
                         decoration: BoxDecoration(
-                          color: isDark ? HexColor('#000000') : HexColor('#000000'),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isDark ? HexColor('#333333') : HexColor('#000000'),
-                            width: 1,
-                          ),
+                          // Was `isDark ? '#000000' : '#000000'` -- a branch with the same answer on
+                          // both sides. The rule it carries is the only part that needs a theme: on
+                          // the ink canvas a pure black button needs an edge to be seen at all.
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(LynSpace.md),
+                          border: Border.all(color: isDark ? LynPalette.inkSoft : Colors.black),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.apple,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                            const SizedBox(width: 12),
+                            const Icon(Icons.apple, color: Colors.white, size: 22),
+                            const SizedBox(width: LynSpace.md),
                             Text(
                               AppLocalizations.tr(context, 'apple_sign_in'),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
+                              style: LynType.subtitle.copyWith(color: Colors.white),
                             ),
                           ],
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: LynSpace.xl),
 
                     // 🏢 Powered by Lynomia
                     GestureDetector(
@@ -346,19 +340,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Powered by ',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
-                            ),
+                            'Powered by',
+                            style: LynType.caption
+                                .copyWith(color: LynSurface.textSecondary(isDark)),
                           ),
-                          SizedBox(width: 2,),
+                          // A trailing space inside a Text is trimmed at layout, which ran the two
+                          // words together in Arabic; the gap has to be a widget.
+                          const SizedBox(width: LynSpace.xs),
                           Text(
                             'Lynomia',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: HexColor('#6366F1'),
+                            style: LynType.caption.copyWith(
+                              color: isDark ? LynPalette.indigoOnDark : LynPalette.indigoDeep,
+                              fontWeight: FontWeight.w700,
                               decoration: TextDecoration.underline,
                             ),
                           ),

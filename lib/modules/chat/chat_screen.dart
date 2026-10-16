@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:hexcolor/hexcolor.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:just_audio/just_audio.dart';
@@ -28,10 +27,25 @@ import '../../layout/cubit/states.dart';
 import '../../models/chatwoot_models.dart';
 import '../../shared/app_localizations.dart';
 import '../../shared/components/components.dart';
+import '../../shared/styles/lyn_channel.dart';
+import '../../shared/styles/lyn_feedback.dart';
+import '../../shared/styles/lyn_palette.dart';
+import '../../shared/styles/lyn_type.dart';
+import 'widgets/chat_composer.dart';
+import 'widgets/contact_details_sheet.dart';
+import 'widgets/message_actions_sheet.dart';
+import 'widgets/typing_indicator.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // ChatScreen - Professional WhatsApp-like Experience v2.0
 // ═══════════════════════════════════════════════════════════════
+/// The content strings this app writes INSTEAD of a caption when it uploads an attachment, so the
+/// server has something to show in a conversation list. They are protocol values, not copy: the
+/// audio one is written by `chatwoot_api_service.dart`, and the other two sit in the message history
+/// of installs that predate it. A bubble must recognise them so it does not print "🎵 تسجيل صوتي" as
+/// a line of text under the clip it is describing.
+const Set<String> _attachmentPlaceholders = {'📷 صورة', '📎 ملف', '🎵 تسجيل صوتي'};
+
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
 
@@ -73,7 +87,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   // ─── Animation Controllers ─────────────────────────────────
   late AnimationController _recordAnimationController;
-  late Animation<double> _recordAnimation;
 
   @override
   void initState() {
@@ -82,8 +95,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _initAudioPlayer();
     _initRecordAnimation();
 
-    // ✅ مراقبة تغيير النص لتحديث UI
-    _messageController.addListener(() => setState(() {}));
+    // No listener on `_messageController`. It used to be `addListener(() => setState(() {}))`, which
+    // rebuilt this entire screen -- the message list, every bubble, the app bar -- on every character
+    // typed, to swap one button between a microphone and a send arrow. `ChatComposer` listens to the
+    // controller around that button alone.
   }
 
   void _initAudioPlayer() {
@@ -103,14 +118,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     });
   }
 
+  // Created here, driven by the recording state below. It used to `..repeat(reverse: true)` from
+  // `initState`, so the ticker ran for the whole life of the chat screen -- a frame callback a second
+  // forever -- while its only listener, the composer's waveform, exists only while recording.
   void _initRecordAnimation() {
     _recordAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
-
-    _recordAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
-      CurvedAnimation(parent: _recordAnimationController, curve: Curves.easeInOut),
     );
   }
 
@@ -253,9 +267,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final micStatus = await Permission.microphone.request();
     if (micStatus != PermissionStatus.granted) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.tr(context, 'Microphone permission required'))),
-        );
+        LynFeedback.show(context, 'Microphone permission required', tone: LynTone.warning);
       }
       return;
     }
@@ -298,6 +310,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         _isRecording = true;
         _recordingSeconds = 0;
       });
+      _recordAnimationController.repeat(reverse: true);
 
       _recordingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted) setState(() => _recordingSeconds++);
@@ -308,9 +321,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       print('❌ Start Recording Error: $e');
       print(stackTrace);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ فشل بدء التسجيل: $e')),
-        );
+        LynFeedback.show(context, 'Could not start recording',
+            tone: LynTone.error, actionKey: 'Retry', onAction: _startRecording);
       }
     }
   }
@@ -324,6 +336,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       print('🎙️ Recording stopped. Path: $path');
 
       setState(() => _isRecording = false);
+      _recordAnimationController.stop();
+      _recordAnimationController.value = 0;
 
       if (path != null) {
         final file = File(path);
@@ -336,9 +350,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           } else {
             print('⚠️ Recording file too small, might be empty');
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('⚠️ التسجيل قصير جداً')),
-              );
+              LynFeedback.show(context, 'Recording too short', tone: LynTone.warning);
             }
           }
         } else {
@@ -351,17 +363,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       print('❌ Stop Recording Error: $e');
       print(stackTrace);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ فشل إيقاف التسجيل: $e')),
-        );
+        LynFeedback.show(context, 'Could not stop recording', tone: LynTone.error);
       }
     }
-  }
-
-  String _formatDuration(int seconds) {
-    final mins = (seconds ~/ 60).toString().padLeft(2, '0');
-    final secs = (seconds % 60).toString().padLeft(2, '0');
-    return '$mins:$secs';
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -414,9 +418,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           _isAudioLoading = false;
           _isPlayingAudio = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ فشل تشغيل الصوت: $e')),
-        );
+        LynFeedback.show(context, 'Could not play this audio', tone: LynTone.error);
       }
     }
   }
@@ -491,9 +493,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     } catch (e) {
       print('❌ Open File Error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.tr(context, 'Cannot open file'))),
-        );
+        LynFeedback.show(context, 'Cannot open file', tone: LynTone.error);
       }
     }
   }
@@ -529,9 +529,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       setState(() => cubit.messages.removeWhere((m) => m['id'] == messageId));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ ${AppLocalizations.tr(context, 'Delete failed')}'), backgroundColor: Colors.red),
-        );
+        LynFeedback.show(context, 'Delete failed', tone: LynTone.error);
       }
     }
   }
@@ -564,9 +562,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ فشل الحذف: $e'), backgroundColor: Colors.red),
-        );
+        LynFeedback.show(context, 'Delete failed', tone: LynTone.error);
       }
     }
   }
@@ -595,7 +591,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         final isDark = cubit.isDark;
 
         return Scaffold(
-          backgroundColor: isDark ? HexColor('#0F172A') : HexColor('#F1F5F9'),
+          backgroundColor: LynSurface.canvasAlt(isDark),
           appBar: _buildAppBar(cubit, isDark),
           body: Column(
             children: [
@@ -606,7 +602,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ? _buildEmptyState(isDark)
                     : _buildMessagesList(messages, isDark, state),
               ),
-              if (cubit.isTyping) _buildTypingIndicator(isDark),
+              if (cubit.isTyping) TypingIndicator(isDark: isDark),
               _buildInputField(isDark),
             ],
           ),
@@ -631,14 +627,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   PreferredSizeWidget _buildSelectionAppBar(AppCubit cubit, bool isDark) {
     return AppBar(
       elevation: 0,
-      backgroundColor: HexColor('#6366F1'),
+      backgroundColor: LynPalette.indigo,
       leading: IconButton(
         icon: const Icon(Icons.close, color: Colors.white),
         onPressed: _clearSelection,
       ),
       title: Text(
         AppLocalizations.tr(context, '{count} selected').replaceFirst('{count}', _selectedMessageIds.length.toString()),
-        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+        style: LynType.headline.copyWith(color: Colors.white),
       ),
       actions: [
         IconButton(
@@ -672,40 +668,55 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     return AppBar(
       elevation: 0,
-      backgroundColor: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
-      leadingWidth: 40,
+      scrolledUnderElevation: 0,
+      backgroundColor: LynSurface.surface(isDark),
+      // A hairline, not a shadow. The bar and the canvas are two close tones, so they need a line to
+      // part them; a shadow at this contrast only smudges the boundary.
+      shape: Border(bottom: BorderSide(color: LynSurface.border(isDark))),
+      titleSpacing: 0,
+      leadingWidth: 44,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: isDark ? Colors.white : HexColor('#334155')),
+        // No direction check: `Icons.arrow_back_ios_new` is `matchTextDirection: true`, so `Icon`
+        // flips it under RTL by itself. Swapping the glyph as well mirrored it twice and left the
+        // Arabic back button pointing left.
+        icon: Icon(Icons.arrow_back_ios_new,
+            size: 20, color: LynSurface.textPrimary(isDark)),
         onPressed: () => Navigator.pop(context),
       ),
       title: InkWell(
         onTap: () => _showContactDetailsBottomSheet(cubit, isDark),
-        borderRadius: BorderRadius.circular(8),
-        child: Row(
-          children: [
-            _buildAvatar(avatarUrl, contactName, isDark, size: 40),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    contactName,
-                    style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'), fontSize: 16, fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    channelType.replaceAll('Channel::', ''),
-                    style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'), fontSize: 12),
-                  ),
-                ],
+        borderRadius: BorderRadius.circular(LynSpace.md),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(end: LynSpace.sm, top: LynSpace.sm, bottom: LynSpace.sm),
+          child: Row(
+            children: [
+              _buildAvatar(avatarUrl, contactName, isDark, size: 38),
+              const SizedBox(width: LynSpace.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      contactName,
+                      style: LynType.subtitle.copyWith(color: LynSurface.textPrimary(isDark)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      LynChannel.label(context, channelType),
+                      style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
 
   // ═══════════════════════════════════════════════════════════════
   // AVATAR WIDGET
@@ -719,9 +730,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: hasAvatar ? null : HexColor('#6366F1').withOpacity(0.2),
+          color: hasAvatar ? null : LynPalette.indigo.withOpacity(0.14),
           shape: BoxShape.circle,
-          border: Border.all(color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'), width: 2),
+          border: Border.all(color: LynSurface.border(isDark)),
           image: hasAvatar
               ? DecorationImage(image: CachedNetworkImageProvider(avatarUrl), fit: BoxFit.cover)
               : null,
@@ -730,7 +741,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ? Center(
           child: Text(
             contactName.isNotEmpty ? contactName[0].toUpperCase() : '?',
-            style: TextStyle(color: HexColor('#6366F1'), fontWeight: FontWeight.bold, fontSize: size * 0.45),
+            style: LynType.subtitle.copyWith(color: LynPalette.indigo, fontSize: size * 0.42, height: 1),
           ),
         )
             : null,
@@ -758,158 +769,35 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             _showContactDetailsBottomSheet(cubit, isDark);
           }
           if (state is AppUpdateContactErrorState) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error), backgroundColor: Colors.red),
-            );
+            LynFeedback.show(context, state.error, tone: LynTone.error);
           }
         },
         builder: (context, state) {
           final details = cubit.currentContactDetails;
           final name = details?['name']?.toString() ?? conversation.contactName ?? '';
-          final email = details?['email']?.toString() ?? conversation.contactEmail ?? '';
-          final phone = details?['phone_number']?.toString() ?? conversation.contactPhone ?? '';
-          final avatar = details?['thumbnail']?.toString() ?? conversation.contactAvatar;
-          final isLoading = state is AppFetchContactDetailsLoadingState || state is AppUpdateContactLoadingState;
 
-          return Container(
-            decoration: BoxDecoration(
-              color: isDark ? HexColor('#1E293B') : Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          return ContactDetailsSheet(
+            contact: ContactDetails(
+              name: name,
+              email: details?['email']?.toString() ?? conversation.contactEmail ?? '',
+              phone: details?['phone_number']?.toString() ?? conversation.contactPhone ?? '',
+              avatarUrl: details?['thumbnail']?.toString() ?? conversation.contactAvatar,
+              channelType: conversation.channelType,
+              lastActivity: conversation.lastMessageAt,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildBottomSheetHandle(isDark),
-                const SizedBox(height: 24),
-                _buildLargeAvatar(avatar, name, isDark),
-                const SizedBox(height: 16),
-                Text(name, style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'), fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(conversation.channelType?.replaceAll('Channel::', '') ?? '', style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'), fontSize: 14)),
-                const SizedBox(height: 24),
-                _buildInfoTile(icon: Icons.email_outlined, label: AppLocalizations.tr(context, 'Email'), value: email.isNotEmpty ? email : AppLocalizations.tr(context, 'Not available'), isDark: isDark),
-                _buildInfoTile(icon: Icons.phone_outlined, label: AppLocalizations.tr(context, 'Phone'), value: phone.isNotEmpty ? phone : AppLocalizations.tr(context, 'Not available'), isDark: isDark),
-                _buildInfoTile(icon: Icons.access_time, label: AppLocalizations.tr(context, 'Last Activity'), value: conversation.lastMessageAt != null ? intl.DateFormat('yyyy-MM-dd HH:mm').format(conversation.lastMessageAt!) : AppLocalizations.tr(context, 'Not available'), isDark: isDark),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: isLoading ? null : () => _showEditNameDialog(cubit, isDark, name, conversation.contactId!),
-                      icon: isLoading
-                          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: isDark ? Colors.white : HexColor('#6366F1')))
-                          : Icon(Icons.edit, color: isDark ? Colors.white : HexColor('#6366F1')),
-                      label: Text(AppLocalizations.tr(context, 'Edit Name'), style: TextStyle(color: isDark ? Colors.white : HexColor('#6366F1'), fontWeight: FontWeight.w600)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? HexColor('#334155') : HexColor('#F1F5F9'),
-                        foregroundColor: isDark ? Colors.white : HexColor('#6366F1'),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-              ],
+            isDark: isDark,
+            isLoading: state is AppFetchContactDetailsLoadingState ||
+                state is AppUpdateContactLoadingState,
+            onEditName: () => showDialog(
+              context: context,
+              builder: (_) => EditContactNameDialog(
+                currentName: name,
+                isDark: isDark,
+                onSave: (next) => cubit.updateContactName(conversation.contactId!, next),
+              ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildBottomSheetHandle(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      width: 40,
-      height: 4,
-      decoration: BoxDecoration(color: isDark ? HexColor('#475569') : HexColor('#CBD5E1'), borderRadius: BorderRadius.circular(2)),
-    );
-  }
-
-  Widget _buildLargeAvatar(String? avatarUrl, String contactName, bool isDark) {
-    return Hero(
-      tag: 'contact_avatar_large_${contactName.hashCode}',
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          color: avatarUrl == null ? HexColor('#6366F1').withOpacity(0.15) : null,
-          shape: BoxShape.circle,
-          border: Border.all(color: isDark ? HexColor('#334155') : HexColor('#E2E8F0'), width: 3),
-          image: avatarUrl != null ? DecorationImage(image: CachedNetworkImageProvider(avatarUrl), fit: BoxFit.cover) : null,
-        ),
-        child: avatarUrl == null
-            ? Center(child: Text(contactName.isNotEmpty ? contactName[0].toUpperCase() : '?', style: TextStyle(color: HexColor('#6366F1'), fontWeight: FontWeight.bold, fontSize: 40)))
-            : null,
-      ),
-    );
-  }
-
-  Widget _buildInfoTile({required IconData icon, required String label, required String value, required bool isDark}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: isDark ? HexColor('#334155') : HexColor('#F1F5F9'), borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: HexColor('#6366F1'), size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'), fontSize: 12)),
-                const SizedBox(height: 2),
-                Text(value, style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'), fontSize: 15, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditNameDialog(AppCubit cubit, bool isDark, String currentName, int contactId) {
-    final controller = TextEditingController(text: currentName);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDark ? HexColor('#1E293B') : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(AppLocalizations.tr(context, 'Edit Contact Name'), textAlign: TextAlign.center, style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'), fontWeight: FontWeight.bold)),
-        content: TextField(
-          controller: controller,
-          textAlign: TextAlign.right,
-          style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
-          decoration: InputDecoration(
-            hintText: AppLocalizations.tr(context, 'Enter new name'),
-            hintStyle: TextStyle(color: isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
-            filled: true,
-            fillColor: isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: HexColor('#6366F1'), width: 2)),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.tr(context, 'Cancel'), style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')))),
-          ElevatedButton(
-            onPressed: () {
-              final newName = controller.text.trim();
-              if (newName.isNotEmpty && newName != currentName) {
-                cubit.updateContactName(contactId, newName);
-              }
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: HexColor('#6366F1'), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-            child: Text(AppLocalizations.tr(context, 'Save')),
-          ),
-        ],
       ),
     );
   }
@@ -921,7 +809,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     return ListView.builder(
       controller: _scrollController,
       reverse: true, // ✅ مثل واتساب: مرساة من الأسفل + الحفاظ على الموضع عند تحميل القديم تلقائياً
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: LynSpace.sm),
       itemCount: messages.length + (_isLoadingMore ? 1 : 0),
       cacheExtent: 500,
       addAutomaticKeepAlives: false,
@@ -929,22 +817,92 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       itemBuilder: (context, index) {
         // ✅ في القائمة المعكوسة: آخر index = أعلى الشاشة (مؤشر التحميل)
         if (_isLoadingMore && index == messages.length) {
-          return Center(child: Padding(padding: const EdgeInsets.all(16), child: CircularProgressIndicator(color: HexColor('#6366F1'), strokeWidth: 2)));
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(LynSpace.lg),
+              child: CircularProgressIndicator(color: LynPalette.indigo, strokeWidth: 2),
+            ),
+          );
         }
 
         // ✅ عكس المؤشر: index 0 في القائمة المعكوسة = أحدث رسالة
         final actualIndex = messages.length - 1 - index;
         final message = messages[actualIndex];
         final isOutgoing = _isOutgoing(message);
-        final showSender = actualIndex == 0 || _getSenderName(messages[actualIndex]) != _getSenderName(messages[actualIndex - 1]);
 
-        return _buildMessageBubble(
+        // A RUN is consecutive messages from the same side on the same day. Only the run's last bubble
+        // gets the pointed tail and only its first carries the sender's name, so a burst of four replies
+        // reads as one utterance rather than four stacked cards.
+        final previous = actualIndex > 0 ? messages[actualIndex - 1] : null;
+        final next = actualIndex < messages.length - 1 ? messages[actualIndex + 1] : null;
+        final day = _dayOf(message);
+        final startsDay = previous == null || _dayOf(previous) != day;
+        final startsRun = startsDay || _isOutgoing(previous) != isOutgoing;
+        final endsRun = next == null || _isOutgoing(next) != isOutgoing || _dayOf(next) != day;
+
+        final bubble = _buildMessageBubble(
           message: message,
           isOutgoing: isOutgoing,
-          showSender: showSender,
+          showSender: startsRun && _getSenderName(message) != (previous == null ? null : _getSenderName(previous)),
+          startsRun: startsRun,
+          endsRun: endsRun,
           isDark: isDark,
         );
+
+        if (!startsDay) return bubble;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [_buildDaySeparator(message, isDark), bubble],
+        );
       },
+    );
+  }
+
+  /// The calendar day a message belongs to, as a sortable `yyyy-mm-dd`, or an empty string when the
+  /// message carries no parseable timestamp — in which case it never starts a day and never breaks a run.
+  String _dayOf(Map<String, dynamic> message) {
+    final at = _parseDateTime(message['created_at']);
+    if (at == null) return '';
+    final local = at.toLocal();
+    return '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+  }
+
+  /// A date, once, above the first message of each day. It is what lets every bubble below it show a bare
+  /// clock time instead of repeating "Mar 12," on all eighty of them.
+  Widget _buildDaySeparator(Map<String, dynamic> message, bool isDark) {
+    final at = _parseDateTime(message['created_at'])?.toLocal();
+    if (at == null) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final that = DateTime(at.year, at.month, at.day);
+    final days = today.difference(that).inDays;
+
+    final String label;
+    if (days == 0) {
+      label = AppLocalizations.tr(context, 'Today');
+    } else if (days == 1) {
+      label = AppLocalizations.tr(context, 'Yesterday');
+    } else {
+      label = intl.DateFormat(
+        days < 365 ? 'MMMM d' : 'MMMM d, yyyy',
+        Localizations.localeOf(context).toString(),
+      ).format(at);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: LynSpace.lg),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: LynSpace.md, vertical: LynSpace.xs + 2),
+          decoration: BoxDecoration(
+            color: LynSurface.surface(isDark),
+            border: Border.all(color: LynSurface.border(isDark)),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(label, style: LynType.micro.copyWith(color: LynSurface.textSecondary(isDark))),
+        ),
+      ),
     );
   }
 
@@ -955,16 +913,23 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     required Map<String, dynamic> message,
     required bool isOutgoing,
     required bool showSender,
+    required bool startsRun,
+    required bool endsRun,
     required bool isDark,
   }) {
     final content = message['content']?.toString() ?? '';
     final senderName = _getSenderName(message);
     final createdAt = _parseDateTime(message['created_at']);
-    final timeText = createdAt != null ? intl.DateFormat('MMM d, h:mm a').format(createdAt) : '';
+    // A bare clock time. The calendar date is carried once by the day separator above the run, so
+    // repeating it inside every bubble only crowds the message it is supposed to annotate.
+    final timeText = createdAt != null
+        ? intl.DateFormat.jm(Localizations.localeOf(context).toString()).format(createdAt.toLocal())
+        : '';
     final messageId = message['id'];
     final isSelected = _selectedMessageIds.contains(messageId);
     final attachments = message['attachments'] as List<dynamic>?;
     final hasAttachments = attachments != null && attachments.isNotEmpty;
+    final hasText = content.isNotEmpty && !_attachmentPlaceholders.contains(content);
 
     return GestureDetector(
       onTap: () {
@@ -974,12 +939,22 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Container(
         width: double.infinity,
         color: isSelected
-            ? (isDark ? HexColor('#6366F1').withOpacity(0.15) : HexColor('#6366F1').withOpacity(0.08))
+            ? (isDark ? LynPalette.indigo.withOpacity(0.15) : LynPalette.indigo.withOpacity(0.08))
             : Colors.transparent,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          // Tight inside a run, open between runs: the gap is what groups the bubbles, so it has to be
+          // visibly different from the one that separates them.
+          padding: EdgeInsets.only(
+            left: LynSpace.lg,
+            right: LynSpace.lg,
+            top: startsRun ? LynSpace.sm + 2 : 2,
+            bottom: endsRun ? 2 : 0,
+          ),
           child: Align(
-            alignment: isOutgoing ? Alignment.centerRight : Alignment.centerLeft,
+            // DIRECTIONAL, not left/right. In Arabic the agent's own replies belong on the start edge
+            // and the customer's on the end edge, exactly mirrored; `Alignment.centerRight` would pin
+            // them to the same physical side in both scripts and read as backwards to half this market.
+            alignment: isOutgoing ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -992,26 +967,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     children: [
                       if (!isOutgoing && showSender)
                         Padding(
-                          padding: const EdgeInsets.only(left: 12, bottom: 4),
-                          child: Text(senderName, style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B'), fontSize: 12, fontWeight: FontWeight.w500)),
+                          padding: const EdgeInsetsDirectional.only(start: LynSpace.md, bottom: LynSpace.xs),
+                          child: Text(senderName,
+                              style: LynType.caption.copyWith(color: LynSurface.textSecondary(isDark))),
                         ),
-                      if (hasAttachments) _buildAttachmentsList(attachments!, isDark, isOutgoing, messageId),
-                      // ✅ عرض النص فقط إذا لم يكن placeholder للملف
-                      if (content.isNotEmpty &&
-                          content != '📷 صورة' &&
-                          content != '📎 ملف' &&
-                          content != '🎵 تسجيل صوتي' &&
-                          !hasAttachments)
-                        _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected),
-                      // ✅ إذا كان هناك مرفقات + نص عادي، نعرض النص
-                      if (content.isNotEmpty &&
-                          content != '📷 صورة' &&
-                          content != '📎 ملف' &&
-                          content != '🎵 تسجيل صوتي' &&
-                          hasAttachments)
+                      if (hasAttachments) _buildAttachmentsList(attachments, isDark, isOutgoing, messageId),
+                      // Real text, if there is any: a placeholder standing in for the attachment is
+                      // not something to print beside the attachment itself.
+                      if (hasText)
                         Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected),
+                          // Clear of the attachment it captions; flush when it is the whole message.
+                          padding: EdgeInsets.only(top: hasAttachments ? LynSpace.xs : 0),
+                          child: _buildTextBubble(message, content, timeText, isOutgoing, isDark, isSelected,
+                              endsRun: endsRun),
                         ),
                     ],
                   ),
@@ -1027,40 +995,67 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Widget _buildSelectionCheck() {
     return Padding(
-      padding: const EdgeInsets.only(right: 12, top: 8),
+      padding: const EdgeInsetsDirectional.only(end: LynSpace.md, top: LynSpace.sm),
       child: Container(
         width: 24,
         height: 24,
-        decoration: BoxDecoration(color: HexColor('#6366F1'), shape: BoxShape.circle),
+        decoration: BoxDecoration(color: LynPalette.indigo, shape: BoxShape.circle),
         child: const Icon(Icons.check, color: Colors.white, size: 16),
       ),
     );
   }
 
-  Widget _buildTextBubble(Map<String, dynamic> message, String content, String timeText, bool isOutgoing, bool isDark, bool isSelected) {
+  Widget _buildTextBubble(
+    Map<String, dynamic> message,
+    String content,
+    String timeText,
+    bool isOutgoing,
+    bool isDark,
+    bool isSelected, {
+    bool endsRun = true,
+  }) {
     final status = message['status']?.toString().toLowerCase();
     final isFailed = status == 'failed' || message['is_failed'] == true;
+    // In flight: the optimistic copy the cubit appends before the request returns. It carries
+    // `is_temp` until the real message replaces it, which is the one delivery fact this app actually
+    // holds -- the API gives no per-message read receipt.
+    final isSending = message['is_temp'] == true;
+
+    // The tail -- the one corner that is cut back to 4 -- marks the side a message came from, so it
+    // belongs on the LAST bubble of a run and nowhere else. The other three corners stay at 18.
+    // Directional, so the tail follows the start/end edge rather than a fixed physical one.
+    const tail = Radius.circular(4);
+    const round = Radius.circular(18);
+    final radius = BorderRadiusDirectional.only(
+      topStart: round,
+      topEnd: round,
+      bottomStart: isOutgoing || !endsRun ? round : tail,
+      bottomEnd: isOutgoing && endsRun ? tail : round,
+    );
 
     return Column(
       crossAxisAlignment: isOutgoing ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.sm + 2),
           decoration: BoxDecoration(
             color: isFailed
-                ? (isDark ? HexColor('#451A1A') : HexColor('#FEE2E2'))
-                : (isOutgoing ? HexColor('#6366F1') : (isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'))),
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(18),
-              topRight: const Radius.circular(18),
-              bottomLeft: Radius.circular(isOutgoing ? 18 : 4),
-              bottomRight: Radius.circular(isOutgoing ? 4 : 18),
-            ),
+                ? (LynSurface.dangerSurface(isDark))
+                : (isOutgoing ? LynPalette.indigo : (LynSurface.surface(isDark))),
+            borderRadius: radius,
+            // An incoming bubble is separated from the canvas by a hairline, not by a drop shadow. The
+            // shadow this replaces was a flat 5% black under every bubble: on the dark canvas it was
+            // invisible, and on the light one it put the same grey halo under eighty elements, which
+            // reads as texture rather than as depth. The outgoing bubble is solid indigo and needs
+            // neither.
             border: isSelected
-                ? Border.all(color: HexColor('#6366F1'), width: 2.5)
-                : (isFailed ? Border.all(color: HexColor('#FCA5A5'), width: 1) : null),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
+                ? Border.all(color: LynPalette.indigo, width: 2)
+                : isFailed
+                    ? Border.all(color: LynPalette.dangerSoft, width: 1)
+                    : isOutgoing
+                        ? null
+                        : Border.all(color: LynSurface.border(isDark)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -1068,31 +1063,44 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             children: [
               Text(
                 content,
-                style: TextStyle(
+                style: LynType.body.copyWith(
                   color: isFailed
-                      ? (isDark ? HexColor('#FCA5A5') : HexColor('#991B1B'))
-                      : (isOutgoing ? Colors.white : (isDark ? Colors.white : HexColor('#1E293B'))),
-                  fontSize: 15,
-                  height: 1.4,
+                      ? (LynSurface.dangerText(isDark))
+                      : (isOutgoing ? Colors.white : (LynSurface.textPrimary(isDark))),
                 ),
-                textAlign: TextAlign.right,
+                // START, not right. A hard `TextAlign.right` set every English message ragged-left
+                // inside a left-aligned bubble; `start` resolves to the correct edge in both scripts.
+                textAlign: TextAlign.start,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: LynSpace.xs),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     timeText,
-                    style: TextStyle(
+                    style: LynType.micro.copyWith(
+                      fontWeight: FontWeight.w500,
                       color: isFailed
-                          ? HexColor('#EF4444')
-                          : (isOutgoing ? Colors.white.withOpacity(0.7) : HexColor('#94A3B8')),
-                      fontSize: 11,
+                          ? LynPalette.danger
+                          : (isOutgoing ? Colors.white.withOpacity(0.92) : LynSurface.textSecondary(isDark)),
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  if (isOutgoing && !isFailed)
-                    Icon(Icons.done_all, size: 14, color: Colors.white.withOpacity(0.7)),
+                  if (isOutgoing && !isFailed) ...[
+                    const SizedBox(width: LynSpace.xs),
+                    // ONE check, not two. `Icons.done_all` is the double tick every messaging app on
+                    // earth uses for "delivered", and it was drawn on every outgoing message
+                    // regardless -- including one still waiting on the request. This app is never
+                    // told that a message was delivered or read, so it says only what it knows: a
+                    // clock while the send is in flight, a single check once the server has it.
+                    Semantics(
+                      label: AppLocalizations.tr(context, isSending ? 'Sending...' : 'Sent'),
+                      child: Icon(
+                        isSending ? Icons.schedule : Icons.done,
+                        size: 14,
+                        color: Colors.white.withOpacity(isSending ? 0.72 : 0.92),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -1100,7 +1108,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ),
         if (isFailed)
           Padding(
-            padding: const EdgeInsets.only(top: 4, right: 4),
+            padding: const EdgeInsetsDirectional.only(top: LynSpace.xs, end: LynSpace.xs),
             child: InkWell(
               onTap: () {
                 final cubit = context.read<AppCubit>();
@@ -1115,16 +1123,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 children: [
                   Text(
                     AppLocalizations.tr(context, 'Failed to send'),
-                    style: TextStyle(
-                      color: HexColor('#EF4444'),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: LynType.caption.copyWith(color: LynPalette.danger, fontWeight: FontWeight.w600),
                   ),
+                  const SizedBox(width: LynSpace.xs),
+                  Icon(Icons.error_outline, color: LynPalette.danger, size: 14),
                   const SizedBox(width: 4),
-                  Icon(Icons.error_outline, color: HexColor('#EF4444'), size: 14),
-                  const SizedBox(width: 4),
-                  Icon(Icons.refresh, color: HexColor('#EF4444'), size: 14),
+                  Icon(Icons.refresh, color: LynPalette.danger, size: 14),
                 ],
               ),
             ),
@@ -1143,10 +1147,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         final isImage = attachment['is_image'] == true;
         final isAudio = attachment['is_audio'] == true;
         final isVideo = attachment['is_video'] == true;
-        final isFile = attachment['is_file'] == true;
         final fileUrl = attachment['file_url']?.toString() ?? '';
         final thumbUrl = attachment['thumb_url']?.toString();
-        final fileName = attachment['file_name']?.toString() ?? 'ملف';
+        final fileName = attachment['file_name']?.toString() ?? AppLocalizations.tr(context, 'File');
         final attachmentId = attachment['id'] ?? 0;
 
         if (isImage) {
@@ -1176,7 +1179,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         child: Container(
           margin: const EdgeInsets.only(bottom: 4),
           constraints: const BoxConstraints(maxWidth: 250, maxHeight: 300),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: LynSurface.surfaceMuted(isDark)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: CachedNetworkImage(
@@ -1185,8 +1188,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               width: 250,
               height: 200,
               placeholder: (context, url) => Shimmer.fromColors(
-                baseColor: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
-                highlightColor: isDark ? HexColor('#475569') : HexColor('#F1F5F9'),
+                baseColor: LynSurface.border(isDark),
+                highlightColor: LynSurface.surfaceRaised(isDark),
                 child: Container(width: 250, height: 200, color: Colors.white),
               ),
               errorWidget: (context, url, error) => Container(
@@ -1196,11 +1199,17 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.broken_image, color: HexColor('#94A3B8'), size: 40),
+                    Icon(Icons.broken_image, color: LynSurface.textTertiary(isDark), size: 40),
                     const SizedBox(height: 8),
-                    Text(AppLocalizations.tr(context, 'Image failed to load'), style: TextStyle(color: HexColor('#94A3B8'), fontSize: 12)),
+                    Text(AppLocalizations.tr(context, 'Image failed to load'), style: LynType.caption.copyWith(
+                      color: LynSurface.textSecondary(isDark),
+                      fontWeight: FontWeight.w400,
+                    )),
                     const SizedBox(height: 4),
-                    Text('URL: ${imageUrl.length > 30 ? imageUrl.substring(0, 30) + '...' : imageUrl}', style: TextStyle(color: HexColor('#64748B'), fontSize: 10)),
+                    Text('URL: ${imageUrl.length > 30 ? imageUrl.substring(0, 30) + '...' : imageUrl}', style: LynType.micro.copyWith(
+                      color: LynSurface.textTertiary(isDark),
+                      fontWeight: FontWeight.w400,
+                    )),
                   ],
                 ),
               ),
@@ -1226,7 +1235,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         constraints: const BoxConstraints(maxWidth: 280),
         decoration: BoxDecoration(
-          color: isOutgoing ? HexColor('#6366F1').withOpacity(0.95) : (isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
+          color: isOutgoing ? LynPalette.indigo.withOpacity(0.95) : (LynSurface.surfaceMuted(isDark)),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -1237,7 +1246,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: isOutgoing ? Colors.white.withOpacity(0.2) : HexColor('#6366F1').withOpacity(0.1),
+                color: isOutgoing ? Colors.white.withOpacity(0.2) : LynPalette.indigo.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -1247,12 +1256,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   height: 22,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    color: isOutgoing ? Colors.white : HexColor('#6366F1'),
+                    color: isOutgoing ? Colors.white : LynPalette.indigo,
                   ),
                 )
                     : Icon(
                   isPlaying ? Icons.pause : Icons.play_arrow,
-                  color: isOutgoing ? Colors.white : HexColor('#6366F1'),
+                  color: isOutgoing ? Colors.white : LynPalette.indigo,
                   size: 26,
                 ),
               ),
@@ -1274,9 +1283,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         trackHeight: 3,
                         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
                         overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
-                        activeTrackColor: isOutgoing ? Colors.white.withOpacity(0.8) : HexColor('#6366F1'),
-                        inactiveTrackColor: isOutgoing ? Colors.white.withOpacity(0.3) : HexColor('#6366F1').withOpacity(0.2),
-                        thumbColor: isOutgoing ? Colors.white : HexColor('#6366F1'),
+                        activeTrackColor: isOutgoing ? Colors.white.withOpacity(0.8) : LynPalette.indigo,
+                        inactiveTrackColor: isOutgoing ? Colors.white.withOpacity(0.3) : LynPalette.indigo.withOpacity(0.2),
+                        thumbColor: isOutgoing ? Colors.white : LynPalette.indigo,
                       ),
                       child: Slider(
                         value: _audioDuration.inMilliseconds > 0
@@ -1292,7 +1301,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       height: 3,
                       margin: const EdgeInsets.symmetric(vertical: 13),
                       decoration: BoxDecoration(
-                        color: isOutgoing ? Colors.white.withOpacity(0.3) : HexColor('#6366F1').withOpacity(0.2),
+                        color: isOutgoing ? Colors.white.withOpacity(0.3) : LynPalette.indigo.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -1303,9 +1312,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     isCurrentAudio && !isLoading
                         ? '${_formatAudioDuration(_audioPosition)} / ${_formatAudioDuration(_audioDuration)}'
                         : AppLocalizations.tr(context, 'Voice message'),
-                    style: TextStyle(
-                      color: isOutgoing ? Colors.white.withOpacity(0.8) : HexColor('#94A3B8'),
-                      fontSize: 11,
+                    style: LynType.micro.copyWith(
+                      color: isOutgoing ? Colors.white.withOpacity(0.8) : LynSurface.textSecondary(isDark),
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ],
@@ -1326,7 +1335,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Container(
         margin: const EdgeInsets.only(bottom: 4),
         constraints: const BoxConstraints(maxWidth: 250, maxHeight: 200),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: LynSurface.surfaceMuted(isDark)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: Stack(
@@ -1338,15 +1347,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 width: 250,
                 height: 200,
                 placeholder: (context, url) => Shimmer.fromColors(
-                  baseColor: isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
-                  highlightColor: isDark ? HexColor('#475569') : HexColor('#F1F5F9'),
+                  baseColor: LynSurface.border(isDark),
+                  highlightColor: LynSurface.surfaceRaised(isDark),
                   child: Container(width: 250, height: 200, color: Colors.white),
                 ),
                 errorWidget: (context, url, error) => Container(
                   width: 250,
                   height: 200,
-                  color: HexColor('#334155'),
-                  child: Icon(Icons.videocam, color: HexColor('#94A3B8'), size: 50),
+                  color: LynSurface.surfaceMuted(isDark),
+                  child: Icon(Icons.videocam, color: LynSurface.textTertiary(isDark), size: 50),
                 ),
               ),
               Container(
@@ -1375,7 +1384,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         padding: const EdgeInsets.all(12),
         constraints: const BoxConstraints(maxWidth: 260),
         decoration: BoxDecoration(
-          color: isOutgoing ? HexColor('#6366F1').withOpacity(0.95) : (isDark ? HexColor('#334155') : HexColor('#F1F5F9')),
+          color: isOutgoing ? LynPalette.indigo.withOpacity(0.95) : (LynSurface.surfaceMuted(isDark)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -1385,11 +1394,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: isOutgoing ? Colors.white.withOpacity(0.2) : HexColor('#6366F1').withOpacity(0.1),
+                color: isOutgoing ? Colors.white.withOpacity(0.2) : LynPalette.indigo.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
-                child: Text(extension, style: TextStyle(color: isOutgoing ? Colors.white : HexColor('#6366F1'), fontSize: 12, fontWeight: FontWeight.bold)),
+                child: Text(extension, style: LynType.caption.copyWith(
+                  color: isOutgoing ? Colors.white : LynPalette.indigo,
+                  fontWeight: FontWeight.bold,
+                )),
               ),
             ),
             const SizedBox(width: 12),
@@ -1398,13 +1410,18 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(fileName, style: TextStyle(color: isOutgoing ? Colors.white : HexColor('#1E293B'), fontSize: 14, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(fileName, style: LynType.callout.copyWith(
+                    color: isOutgoing ? Colors.white : LynSurface.textPrimary(isDark),
+                  ), maxLines: 2, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
-                  Text(AppLocalizations.tr(context, 'Tap to open'), style: TextStyle(color: isOutgoing ? Colors.white.withOpacity(0.7) : HexColor('#94A3B8'), fontSize: 11)),
+                  Text(AppLocalizations.tr(context, 'Tap to open'), style: LynType.micro.copyWith(
+                    color: isOutgoing ? Colors.white.withOpacity(0.7) : LynSurface.textSecondary(isDark),
+                    fontWeight: FontWeight.w400,
+                  )),
                 ],
               ),
             ),
-            Icon(Icons.open_in_new, color: isOutgoing ? Colors.white.withOpacity(0.7) : HexColor('#94A3B8'), size: 20),
+            Icon(Icons.open_in_new, color: isOutgoing ? Colors.white.withOpacity(0.7) : LynSurface.textSecondary(isDark), size: 20),
           ],
         ),
       ),
@@ -1422,40 +1439,24 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: isDark ? HexColor('#1E293B') : Colors.white,
+      backgroundColor: LynSurface.surface(isDark),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: isDark ? HexColor('#475569') : HexColor('#CBD5E1'), borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: Text(AppLocalizations.tr(context, 'Delete Message'), style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'))),
-              onTap: () { Navigator.pop(context); _deleteSingleMessage(messageId, isDark); },
-            ),
-            ListTile(
-              leading: Icon(Icons.check_circle_outline, color: HexColor('#6366F1')),
-              title: Text(AppLocalizations.tr(context, 'Select Messages'), style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'))),
-              onTap: () { Navigator.pop(context); _toggleMessageSelection(messageId); },
-            ),
-            if (content.isNotEmpty)
-              ListTile(
-                leading: Icon(Icons.copy, color: HexColor('#6366F1')),
-                title: Text(AppLocalizations.tr(context, 'Copy Text'), style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B'))),
-                onTap: () {
-                  Navigator.pop(context);
-                  Clipboard.setData(ClipboardData(text: content));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('✅ ${AppLocalizations.tr(context, 'Copied')}'), duration: const Duration(seconds: 1)),
-                  );
-                },
-              ),
-            const SizedBox(height: 16),
-          ],
-        ),
+      builder: (sheetContext) => MessageActionsSheet(
+        isDark: isDark,
+        canCopy: content.isNotEmpty,
+        onCopy: () {
+          Navigator.pop(sheetContext);
+          Clipboard.setData(ClipboardData(text: content));
+          LynFeedback.show(context, 'Copied', tone: LynTone.success, duration: const Duration(seconds: 1));
+        },
+        onSelect: () {
+          Navigator.pop(sheetContext);
+          _toggleMessageSelection(messageId);
+        },
+        onDelete: () {
+          Navigator.pop(sheetContext);
+          _deleteSingleMessage(messageId, isDark);
+        },
       ),
     );
   }
@@ -1463,269 +1464,76 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   // ═══════════════════════════════════════════════════════════════
   // INPUT FIELD (with Voice Recording)
   // ═══════════════════════════════════════════════════════════════
+  /// The composer, which now lives in `widgets/chat_composer.dart`.
+  ///
+  /// Everything it needs is passed in: this screen owns the recording state and the pickers, and the
+  /// composer owns how they look and how they are reached.
   Widget _buildInputField(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, -2))],
-      ),
-      child: SafeArea(
-        child: _isRecording ? _buildRecordingUI(isDark) : _buildNormalInput(isDark),
-      ),
+    final cubit = AppCubit.get(context);
+    final channelType = cubit.selectedConversation?.channelType?.toLowerCase() ??
+        cubit.selectedInbox?.channelType?.toLowerCase() ??
+        '';
+
+    return ChatComposer(
+      controller: _messageController,
+      isDark: isDark,
+      isWhatsAppChannel: channelType.contains('whatsapp'),
+      isRestrictedToTemplates: cubit.is24HourWindowRestricted(cubit.selectedConversation),
+      isRecording: _isRecording,
+      recordingSeconds: _recordingSeconds,
+      recordAnimation: _recordAnimationController,
+      onSend: _sendMessage,
+      onStartRecording: _startRecording,
+      onStopRecording: _stopRecording,
+      onCancelRecording: _discardRecording,
+      onPickCamera: () => _pickImage(ImageSource.camera),
+      onPickGallery: () => _pickImage(ImageSource.gallery),
+      onPickFile: _pickFile,
+      onOpenTemplates: () => _showWhatsAppTemplatesModal(context, cubit, isDark),
     );
   }
 
-  Widget _buildRecordingUI(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          // ✅ زر الإلغاء
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () async {
-              try {
-                await _audioRecorder.stop();
-              } catch (e) {
-                print('❌ Error stopping recorder: $e');
-              }
-              _recordingTimer?.cancel();
-              setState(() {
-                _isRecording = false;
-                _recordingSeconds = 0;
-              });
-            },
-          ),
-
-          // ✅ موجة صوتية متحركة
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(20, (index) {
-                return AnimatedBuilder(
-                  animation: _recordAnimationController,
-                  builder: (context, child) {
-                    final height = 4 + (math.sin((_recordAnimationController.value * math.pi * 2) + index * 0.5) * 20).abs();
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      width: 3,
-                      height: height,
-                      decoration: BoxDecoration(color: HexColor('#6366F1'), borderRadius: BorderRadius.circular(2)),
-                    );
-                  },
-                );
-              }),
-            ),
-          ),
-
-          // ✅ المدة
-          Text(
-            _formatDuration(_recordingSeconds),
-            style: TextStyle(color: HexColor('#6366F1'), fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(width: 12),
-
-          // ✅ زر الإرسال
-          GestureDetector(
-            onTap: _stopRecording,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(color: HexColor('#6366F1'), shape: BoxShape.circle),
-              child: const Icon(Icons.send, color: Colors.white, size: 22),
-            ),
-          ),
-        ],
-      ),
-    );
+  /// Throw the recording away. The send path is `_stopRecording`; this one stops the recorder and keeps
+  /// nothing, which is what the bin in the recording bar has always meant.
+  Future<void> _discardRecording() async {
+    try {
+      await _audioRecorder.stop();
+    } catch (e) {
+      print('❌ Error stopping recorder: $e');
+    }
+    _recordingTimer?.cancel();
+    _recordAnimationController.stop();
+    _recordAnimationController.value = 0;
+    if (!mounted) return;
+    setState(() {
+      _isRecording = false;
+      _recordingSeconds = 0;
+    });
   }
 
   Widget _build24HourWindowBanner(bool isDark) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: LynSpace.md, vertical: LynSpace.md),
+      margin: const EdgeInsets.fromLTRB(LynSpace.md, LynSpace.md, LynSpace.md, 0),
       decoration: BoxDecoration(
-        color: isDark ? HexColor('#451A1A') : HexColor('#FEE2E2'),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HexColor('#FCA5A5'), width: 1),
+        color: LynSurface.dangerSurface(isDark),
+        borderRadius: BorderRadius.circular(LynSpace.md),
+        border: Border.all(color: LynPalette.dangerSoft),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.error_outline, color: HexColor('#EF4444'), size: 20),
-          const SizedBox(width: 10),
+          Icon(Icons.schedule_rounded, color: LynPalette.danger, size: 18),
+          const SizedBox(width: LynSpace.sm + 2),
           Expanded(
             child: Text(
               AppLocalizations.tr(context, 'You can only reply to this conversation using a template message due to 24 hour message window restriction'),
-              style: TextStyle(
-                color: isDark ? HexColor('#FCA5A5') : HexColor('#991B1B'),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                height: 1.4,
-              ),
+              style: LynType.caption.copyWith(color: LynSurface.dangerText(isDark), height: 1.5),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildNormalInput(bool isDark) {
-    final cubit = AppCubit.get(context);
-    final is24hRestricted = cubit.is24HourWindowRestricted(cubit.selectedConversation);
-    final channelType = cubit.selectedConversation?.channelType?.toLowerCase() ??
-        cubit.selectedInbox?.channelType?.toLowerCase() ??
-        '';
-    final isWhatsAppChannel = channelType.contains('whatsapp');
-
-    if (is24hRestricted) {
-      return Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark ? HexColor('#0F172A') : HexColor('#F1F5F9'),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Text(
-                AppLocalizations.tr(context, 'You can only reply using a template message due to 24-hour message window restriction'),
-                style: TextStyle(
-                  color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'),
-                  fontSize: 12,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton.icon(
-            onPressed: () => _showWhatsAppTemplatesModal(context, cubit, isDark),
-            icon: const Icon(Icons.description, size: 18),
-            label: Text(AppLocalizations.tr(context, 'Send Template')),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: HexColor('#6366F1'),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return Row(
-      children: [
-        if (isWhatsAppChannel)
-          IconButton(
-            icon: Icon(Icons.description_outlined, color: HexColor('#6366F1')),
-            tooltip: AppLocalizations.tr(context, 'Whatsapp Templates'),
-            onPressed: () => _showWhatsAppTemplatesModal(context, cubit, isDark),
-          ),
-
-        // ✅ زر المرفقات
-        PopupMenuButton<String>(
-          icon: Icon(Icons.attach_file, color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
-          onSelected: (value) {
-            switch (value) {
-              case 'camera': _pickImage(ImageSource.camera); break;
-              case 'gallery': _pickImage(ImageSource.gallery); break;
-              case 'file': _pickFile(); break;
-            }
-          },
-          itemBuilder: (context) => [
-            PopupMenuItem(value: 'camera', child: Row(children: [Icon(Icons.camera_alt, color: HexColor('#6366F1')), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'Camera'))])),
-            PopupMenuItem(value: 'gallery', child: Row(children: [Icon(Icons.photo_library, color: HexColor('#6366F1')), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'Gallery'))])),
-            PopupMenuItem(value: 'file', child: Row(children: [Icon(Icons.insert_drive_file, color: HexColor('#6366F1')), const SizedBox(width: 12), Text(AppLocalizations.tr(context, 'File'))])),
-          ],
-        ),
-
-        // ✅ حقل النص
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(color: isDark ? HexColor('#0F172A') : HexColor('#F1F5F9'), borderRadius: BorderRadius.circular(24)),
-            child: TextField(
-              controller: _messageController,
-              textAlign: TextAlign.right,
-              style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
-              decoration: InputDecoration(
-                hintText: AppLocalizations.tr(context, 'Type your message...'),
-                hintStyle: TextStyle(color: isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
-              onSubmitted: (_) => _sendMessage(),
-            ),
-          ),
-        ),
-
-        const SizedBox(width: 8),
-
-        // ✅ زر التسجيل الصوتي أو الإرسال
-        _messageController.text.isEmpty
-            ? GestureDetector(
-          onLongPressStart: (_) => _startRecording(),
-          onLongPressEnd: (_) => _stopRecording(),
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(color: HexColor('#6366F1'), shape: BoxShape.circle),
-            child: const Icon(Icons.mic, color: Colors.white, size: 22),
-          ),
-        )
-            : GestureDetector(
-          onTap: _sendMessage,
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(color: HexColor('#6366F1'), shape: BoxShape.circle),
-            child: const Icon(Icons.send, color: Colors.white, size: 22),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  // TYPING INDICATOR
-  // ═══════════════════════════════════════════════════════════════
-  Widget _buildTypingIndicator(bool isDark) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(left: 16, bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isDark ? HexColor('#1E293B') : HexColor('#FFFFFF'),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18),
-            topRight: Radius.circular(18),
-            bottomRight: Radius.circular(18),
-            bottomLeft: Radius.circular(4),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildDot(0, isDark),
-            _buildDot(1, isDark),
-            _buildDot(2, isDark),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDot(int index, bool isDark) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(color: HexColor('#6366F1').withOpacity(0.4 + (index * 0.3)), shape: BoxShape.circle),
     );
   }
 
@@ -1735,7 +1543,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildScrollToBottomButton() {
     return FloatingActionButton.small(
       onPressed: () => _scrollToBottom(),
-      backgroundColor: HexColor('#6366F1'),
+      backgroundColor: LynPalette.indigo,
       child: const Icon(Icons.arrow_downward, color: Colors.white, size: 20),
     );
   }
@@ -1748,11 +1556,27 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_bubble_outline, size: 64, color: isDark ? HexColor('#334155') : HexColor('#CBD5E1')),
-          const SizedBox(height: 16),
-          Text(AppLocalizations.tr(context, 'No messages yet'), style: TextStyle(color: isDark ? HexColor('#64748B') : HexColor('#94A3B8'), fontSize: 16)),
-          const SizedBox(height: 8),
-          Text(AppLocalizations.tr(context, 'Start the conversation by sending a message'), style: TextStyle(color: isDark ? HexColor('#475569') : HexColor('#CBD5E1'), fontSize: 14)),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: LynPalette.indigo.withOpacity(isDark ? 0.16 : 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.chat_bubble_outline_rounded, size: 32, color: LynPalette.indigo),
+          ),
+          const SizedBox(height: LynSpace.xl),
+          Text(AppLocalizations.tr(context, 'No messages yet'),
+              style: LynType.headline.copyWith(color: LynSurface.textPrimary(isDark))),
+          const SizedBox(height: LynSpace.sm),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: LynSpace.xxl),
+            child: Text(
+              AppLocalizations.tr(context, 'Start the conversation by sending a message'),
+              textAlign: TextAlign.center,
+              style: LynType.callout.copyWith(color: LynSurface.textSecondary(isDark)),
+            ),
+          ),
         ],
       ),
     );
@@ -1802,8 +1626,6 @@ class _ImageViewerScreen extends StatefulWidget {
 }
 
 class _ImageViewerScreenState extends State<_ImageViewerScreen> {
-bool _isLoading = true;
-
 @override
 Widget build(BuildContext context) {
 return Scaffold(
@@ -1844,9 +1666,7 @@ backgroundColor: Colors.black,
 
 Future<void> _downloadImage() async {
   try {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('⬇️ جاري التحميل...')),
-    );
+    LynFeedback.show(context, 'Saving image');
 
     // ✅ طلب إذن التخزين للأندرويد
     if (Platform.isAndroid) {
@@ -1869,19 +1689,16 @@ Future<void> _downloadImage() async {
     }
     
     final fileName = 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final savedFile = await file.copy('${directory.path}/$fileName');
+    await file.copy('${directory.path}/$fileName');
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✅ تم حفظ الصورة في: ${savedFile.path}')),
-      );
+      LynFeedback.show(context, 'Image saved', tone: LynTone.success);
     }
   } catch (e) {
     print('❌ Download Error: $e');
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ فشل حفظ الصورة: $e')),
-      );
+      LynFeedback.show(context, 'Could not save image',
+          tone: LynTone.error, actionKey: 'Retry', onAction: _downloadImage);
     }
   }
 }
@@ -1904,29 +1721,36 @@ class _DeleteDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: isDark ? HexColor('#1E293B') : Colors.white,
+      // Neither the title nor the body carries a physical `TextAlign.right` any more: both are
+      // localized strings, and an AlertDialog already aligns to the ambient direction, so the only
+      // thing the override did was set the English copy ragged-left.
+      backgroundColor: LynSurface.surface(isDark),
       title: Text(
         isMultiple
             ? AppLocalizations.tr(context, 'Delete {count} messages').replaceFirst('{count}', count.toString())
             : AppLocalizations.tr(context, 'Delete Message'),
-        textAlign: TextAlign.right,
-        style: TextStyle(color: isDark ? Colors.white : HexColor('#1E293B')),
+        style: TextStyle(color: LynSurface.textPrimary(isDark)),
       ),
       content: Text(
         isMultiple
             ? AppLocalizations.tr(context, 'Are you sure you want to delete the selected messages?')
             : AppLocalizations.tr(context, 'Are you sure you want to delete this message?'),
-        textAlign: TextAlign.right,
-        style: TextStyle(color: isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+        style: TextStyle(color: LynSurface.textSecondary(isDark)),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: Text(AppLocalizations.tr(context, 'cancel'), style: TextStyle(color: HexColor('#6366F1'))),
+          child: Text(AppLocalizations.tr(context, 'cancel'), style: TextStyle(color: LynPalette.indigo)),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
-          child: Text(AppLocalizations.tr(context, 'Delete'), style: const TextStyle(color: Colors.red)),
+          // `Colors.red` (#F44336) on this dialog's surface measures 4.32:1 on the dark theme and
+          // 3.68:1 on the light one -- both under the 4.5:1 that text needs, for the one control in
+          // the dialog that destroys something. `dangerText` is the theme-aware pair.
+          child: Text(
+            AppLocalizations.tr(context, 'Delete'),
+            style: TextStyle(color: LynSurface.dangerText(isDark)),
+          ),
         ),
       ],
     );
@@ -2015,7 +1839,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
         right: 20,
       ),
       decoration: BoxDecoration(
-        color: widget.isDark ? HexColor('#1E293B') : Colors.white,
+        color: LynSurface.surface(widget.isDark),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: BlocConsumer<AppCubit, AppStates>(
@@ -2047,7 +1871,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: widget.isDark ? HexColor('#475569') : HexColor('#CBD5E1'),
+                    color: LynSurface.borderStrong(widget.isDark),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -2063,9 +1887,8 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                       children: [
                         Text(
                           AppLocalizations.tr(context, 'Whatsapp Templates'),
-                          style: TextStyle(
-                            color: widget.isDark ? Colors.white : HexColor('#1E293B'),
-                            fontSize: 20,
+                          style: LynType.headline.copyWith(
+                            color: LynSurface.textPrimary(widget.isDark),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -2074,16 +1897,16 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                           _selectedTemplate == null
                               ? AppLocalizations.tr(context, 'Select the whatsapp template you want to send')
                               : AppLocalizations.tr(context, 'Configure template: {name}').replaceFirst('{name}', _selectedTemplate!.name),
-                          style: TextStyle(
-                            color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                            fontSize: 13,
+                          style: LynType.callout.copyWith(
+                            color: LynSurface.textSecondary(widget.isDark),
+                            fontWeight: FontWeight.w400,
                           ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B')),
+                    icon: Icon(Icons.close, color: LynSurface.textSecondary(widget.isDark)),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -2118,19 +1941,19 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                    color: LynSurface.canvas(widget.isDark),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                      color: LynSurface.border(widget.isDark),
                     ),
                   ),
                   child: TextField(
                     onChanged: (val) => setState(() => _searchQuery = val),
-                    style: TextStyle(color: widget.isDark ? Colors.white : HexColor('#1E293B')),
+                    style: TextStyle(color: LynSurface.textPrimary(widget.isDark)),
                     decoration: InputDecoration(
                       hintText: AppLocalizations.tr(context, 'Search Templates'),
-                      hintStyle: TextStyle(color: widget.isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
-                      prefixIcon: Icon(Icons.search, color: widget.isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
+                      hintStyle: TextStyle(color: LynSurface.textTertiary(widget.isDark)),
+                      prefixIcon: Icon(Icons.search, color: LynSurface.textTertiary(widget.isDark)),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
@@ -2140,14 +1963,14 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               const SizedBox(width: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                  color: LynSurface.canvas(widget.isDark),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                    color: LynSurface.border(widget.isDark),
                   ),
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.refresh, color: HexColor('#6366F1')),
+                  icon: Icon(Icons.refresh, color: LynPalette.indigo),
                   onPressed: () => widget.cubit.fetchWhatsAppTemplates(),
                 ),
               ),
@@ -2158,12 +1981,12 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
           // Template List View
           Expanded(
             child: state is AppFetchWhatsAppTemplatesLoadingState && templates.isEmpty
-                ? Center(child: CircularProgressIndicator(color: HexColor('#6366F1')))
+                ? Center(child: CircularProgressIndicator(color: LynPalette.indigo))
                 : templates.isEmpty
                     ? Center(
                         child: Text(
                           AppLocalizations.tr(context, 'No templates found'),
-                          style: TextStyle(color: widget.isDark ? HexColor('#64748B') : HexColor('#94A3B8')),
+                          style: TextStyle(color: LynSurface.textTertiary(widget.isDark)),
                         ),
                       )
                     : ListView.separated(
@@ -2187,10 +2010,10 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+          color: LynSurface.canvas(widget.isDark),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+            color: LynSurface.border(widget.isDark),
           ),
         ),
         child: Column(
@@ -2202,9 +2025,8 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                 Expanded(
                   child: Text(
                     template.name,
-                    style: TextStyle(
-                      color: widget.isDark ? Colors.white : HexColor('#1E293B'),
-                      fontSize: 16,
+                    style: LynType.subtitle.copyWith(
+                      color: LynSurface.textPrimary(widget.isDark),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -2212,15 +2034,14 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0'),
+                    color: LynSurface.border(widget.isDark),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Language: ${template.language ?? 'en'}',
-                    style: TextStyle(
-                      color: widget.isDark ? HexColor('#CBD5E1') : HexColor('#475569'),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                    AppLocalizations.tr(context, 'template_language')
+                        .replaceFirst('{language}', template.language ?? 'en'),
+                    style: LynType.caption.copyWith(
+                      color: LynSurface.textPrimary(widget.isDark),
                     ),
                   ),
                 ),
@@ -2230,18 +2051,15 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               const SizedBox(height: 8),
               Text(
                 AppLocalizations.tr(context, 'Header'),
-                style: TextStyle(
-                  color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                  fontSize: 12,
+                style: LynType.caption.copyWith(
+                  color: LynSurface.textSecondary(widget.isDark),
                   fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 template.headerText!,
-                style: TextStyle(
-                  color: widget.isDark ? Colors.white : HexColor('#1E293B'),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                style: LynType.callout.copyWith(
+                  color: LynSurface.textPrimary(widget.isDark),
                 ),
               ),
             ],
@@ -2249,17 +2067,16 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               const SizedBox(height: 8),
               Text(
                 AppLocalizations.tr(context, 'Body'),
-                style: TextStyle(
-                  color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                  fontSize: 12,
+                style: LynType.caption.copyWith(
+                  color: LynSurface.textSecondary(widget.isDark),
                   fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 template.bodyText!,
-                style: TextStyle(
-                  color: widget.isDark ? Colors.white : HexColor('#1E293B'),
-                  fontSize: 14,
+                style: LynType.callout.copyWith(
+                  color: LynSurface.textPrimary(widget.isDark),
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
@@ -2267,18 +2084,16 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
               const SizedBox(height: 12),
               Text(
                 AppLocalizations.tr(context, 'Category'),
-                style: TextStyle(
-                  color: widget.isDark ? HexColor('#94A3B8') : HexColor('#64748B'),
-                  fontSize: 12,
+                style: LynType.caption.copyWith(
+                  color: LynSurface.textSecondary(widget.isDark),
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 template.category!,
-                style: TextStyle(
-                  color: widget.isDark ? Colors.white : HexColor('#1E293B'),
-                  fontSize: 14,
+                style: LynType.callout.copyWith(
+                  color: LynSurface.textPrimary(widget.isDark),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -2305,10 +2120,9 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                   if (variables.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Text(
-                      'Template Parameters',
-                      style: TextStyle(
-                        color: widget.isDark ? Colors.white : HexColor('#1E293B'),
-                        fontSize: 15,
+                      AppLocalizations.tr(context, 'template_parameters'),
+                      style: LynType.body.copyWith(
+                        color: LynSurface.textPrimary(widget.isDark),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -2318,15 +2132,16 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                         padding: const EdgeInsets.only(bottom: 12),
                         child: TextField(
                           controller: _paramControllers[varName],
-                          style: TextStyle(color: widget.isDark ? Colors.white : HexColor('#1E293B')),
+                          style: TextStyle(color: LynSurface.textPrimary(widget.isDark)),
                           decoration: InputDecoration(
-                            labelText: 'Variable {{ $varName }}',
-                            labelStyle: TextStyle(color: HexColor('#6366F1')),
+                            labelText: AppLocalizations.tr(context, 'template_variable')
+                                .replaceFirst('{name}', varName),
+                            labelStyle: TextStyle(color: LynPalette.indigo),
                             filled: true,
-                            fillColor: widget.isDark ? HexColor('#0F172A') : HexColor('#F8FAFC'),
+                            fillColor: LynSurface.canvas(widget.isDark),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: widget.isDark ? HexColor('#334155') : HexColor('#E2E8F0')),
+                              borderSide: BorderSide(color: LynSurface.border(widget.isDark)),
                             ),
                           ),
                         ),
@@ -2349,7 +2164,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                   ),
                   child: Text(
                     AppLocalizations.tr(context, 'Go Back'),
-                    style: TextStyle(color: widget.isDark ? Colors.white : HexColor('#1E293B')),
+                    style: TextStyle(color: LynSurface.textPrimary(widget.isDark)),
                   ),
                 ),
               ),
@@ -2358,7 +2173,7 @@ class _WhatsAppTemplatesBottomSheetState extends State<_WhatsAppTemplatesBottomS
                 child: ElevatedButton(
                   onPressed: state is AppSendWhatsAppTemplateLoadingState ? null : _sendTemplate,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: HexColor('#6366F1'),
+                    backgroundColor: LynPalette.indigo,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
