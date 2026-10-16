@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'lyn_palette.dart';
-import 'lyn_type.dart';
 
 /// The shape of a screen, drawn before its content arrives.
 ///
@@ -253,5 +252,65 @@ class _LynSkeletonGroupState extends State<LynSkeletonGroup>
   }
 }
 
-/// The gap between two placeholder lines inside one row.
-const double kSkeletonLineGap = LynSpace.sm;
+/// A placeholder for one line of text, occupying that line's real box.
+///
+/// WHY IT IS NOT A FIXED HEIGHT, which is what it was first written as. The real rows are built from
+/// `Text`, whose line box grows with `MediaQuery.textScaler`; nothing in this app clamps that, so the
+/// OS font-size setting reaches both screens. A placeholder measured in fixed logical pixels therefore
+/// matches the real row at the default size and nowhere else -- measured, the conversation row goes
+/// 73 / 82 / 113 at scale 1.0 / 1.3 / 2.0 while a fixed placeholder stays at 73, so the fifth row
+/// landed 36px then 160px away from the grey bar that stood for it. That is the layout jump this whole
+/// component exists to remove, returning for exactly the people who enlarged their type.
+///
+/// So the height is not computed here at all. An invisible zero-width space, set in the REAL rank,
+/// is laid out by the engine and the bar is drawn over it: the placeholder then occupies whatever box
+/// the arriving sentence will occupy, at every scale, with no arithmetic of ours to drift from what
+/// the engine actually does. (`fontSize * height` is not that number -- the engine reports 22.0 for
+/// the 16/1.4 rank, not 22.4.)
+class LynSkeletonTextLine extends StatelessWidget {
+  const LynSkeletonTextLine({
+    super.key,
+    required this.isDark,
+    required this.style,
+    required this.width,
+  });
+
+  final bool isDark;
+
+  /// The rank the real text at this position is set in.
+  final TextStyle style;
+
+  /// How wide the bar is. The line box's height is taken from [style]; only the width is chosen.
+  final double width;
+
+  /// The bar's height as a fraction of its rank's font size, so a larger type setting gets a
+  /// proportionally heavier bar rather than a thin rule floating in a tall box. Picked to land on the
+  /// heights these placeholders were drawn at before they scaled: 14 on the 16px rank, 12 on 14px,
+  /// 10 on 12px.
+  static const double _weight = 0.86;
+
+  @override
+  Widget build(BuildContext context) {
+    final bar = MediaQuery.textScalerOf(context).scale(style.fontSize! * _weight);
+
+    return SizedBox(
+      width: width,
+      child: Stack(
+        alignment: AlignmentDirectional.centerStart,
+        children: <Widget>[
+          // Lays out, paints nothing. `\u200B` is a zero-width space: it carries the line box and no
+          // glyph, so the box is the rank's, independent of which font happens to be resolved.
+          Opacity(
+            opacity: 0,
+            child: Text('\u200B', style: style, maxLines: 1),
+          ),
+          LynSkeletonBlock(isDark: isDark, width: width, height: bar, radius: 4),
+        ],
+      ),
+    );
+  }
+}
+
+/// The gap the real rows put between their two lines. A placeholder has to use the same one, or its
+/// column stops matching the moment the text scales.
+const double kSkeletonLineGap = 2;

@@ -943,12 +943,12 @@ class ConversationListSkeleton extends StatelessWidget {
         // A lazy builder with no item count draws what the viewport needs and stops, so the count
         // follows the device instead of being guessed at here.
         itemCount: rows,
-        itemBuilder: (context, index) => _row(_widths[index % _widths.length]),
+        itemBuilder: (context, index) => _row(context, _widths[index % _widths.length]),
       ),
     );
   }
 
-  Widget _row(List<double> widths) {
+  Widget _row(BuildContext context, List<double> widths) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: LynSpace.lg, vertical: LynSpace.md),
       decoration: BoxDecoration(
@@ -956,6 +956,8 @@ class ConversationListSkeleton extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Not a scaled block: the real avatar is a hard 48 and does not answer the text scaler
+          // either, so scaling this one would break the match at the size most people use.
           LynSkeletonBlock.circle(isDark: isDark, size: 48),
           const SizedBox(width: LynSpace.md),
           Expanded(
@@ -966,18 +968,28 @@ class ConversationListSkeleton extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      // The name's rank is 16px at 1.4, so its line box is 22 high; the block sits
-                      // inside that rather than replacing it, which keeps the row's height unchanged.
-                      LynSkeletonBlock.line(
-                          isDark: isDark, width: box.maxWidth * widths[0], height: 14),
+                      // Each line stands in the rank the real one is set in, so this column comes out
+                      // the height the real column will at whatever text size the reader has chosen.
+                      LynSkeletonTextLine(
+                        isDark: isDark,
+                        style: LynType.subtitle,
+                        width: box.maxWidth * widths[0],
+                      ),
                       const Spacer(),
                       // The timestamp.
-                      LynSkeletonBlock.line(isDark: isDark, width: 34, height: 10),
+                      LynSkeletonTextLine(
+                        isDark: isDark,
+                        style: LynType.caption,
+                        width: 34,
+                      ),
                     ],
                   ),
-                  const SizedBox(height: kSkeletonLineGap + 2),
-                  LynSkeletonBlock.line(
-                      isDark: isDark, width: box.maxWidth * widths[1], height: 12),
+                  const SizedBox(height: kSkeletonLineGap),
+                  LynSkeletonTextLine(
+                    isDark: isDark,
+                    style: LynType.callout,
+                    width: box.maxWidth * widths[1],
+                  ),
                 ],
               ),
             ),

@@ -150,69 +150,85 @@ void main() {
 
   // ── The claims ──────────────────────────────────────────────────────────────
 
-  testWidgets('a placeholder row is exactly as tall as the row it stands in for', (t) async {
-    await t.pumpWidget(await testApp(
-      t,
-      home: Scaffold(
-        body: SizedBox(
-          width: 390,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ConversationItem(
-                conversation: _realConversation,
-                isSelected: false,
-                isDark: false,
-                onTap: _noop,
-                now: DateTime(2026, 3, 12, 14, 30),
+  // The OS font-size setting reaches both screens -- nothing in lib/ clamps `textScaler` -- so the
+  // parity these two tests pin has to hold across the range, not only at the default. An earlier
+  // version of the placeholders was built from fixed pixel literals and matched at 1.0 and nowhere
+  // else: the real conversation row measures 73 / 82 / 113 at scale 1.0 / 1.3 / 2.0, so the fifth
+  // row landed 36px, then 160px, from the grey bar that stood for it.
+  const scales = <double>[0.85, 1.0, 1.15, 1.3, 1.5, 2.0];
+
+  for (final scale in scales) {
+    testWidgets('a placeholder row is as tall as its real row at text scale $scale', (t) async {
+      await t.pumpWidget(await testApp(
+        t,
+        home: MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+          child: Scaffold(
+            body: SizedBox(
+              width: 390,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ConversationItem(
+                    conversation: _realConversation,
+                    isSelected: false,
+                    isDark: false,
+                    onTap: _noop,
+                    now: DateTime(2026, 3, 12, 14, 30),
+                  ),
+                  const SizedBox(
+                      height: 400, child: ConversationListSkeleton(isDark: false, rows: 1)),
+                ],
               ),
-              const SizedBox(height: 200, child: ConversationListSkeleton(isDark: false, rows: 1)),
-            ],
+            ),
           ),
         ),
-      ),
-    ));
-    await t.pump(const Duration(milliseconds: 100));
+      ));
+      await t.pump(const Duration(milliseconds: 100));
 
-    // The whole point of a skeleton over a spinner: the real rows arrive in the same place, so the
-    // list fills rather than jumping. If this drifts, the jump is back.
-    final placeholder = find
-        .descendant(
-          of: find.byType(ConversationListSkeleton),
-          matching: find.byType(Container),
-        )
-        .first;
-    expect(t.getSize(placeholder).height, t.getSize(find.byType(ConversationItem)).height);
-  });
+      // The whole point of a skeleton over a spinner: the real rows arrive in the same place, so the
+      // list fills rather than jumping. If this drifts, the jump is back.
+      final placeholder = find
+          .descendant(
+            of: find.byType(ConversationListSkeleton),
+            matching: find.byType(Container),
+          )
+          .first;
+      expect(t.getSize(placeholder).height, t.getSize(find.byType(ConversationItem)).height);
+    });
 
-  testWidgets('a placeholder card is exactly as tall as the inbox card', (t) async {
-    await t.pumpWidget(await testApp(
-      t,
-      home: Scaffold(
-        body: SizedBox(
-          width: 390,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                // The real list's gutter, which the card itself does not carry.
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: InboxCard(inbox: _realInbox, isDark: false, onTap: _noop),
+    testWidgets('a placeholder card is as tall as the inbox card at text scale $scale', (t) async {
+      await t.pumpWidget(await testApp(
+        t,
+        home: MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+          child: Scaffold(
+            body: SizedBox(
+              width: 390,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    // The real list's gutter, which the card itself does not carry.
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: InboxCard(inbox: _realInbox, isDark: false, onTap: _noop),
+                  ),
+                  const SizedBox(height: 400, child: InboxListSkeleton(isDark: false, cards: 1)),
+                ],
               ),
-              const SizedBox(height: 200, child: InboxListSkeleton(isDark: false, cards: 1)),
-            ],
+            ),
           ),
         ),
-      ),
-    ));
-    await t.pump(const Duration(milliseconds: 100));
+      ));
+      await t.pump(const Duration(milliseconds: 100));
 
-    // Measured on the outer Padding of each, so the 12px gap between cards counts on both sides.
-    final placeholder = find
-        .descendant(of: find.byType(InboxListSkeleton), matching: find.byType(Padding))
-        .first;
-    expect(t.getSize(placeholder).height, t.getSize(find.byType(InboxCard)).height);
-  });
+      // Measured on the outer Padding of each, so the 12px gap between cards counts on both sides.
+      final placeholder = find
+          .descendant(of: find.byType(InboxListSkeleton), matching: find.byType(Padding))
+          .first;
+      expect(t.getSize(placeholder).height, t.getSize(find.byType(InboxCard)).height);
+    });
+  }
 
   testWidgets('the group announces what is loading, in the running locale', (t) async {
     final handle = t.ensureSemantics();

@@ -260,12 +260,12 @@ class InboxListSkeleton extends StatelessWidget {
         padding: const EdgeInsets.all(LynSpace.lg),
         physics: const NeverScrollableScrollPhysics(),
         itemCount: cards,
-        itemBuilder: (context, index) => _card(_widths[index % _widths.length]),
+        itemBuilder: (context, index) => _card(context, _widths[index % _widths.length]),
       ),
     );
   }
 
-  Widget _card(List<double> widths) {
+  Widget _card(BuildContext context, List<double> widths) {
     return Padding(
       padding: const EdgeInsets.only(bottom: LynSpace.md),
       child: Container(
@@ -277,6 +277,7 @@ class InboxListSkeleton extends StatelessWidget {
         ),
         child: Row(
           children: [
+            // The channel tile is a hard 48 on the real card too, so this one stays fixed with it.
             LynSkeletonBlock(isDark: isDark, width: 48, height: 48, radius: LynSpace.md),
             const SizedBox(width: LynSpace.lg),
             Expanded(
@@ -285,11 +286,19 @@ class InboxListSkeleton extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    LynSkeletonBlock.line(
-                        isDark: isDark, width: box.maxWidth * widths[0], height: 14),
-                    const SizedBox(height: kSkeletonLineGap + 2),
-                    LynSkeletonBlock.line(
-                        isDark: isDark, width: box.maxWidth * widths[1], height: 10),
+                    // The ranks the real card sets its name and channel label in, so the column
+                    // tracks the real one at every text size rather than only at the default.
+                    LynSkeletonTextLine(
+                      isDark: isDark,
+                      style: LynType.subtitle,
+                      width: box.maxWidth * widths[0],
+                    ),
+                    const SizedBox(height: kSkeletonLineGap),
+                    LynSkeletonTextLine(
+                      isDark: isDark,
+                      style: LynType.caption,
+                      width: box.maxWidth * widths[1],
+                    ),
                   ],
                 ),
               ),
